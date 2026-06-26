@@ -11,3 +11,8 @@ build/
 
 # Embedded repos
 prompt-optimizer/
+
+# Build & Metadata directories
+*.egg-info/
+.pnpm-debug.log
+.pnpm-store/

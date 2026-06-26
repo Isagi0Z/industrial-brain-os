@@ -1,0 +1,6 @@
+packages:
+  - "frontend"
+  - "shared/ts"
+
+allowBuilds:
+  esbuild: true
