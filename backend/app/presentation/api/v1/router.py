@@ -1,10 +1,11 @@
 from fastapi import APIRouter
-from app.presentation.api.v1.endpoints import health
+from app.presentation.api.v1.endpoints import health, auth
 
 api_router = APIRouter()
 
 # Include health router at the top
 api_router.include_router(health.router, tags=["System Health"])
+api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 
 
 # Placeholder routers for the five core sub-brains

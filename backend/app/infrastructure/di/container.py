@@ -8,6 +8,12 @@ from minio import Minio
 
 from app.infrastructure.config.settings import settings
 
+from app.domain.auth.interfaces import IUserRepository, ITokenService, IPasswordHasher
+from app.application.auth.services import AuthUseCase
+from app.infrastructure.auth.jwt_service import JWTService
+from app.infrastructure.auth.password_hasher import PasswordHasher
+from app.infrastructure.auth.user_repository import PostgresUserRepository
+
 
 class DIContainer:
     """
@@ -118,6 +124,31 @@ class DIContainer:
                 logging.error(f"Failed to connect to MinIO: {e}")
                 raise e
         return self._minio_client
+
+    # --- Auth Services ---
+    def get_token_service(self) -> ITokenService:
+        if not hasattr(self, "_token_service"):
+            self._token_service = JWTService(self.get_redis)
+        return self._token_service
+
+    def get_password_hasher(self) -> IPasswordHasher:
+        if not hasattr(self, "_password_hasher"):
+            self._password_hasher = PasswordHasher()
+        return self._password_hasher
+
+    def get_user_repository(self) -> IUserRepository:
+        if not hasattr(self, "_user_repository"):
+            self._user_repository = PostgresUserRepository(self.get_postgres)
+        return self._user_repository
+
+    def get_auth_use_case(self) -> AuthUseCase:
+        if not hasattr(self, "_auth_use_case"):
+            self._auth_use_case = AuthUseCase(
+                user_repo=self.get_user_repository(),
+                token_service=self.get_token_service(),
+                password_hasher=self.get_password_hasher(),
+            )
+        return self._auth_use_case
 
     def close_all(self):
         """
