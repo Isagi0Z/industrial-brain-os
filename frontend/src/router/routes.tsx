@@ -1,6 +1,8 @@
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { DocumentHub } from '../components/documents/DocumentHub';
+import { DocumentDetails } from '../components/documents/DocumentDetails';
 import { 
   BookOpen, 
   Wrench, 
@@ -119,6 +121,14 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Navigate to="/knowledge" replace />,
+      },
+      {
+        path: 'documents',
+        element: <DocumentHub />,
+      },
+      {
+        path: 'documents/:id',
+        element: <DocumentDetails />,
       },
       {
         path: 'knowledge',

@@ -11,7 +11,8 @@ import {
   Terminal,
   Activity,
   Layers,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -60,6 +61,7 @@ export const DashboardLayout: React.FC = () => {
   }, []);
 
   const navItems = [
+    { name: 'Document Hub', path: '/documents', icon: FileText, desc: 'Central document management and storage' },
     { name: 'Knowledge Brain', path: '/knowledge', icon: BookOpen, desc: 'Ingestion, OCR & documentation mapping' },
     { name: 'Maintenance Brain', path: '/maintenance', icon: Wrench, desc: 'CMMS loop, Work Orders & anomalies' },
     { name: 'Compliance Brain', path: '/compliance', icon: ShieldAlert, desc: 'OSHA/EPA compliance & safety validation' },

@@ -14,6 +14,11 @@ from app.infrastructure.auth.jwt_service import JWTService
 from app.infrastructure.auth.password_hasher import PasswordHasher
 from app.infrastructure.auth.user_repository import PostgresUserRepository
 
+from app.domain.document.interfaces import IDocumentRepository, IStorageService
+from app.application.document.services import DocumentUseCase
+from app.infrastructure.document.minio_storage_service import MinioStorageService
+from app.infrastructure.document.document_repository import PostgresDocumentRepository
+
 
 class DIContainer:
     """
@@ -149,6 +154,25 @@ class DIContainer:
                 password_hasher=self.get_password_hasher(),
             )
         return self._auth_use_case
+
+    # --- Document Services ---
+    def get_storage_service(self) -> IStorageService:
+        if not hasattr(self, "_storage_service"):
+            self._storage_service = MinioStorageService(self.get_minio)
+        return self._storage_service
+
+    def get_document_repository(self) -> IDocumentRepository:
+        if not hasattr(self, "_document_repository"):
+            self._document_repository = PostgresDocumentRepository(self.get_postgres)
+        return self._document_repository
+
+    def get_document_use_case(self) -> DocumentUseCase:
+        if not hasattr(self, "_document_use_case"):
+            self._document_use_case = DocumentUseCase(
+                document_repo=self.get_document_repository(),
+                storage_service=self.get_storage_service()
+            )
+        return self._document_use_case
 
     def close_all(self):
         """
