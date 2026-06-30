@@ -44,7 +44,7 @@ The following work is already merged into `feature/bootstrap` as of the roadmap 
 **Blocks**: M2, M4, M6
 **Status**: ✅ Complete
 **Completion Date**: 2026-06-30
-**Commit SHA**: _(see git log after push)_
+**Commit SHA**: `ca76367`
 
 ### Objective
 Verify all five Docker services start healthy. Initialize PostgreSQL schema via Alembic, Qdrant collections, Neo4j constraints, and MinIO buckets so all downstream milestones have clean storage targets.
