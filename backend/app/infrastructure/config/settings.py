@@ -55,6 +55,9 @@ class Settings(BaseSettings):
     CHAT_SESSION_TTL_SECONDS: int = 3600
     PROMPT_FILE: str = "ai/prompts/knowledge_copilot.yaml"
 
+    # Ontology configuration (M6)
+    ONTOLOGY_FILE: str = "ontology/industrial_ontology.yaml"
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

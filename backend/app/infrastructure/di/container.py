@@ -54,6 +54,10 @@ from app.infrastructure.chat.redis_history_repository import RedisChatHistoryRep
 from app.infrastructure.chat.context_builder import ContextBuilder
 from app.infrastructure.chat.prompt_loader import YamlPromptLoader
 
+from app.domain.ontology.interfaces import IOntologyValidator
+from app.domain.ontology.validator import OntologyValidatorService
+from app.infrastructure.ontology.yaml_loader import load_ontology
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -318,6 +322,26 @@ class DIContainer:
                 },
             )
         return self._chat_use_case
+
+    # ------------------------------------------------------------------
+    # Ontology services (M6)
+    # ------------------------------------------------------------------
+
+    def get_ontology_validator(self) -> IOntologyValidator:
+        if not hasattr(self, "_ontology_validator"):
+            from pathlib import Path
+
+            ontology_path = Path(settings.ONTOLOGY_FILE)
+            if not ontology_path.is_absolute():
+                ontology_path = Path(__file__).parents[4] / settings.ONTOLOGY_FILE
+            schema = load_ontology(ontology_path)
+            self._ontology_validator = OntologyValidatorService(schema)
+            logging.info(
+                "OntologyValidatorService initialized: version=%s node_types=%d",
+                schema.version,
+                len(schema.node_types),
+            )
+        return self._ontology_validator
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

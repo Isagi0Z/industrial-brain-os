@@ -239,12 +239,15 @@ Wire vector search results into an LLM to produce cited answers. Expose a stream
 
 ---
 
-## M6 — Industrial Ontology Schema & Neo4j Initialization
+## M6 — Industrial Ontology Schema & Neo4j Initialization ✅
 
 **Phase**: Phase 2
 **Difficulty**: Medium
 **Depends on**: M1
 **Blocks**: M7
+**Status**: ✅ Complete
+**Completion Date**: 2026-06-30
+**Commit SHA**: `TBD — stamped after commit`
 
 ### Objective
 Define and enforce the Industrial Ontology in Neo4j per the architecture specification (§3) and ADR-010. Node types, required properties, and relationship types must be schema-validated before any entity extraction pipeline writes to the graph.
@@ -257,21 +260,21 @@ Define and enforce the Industrial Ontology in Neo4j per the architecture specifi
 - Relationship types: `MONITORS`, `IS_PART_OF`, `EXHIBITS`, `REFERENCES`, `PERFORMED_BY`, `REQUIRES`, `INDICATES_FAILURE_OF`
 
 ### Checklist
-- [ ] `ontology/industrial_ontology.yaml` committed with: node_types, required_properties, optional_properties, allowed_relations
-- [ ] Schema file validated against JSON Schema on CI build — malformed ontology fails the build (ADR-020 pattern applied to ontology)
-- [ ] Neo4j constraint: `UNIQUE (n:Asset {tag_number})`
-- [ ] Neo4j constraint: `UNIQUE (n:Equipment {tag_number})`
-- [ ] Neo4j constraint: `UNIQUE (n:Sensor {tag_number})`
-- [ ] Neo4j constraint: `UNIQUE (n:Document {source_id})`
-- [ ] Neo4j constraint: `UNIQUE (n:FailureMode {failure_code})`
-- [ ] Neo4j index: `INDEX ON :Equipment(manufacturer)`
-- [ ] Neo4j index: `INDEX ON :Procedure(procedure_type)`
-- [ ] `OntologyValidatorService` in `domain/` rejects node creation if required properties are missing
-- [ ] `OntologyValidatorService` rejects relationship creation if the source→target type combination is not in allowed_relations
-- [ ] Validation errors return structured `OntologyViolationError` with node type and missing field (Engineering Bible §29)
-- [ ] `GET /api/v1/ontology/schema` endpoint returns the current ontology YAML as JSON for frontend consumption
-- [ ] Unit tests: validator accepts valid nodes, rejects nodes with missing required properties, rejects illegal relationships
-- [ ] No ad-hoc relationship types permitted outside the ontology YAML (Engineering Bible §18)
+- [x] `ontology/industrial_ontology.yaml` committed with: node_types, required_properties, optional_properties, allowed_relations
+- [x] Schema file validated against JSON Schema on CI build — malformed ontology fails the build (ADR-020 pattern applied to ontology)
+- [x] Neo4j constraint: `UNIQUE (n:Asset {tag_number})`
+- [x] Neo4j constraint: `UNIQUE (n:Equipment {tag_number})`
+- [x] Neo4j constraint: `UNIQUE (n:Sensor {tag_number})`
+- [x] Neo4j constraint: `UNIQUE (n:Document {source_id})`
+- [x] Neo4j constraint: `UNIQUE (n:FailureMode {failure_code})`
+- [x] Neo4j index: `INDEX ON :Equipment(manufacturer)`
+- [x] Neo4j index: `INDEX ON :Procedure(procedure_type)`
+- [x] `OntologyValidatorService` in `domain/` rejects node creation if required properties are missing
+- [x] `OntologyValidatorService` rejects relationship creation if the source→target type combination is not in allowed_relations
+- [x] Validation errors return structured `OntologyViolationError` with node type and missing field (Engineering Bible §29)
+- [x] `GET /api/v1/ontology/schema` endpoint returns the current ontology YAML as JSON for frontend consumption
+- [x] Unit tests: validator accepts valid nodes, rejects nodes with missing required properties, rejects illegal relationships (18 tests)
+- [x] No ad-hoc relationship types permitted outside the ontology YAML (Engineering Bible §18)
 
 ---
 

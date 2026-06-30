@@ -40,11 +40,13 @@ NEO4J_CONSTRAINTS = [
     ("equipment_tag_unique", "Equipment", "tag_number"),
     ("sensor_tag_unique", "Sensor", "tag_number"),
     ("document_source_unique", "Document", "source_id"),
+    ("failure_mode_code_unique", "FailureMode", "failure_code"),
 ]
 
 NEO4J_INDEXES = [
     ("failure_code_index", "FailureMode", "failure_code"),
     ("procedure_type_index", "Procedure", "procedure_type"),
+    ("equipment_manufacturer_index", "Equipment", "manufacturer"),
 ]
 
 

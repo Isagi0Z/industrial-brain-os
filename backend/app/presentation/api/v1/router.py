@@ -1,5 +1,12 @@
 from fastapi import APIRouter
-from app.presentation.api.v1.endpoints import health, auth, document, search, chat
+from app.presentation.api.v1.endpoints import (
+    health,
+    auth,
+    document,
+    search,
+    chat,
+    ontology,
+)
 
 api_router = APIRouter()
 
@@ -9,6 +16,7 @@ api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(document.router)
 api_router.include_router(search.router)
 api_router.include_router(chat.router)
+api_router.include_router(ontology.router)
 
 
 # Placeholder routers for the five core sub-brains

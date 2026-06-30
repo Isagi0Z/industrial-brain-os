@@ -1,0 +1,208 @@
+version: "1.0"
+description: >
+  Industrial Brain OS Ontology — aligned with ISO 14224 and ISO 15926.
+  Defines allowed node types, their required and optional properties,
+  and the permitted relationship edges between node types.
+
+node_types:
+
+  Asset:
+    required_properties:
+      - tag_number
+      - name
+    optional_properties:
+      - description
+      - location
+      - asset_class
+      - status
+      - installation_date
+      - decommission_date
+
+  Equipment:
+    required_properties:
+      - tag_number
+      - equipment_class
+    optional_properties:
+      - name
+      - manufacturer
+      - model_number
+      - serial_number
+      - installation_date
+      - location
+      - status
+      - rated_power_kw
+      - rated_pressure_bar
+      - rated_temperature_c
+
+  Sensor:
+    required_properties:
+      - tag_number
+      - measurement_type
+    optional_properties:
+      - name
+      - unit
+      - min_range
+      - max_range
+      - equipment_id
+      - location
+      - status
+
+  FailureMode:
+    required_properties:
+      - failure_code
+      - description
+    optional_properties:
+      - severity
+      - failure_mechanism
+      - detection_method
+      - typical_cause
+
+  Procedure:
+    required_properties:
+      - procedure_id
+      - title
+      - procedure_type
+    optional_properties:
+      - description
+      - revision
+      - effective_date
+      - applicable_equipment
+      - safety_requirements
+
+  Document:
+    required_properties:
+      - source_id
+      - title
+      - document_type
+    optional_properties:
+      - author
+      - revision
+      - issue_date
+      - file_format
+      - storage_key
+      - role_scope
+
+  Maintenance:
+    required_properties:
+      - work_order_id
+      - maintenance_type
+    optional_properties:
+      - title
+      - description
+      - scheduled_date
+      - completed_date
+      - technician
+      - equipment_id
+      - status
+
+  Inspection:
+    required_properties:
+      - inspection_id
+      - inspection_type
+    optional_properties:
+      - title
+      - description
+      - scheduled_date
+      - completed_date
+      - inspector
+      - asset_id
+      - result
+      - findings
+
+  Regulation:
+    required_properties:
+      - regulation_id
+      - title
+      - issuing_body
+    optional_properties:
+      - description
+      - effective_date
+      - jurisdiction
+      - applicable_industries
+      - version
+
+  Personnel:
+    required_properties:
+      - personnel_id
+      - role
+    optional_properties:
+      - name
+      - department
+      - certifications
+      - contact_info
+
+  Process:
+    required_properties:
+      - process_id
+      - process_name
+    optional_properties:
+      - description
+      - process_type
+      - operating_pressure_bar
+      - operating_temperature_c
+      - feed_materials
+      - output_materials
+
+allowed_relations:
+  # Sensor → Equipment / Asset
+  - source: Sensor
+    relation: MONITORS
+    target: Equipment
+  - source: Sensor
+    relation: MONITORS
+    target: Asset
+
+  # Equipment structural containment
+  - source: Equipment
+    relation: IS_PART_OF
+    target: Asset
+  - source: Equipment
+    relation: IS_PART_OF
+    target: Equipment
+
+  # Failure modes
+  - source: Equipment
+    relation: EXHIBITS
+    target: FailureMode
+  - source: FailureMode
+    relation: INDICATES_FAILURE_OF
+    target: Equipment
+  - source: FailureMode
+    relation: INDICATES_FAILURE_OF
+    target: Asset
+
+  # Document references
+  - source: Document
+    relation: REFERENCES
+    target: Equipment
+  - source: Document
+    relation: REFERENCES
+    target: Asset
+  - source: Document
+    relation: REFERENCES
+    target: Procedure
+  - source: Document
+    relation: REFERENCES
+    target: Regulation
+  - source: Regulation
+    relation: REFERENCES
+    target: Procedure
+
+  # Personnel performs work
+  - source: Maintenance
+    relation: PERFORMED_BY
+    target: Personnel
+  - source: Inspection
+    relation: PERFORMED_BY
+    target: Personnel
+
+  # Equipment / Asset requirements
+  - source: Equipment
+    relation: REQUIRES
+    target: Procedure
+  - source: Asset
+    relation: REQUIRES
+    target: Procedure
+  - source: Process
+    relation: REQUIRES
+    target: Equipment
