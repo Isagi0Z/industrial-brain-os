@@ -62,7 +62,7 @@ export const DashboardLayout: React.FC = () => {
 
   const navItems = [
     { name: 'Document Hub', path: '/documents', icon: FileText, desc: 'Central document management and storage' },
-    { name: 'Knowledge Brain', path: '/knowledge', icon: BookOpen, desc: 'Ingestion, OCR & documentation mapping' },
+    { name: 'Knowledge Copilot', path: '/knowledge', icon: BookOpen, desc: 'Chat with indexed documents — cited answers' },
     { name: 'Maintenance Brain', path: '/maintenance', icon: Wrench, desc: 'CMMS loop, Work Orders & anomalies' },
     { name: 'Compliance Brain', path: '/compliance', icon: ShieldAlert, desc: 'OSHA/EPA compliance & safety validation' },
     { name: 'RCA Brain', path: '/rca', icon: GitFork, desc: '5-Whys, Fishbone diagrams & fault trees' },

@@ -44,6 +44,17 @@ class Settings(BaseSettings):
     MINIO_CONSOLE_PORT: int = 9001
     MINIO_BUCKET_NAME: str = "industrial-brain-documents"
 
+    # LLM / Chat configuration (M5)
+    LLM_PROVIDER: str = "ollama"
+    OLLAMA_HOST: str = "127.0.0.1"
+    OLLAMA_PORT: int = 11434
+    OLLAMA_MODEL: str = "llama3.2"
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-2.0-flash"
+    CHAT_MAX_TOKENS: int = 2048
+    CHAT_SESSION_TTL_SECONDS: int = 3600
+    PROMPT_FILE: str = "ai/prompts/knowledge_copilot.yaml"
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

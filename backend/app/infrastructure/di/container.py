@@ -47,6 +47,13 @@ from app.infrastructure.search.embedding_service import (
 from app.infrastructure.search.qdrant_repository import QdrantVectorRepository
 from app.infrastructure.search.bm25_repository import PostgresBM25Repository
 
+from app.application.chat.chat_use_case import ChatUseCase
+from app.infrastructure.chat.ollama_gateway import OllamaGateway
+from app.infrastructure.chat.gemini_gateway import GeminiGateway
+from app.infrastructure.chat.redis_history_repository import RedisChatHistoryRepository
+from app.infrastructure.chat.context_builder import ContextBuilder
+from app.infrastructure.chat.prompt_loader import YamlPromptLoader
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -250,6 +257,67 @@ class DIContainer:
                 vector_dim=VECTOR_DIM,
             )
         return self._embedding_use_case
+
+    # ------------------------------------------------------------------
+    # Chat services (M5)
+    # ------------------------------------------------------------------
+
+    def get_chat_use_case(self) -> ChatUseCase:
+        if not hasattr(self, "_chat_use_case"):
+            from pathlib import Path
+
+            prompt_path = Path(settings.PROMPT_FILE)
+            if not prompt_path.is_absolute():
+                prompt_path = Path(__file__).parents[4] / settings.PROMPT_FILE
+
+            prompt_loader = YamlPromptLoader(prompt_path)
+            context_builder = ContextBuilder()
+            history_repo = RedisChatHistoryRepository(self.get_redis)
+
+            primary: OllamaGateway | GeminiGateway
+            fallback: OllamaGateway | GeminiGateway | None = None
+
+            if settings.LLM_PROVIDER == "gemini":
+                primary = GeminiGateway(
+                    api_key=settings.GEMINI_API_KEY,
+                    model=settings.GEMINI_MODEL,
+                )
+                if settings.OLLAMA_HOST:
+                    fallback = OllamaGateway(
+                        host=settings.OLLAMA_HOST,
+                        port=settings.OLLAMA_PORT,
+                        model=settings.OLLAMA_MODEL,
+                    )
+            else:
+                primary = OllamaGateway(
+                    host=settings.OLLAMA_HOST,
+                    port=settings.OLLAMA_PORT,
+                    model=settings.OLLAMA_MODEL,
+                )
+                if settings.GEMINI_API_KEY:
+                    fallback = GeminiGateway(
+                        api_key=settings.GEMINI_API_KEY,
+                        model=settings.GEMINI_MODEL,
+                    )
+
+            self._chat_use_case = ChatUseCase(
+                embedding_use_case=self.get_embedding_use_case(),
+                primary_gateway=primary,
+                fallback_gateway=fallback,
+                history_repo=history_repo,
+                context_builder=context_builder,
+                prompt_loader=prompt_loader,
+                max_tokens=settings.CHAT_MAX_TOKENS,
+                session_ttl_seconds=settings.CHAT_SESSION_TTL_SECONDS,
+            )
+            logging.info(
+                "ChatUseCase initialized",
+                extra={
+                    "provider": settings.LLM_PROVIDER,
+                    "has_fallback": fallback is not None,
+                },
+            )
+        return self._chat_use_case
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

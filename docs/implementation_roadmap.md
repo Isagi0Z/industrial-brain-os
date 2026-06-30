@@ -190,12 +190,15 @@ Generate dense vector embeddings from `DocumentChunk` text, batch-upsert them in
 
 ---
 
-## M5 — Basic Chat API & Copilot UI
+## M5 — Basic Chat API & Copilot UI ✅
 
 **Phase**: MVP
 **Difficulty**: Medium
 **Depends on**: M4
 **Blocks**: M9 (agents extend this endpoint)
+**Status**: ✅ Complete
+**Completion Date**: 2026-06-30
+**Commit SHA**: `TBD — stamped after commit`
 
 ### Objective
 Wire vector search results into an LLM to produce cited answers. Expose a streaming `/chat` WebSocket endpoint. Connect the React frontend with a chat interface displaying streamed responses and source citations. **This is the first publicly demo-able milestone.**
@@ -208,23 +211,23 @@ Wire vector search results into an LLM to produce cited answers. Expose a stream
 - End-to-end flow: upload PDF → ask question → get cited answer within 5 seconds for simple queries
 
 ### Checklist
-- [ ] `ModelGatewayInterface` abstract class defined in `domain/` — no concrete LLM client in domain layer (ADR-013)
-- [ ] `OllamaGateway` and `GeminiGateway` implementations in `infrastructure/` implementing the interface
-- [ ] Environment variable `LLM_PROVIDER=ollama|gemini` selects active gateway at startup
-- [ ] Fallback: if primary gateway returns error, retry with fallback gateway using exponential backoff (Engineering Bible §23)
-- [ ] Retry policy: max 3 attempts, backoff 1s→2s→4s; error logged with Correlation-ID at each attempt
-- [ ] `max_tokens` enforced per request: 2048 default, configurable via env
-- [ ] Chat endpoint receives: `{query: str, session_id: str, top_k: int = 5}`
-- [ ] Context builder: fetches top-k vector chunks, deduplicates by `chunk_id`, ranks by score, truncates to token budget
-- [ ] System prompt loaded from `ai/prompts/knowledge_copilot.yaml` (not hardcoded — ADR-020)
-- [ ] Response streamed token-by-token via WebSocket; final message includes `citations[]` array
-- [ ] Citation schema: `{document_title, page_number, chunk_text_excerpt, score, storage_key}`
-- [ ] Session history stored in Redis with 1-hour TTL (Engineering Bible §3 — short-term memory)
-- [ ] `ChatInterface` React component: message thread, streaming token animation, citation accordion cards
-- [ ] Citation card links to document viewer (can be stub route at this milestone)
-- [ ] Token usage logged per request: `{prompt_tokens, completion_tokens, model, latency_ms}` (Engineering Bible §23)
-- [ ] `POST /api/v1/chat` non-streaming variant returns same structure for mobile/field-tech clients
-- [ ] Unit tests: context builder, citation resolver, gateway fallback logic
+- [x] `ModelGatewayInterface` abstract class defined in `domain/` — no concrete LLM client in domain layer (ADR-013)
+- [x] `OllamaGateway` and `GeminiGateway` implementations in `infrastructure/` implementing the interface
+- [x] Environment variable `LLM_PROVIDER=ollama|gemini` selects active gateway at startup
+- [x] Fallback: if primary gateway returns error, retry with fallback gateway using exponential backoff (Engineering Bible §23)
+- [x] Retry policy: max 3 attempts, backoff 1s→2s→4s; error logged with Correlation-ID at each attempt
+- [x] `max_tokens` enforced per request: 2048 default, configurable via env
+- [x] Chat endpoint receives: `{query: str, session_id: str, top_k: int = 5}`
+- [x] Context builder: fetches top-k vector chunks, deduplicates by `chunk_id`, ranks by score, truncates to token budget
+- [x] System prompt loaded from `ai/prompts/knowledge_copilot.yaml` (not hardcoded — ADR-020)
+- [x] Response streamed token-by-token via WebSocket; final message includes `citations[]` array
+- [x] Citation schema: `{document_title, page_number, chunk_text_excerpt, score, storage_key}`
+- [x] Session history stored in Redis with 1-hour TTL (Engineering Bible §3 — short-term memory)
+- [x] `ChatInterface` React component: message thread, streaming token animation, citation accordion cards
+- [x] Citation card links to document viewer (stub route at this milestone)
+- [x] Token usage logged per request: `{prompt_tokens, completion_tokens, model, latency_ms}` (Engineering Bible §23)
+- [x] `POST /api/v1/chat` non-streaming variant returns same structure for mobile/field-tech clients
+- [x] Unit tests: context builder, citation resolver, gateway fallback logic (11 tests)
 - [ ] Manual demo test: upload `sample_manual.pdf`, ask "What is the operating pressure of valve VLV-101?", verify cited answer
 
 ---

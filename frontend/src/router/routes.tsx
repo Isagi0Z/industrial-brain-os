@@ -3,14 +3,14 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { DocumentHub } from '../components/documents/DocumentHub';
 import { DocumentDetails } from '../components/documents/DocumentDetails';
-import { 
-  BookOpen, 
-  Wrench, 
-  ShieldAlert, 
-  GitFork, 
-  Lightbulb, 
-  Activity, 
-  Layers 
+import { ChatInterface } from '../components/chat/ChatInterface';
+import {
+  Wrench,
+  ShieldAlert,
+  GitFork,
+  Lightbulb,
+  Activity,
+  Layers
 } from 'lucide-react';
 
 interface SubBrainStatusResponse {
@@ -132,20 +132,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'knowledge',
-        element: (
-          <SubBrainPanel
-            title="Knowledge Brain"
-            icon={BookOpen}
-            description="The central information processing brain. Integrates text parsing, document segmentation, OCR location maps, and ontology entity resolutions to build structural document linkages."
-            statusEndpoint="/knowledge/status"
-            architectureDetails={[
-              "Hierarchical layout segmentations (PaddleOCR / Layout-Parser)",
-              "Spatial bounding coordinate calculations for citations",
-              "Heterogeneous format ingestion (PDF, CAD, SOP, Work Orders)",
-              "Multi-layer ontology alignment mappings"
-            ]}
-          />
-        ),
+        element: <ChatInterface />,
+      },
+      {
+        path: 'chat',
+        element: <ChatInterface />,
       },
       {
         path: 'maintenance',
