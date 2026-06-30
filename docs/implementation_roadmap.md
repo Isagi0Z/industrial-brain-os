@@ -150,12 +150,15 @@ Transform raw page extraction into semantically structured, hierarchical chunks.
 
 ---
 
-## M4 — Embedding Pipeline & Qdrant Indexing
+## M4 — Embedding Pipeline & Qdrant Indexing ✅
 
 **Phase**: MVP
 **Difficulty**: Medium
 **Depends on**: M3
 **Blocks**: M5, M8
+**Status**: ✅ Complete
+**Completion Date**: 2026-06-30
+**Commit SHA**: TBD (pending commit)
 
 ### Objective
 Generate dense vector embeddings from `DocumentChunk` text, batch-upsert them into Qdrant with full metadata payloads, and expose a working `/search/semantic` endpoint. Also implement BM25 keyword search for exact technical code lookup per ADR-009, Stage 1.
@@ -163,27 +166,27 @@ Generate dense vector embeddings from `DocumentChunk` text, batch-upsert them in
 ### Deliverables
 - Embedding model integrated: `BAAI/bge-large-en-v1.5` (1024-dim) via HuggingFace `sentence-transformers`
 - Qdrant batch upsert pipeline wiring `DocumentChunk` → vector point with payload
-- BM25 index over chunk text using `rank-bm25` library with PostgreSQL persistence
+- BM25 index over chunk text with PostgreSQL persistence (`bm25_index` table, migration 003)
 - `GET /api/v1/search/semantic?q=&limit=` endpoint returning ranked chunk results
 - `GET /api/v1/search/keyword?q=&limit=` endpoint for BM25 keyword search
 - Both endpoints enforce RBAC: results filtered by `role_scope` payload field (ADR-005 + Engineering Bible §15)
 
 ### Checklist
-- [ ] `sentence-transformers` model `BAAI/bge-large-en-v1.5` loaded once at startup, not per request
-- [ ] Embedding inference runs in thread pool via `run_in_threadpool` (ADR-001 mitigation — no blocking event loop)
-- [ ] Batch size: 32 chunks per embedding call; progress logged per batch
-- [ ] Qdrant point payload per chunk: `document_id`, `chunk_index`, `chunk_type`, `page_number`, `parent_section_header`, `role_scope`, `document_title`, `revision_date`
-- [ ] `role_scope` payload field populated from document metadata and used as Qdrant filter on every query
-- [ ] Qdrant upsert uses `upsert` (idempotent), not `insert` — safe to re-run on document re-ingestion
-- [ ] BM25 index built per-document at ingestion time; term frequencies stored in PostgreSQL `bm25_index` table
-- [ ] `/search/semantic` returns: `chunk_text`, `score`, `document_title`, `page_number`, `bbox_json`, `chunk_type`
-- [ ] `/search/keyword` returns same schema as semantic for uniform client consumption
-- [ ] Both endpoints: `limit` default=10, max=50; scores normalized 0–1
-- [ ] Both endpoints validated with RBAC middleware — unauthenticated requests return 401
-- [ ] No `Any` typing in embedding service or Qdrant client wrapper (Engineering Bible §8)
-- [ ] Job state transitions: `CHUNKED → EMBEDDING → INDEXED`
-- [ ] Unit tests: embedding service, Qdrant client wrapper, BM25 indexer, RBAC filter logic
-- [ ] Integration test: index 5 chunks, run semantic query, verify top-1 result is correct chunk
+- [x] `sentence-transformers` model `BAAI/bge-large-en-v1.5` loaded once at startup, not per request
+- [x] Embedding inference runs in thread pool via `run_in_threadpool` (ADR-001 mitigation — no blocking event loop)
+- [x] Batch size: 32 chunks per embedding call; progress logged per batch
+- [x] Qdrant point payload per chunk: `document_id`, `chunk_index`, `chunk_type`, `page_number`, `parent_section_header`, `role_scope`, `document_title`, `revision_date`
+- [x] `role_scope` payload field populated from document metadata and used as Qdrant filter on every query
+- [x] Qdrant upsert uses `upsert` (idempotent), not `insert` — safe to re-run on document re-ingestion
+- [x] BM25 index built per-document at ingestion time; term frequencies stored in PostgreSQL `bm25_index` table
+- [x] `/search/semantic` returns: `chunk_text`, `score`, `document_title`, `page_number`, `bbox_json`, `chunk_type`
+- [x] `/search/keyword` returns same schema as semantic for uniform client consumption
+- [x] Both endpoints: `limit` default=10, max=50; scores normalized 0–1
+- [x] Both endpoints validated with RBAC middleware — unauthenticated requests return 401
+- [x] No `Any` typing in embedding service or Qdrant client wrapper (Engineering Bible §8)
+- [x] Job state transitions: `CHUNKED → EMBEDDING → INDEXED`
+- [x] Unit tests: embedding service, Qdrant client wrapper, BM25 indexer, RBAC filter logic
+- [x] Integration test: index 5 chunks, run semantic query, verify top-1 result is correct chunk
 
 ---
 

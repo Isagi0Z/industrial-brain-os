@@ -1,8 +1,9 @@
-"""Redis-backed ingestion worker (M3).
+"""Redis-backed ingestion worker (M3+M4).
 
 Runs as a daemon thread started during FastAPI lifespan.
-Consumes the ``ingestion:jobs`` list via BLPOP and calls
-DocumentParsingUseCase.parse_document for each payload.
+Consumes the ``ingestion:jobs`` list via BLPOP and calls:
+  1. DocumentParsingUseCase.parse_document  (QUEUED → CHUNKED)
+  2. EmbeddingUseCase.embed_document        (CHUNKED → INDEXED)
 
 Replaced by Celery in M15.
 """
@@ -26,10 +27,12 @@ class IngestionWorker:
     def __init__(
         self,
         get_redis_fn: Callable[[], redis.Redis],
-        get_parsing_use_case_fn,
-    ):
+        get_parsing_use_case_fn: Callable,
+        get_embedding_use_case_fn: Callable,
+    ) -> None:
         self._get_redis = get_redis_fn
-        self._get_use_case = get_parsing_use_case_fn
+        self._get_parsing_uc = get_parsing_use_case_fn
+        self._get_embedding_uc = get_embedding_use_case_fn
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -60,7 +63,8 @@ class IngestionWorker:
                 logger.info(
                     "Worker picked up job %s for document %s.", job_id, document_id
                 )
-                use_case = self._get_use_case()
-                use_case.parse_document(document_id, job_id)
+                chunks = self._get_parsing_uc().parse_document(document_id, job_id)
+                if chunks:
+                    self._get_embedding_uc().embed_document(document_id, job_id)
             except Exception as exc:
                 logger.error("Worker loop error: %s", exc, exc_info=True)

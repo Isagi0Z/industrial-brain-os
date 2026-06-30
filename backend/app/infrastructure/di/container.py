@@ -34,6 +34,19 @@ from app.infrastructure.document.parsing.xlsx_parser import XlsxParser
 from app.infrastructure.document.parsing.image_parser import ImageParser
 from app.infrastructure.document.worker import IngestionWorker
 
+from app.domain.search.interfaces import (
+    IEmbeddingService,
+    IVectorRepository,
+    IBM25Repository,
+)
+from app.application.search.embedding_use_case import EmbeddingUseCase
+from app.infrastructure.search.embedding_service import (
+    SentenceTransformerEmbedder,
+    VECTOR_DIM,
+)
+from app.infrastructure.search.qdrant_repository import QdrantVectorRepository
+from app.infrastructure.search.bm25_repository import PostgresBM25Repository
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -87,7 +100,6 @@ class DIContainer:
                     host=settings.QDRANT_HOST,
                     port=settings.QDRANT_PORT,
                     timeout=3.0,
-                    check_compatibility=False,
                 )
                 logging.info("Initialized Qdrant client successfully.")
             except Exception as exc:
@@ -207,11 +219,44 @@ class DIContainer:
             )
         return self._parsing_use_case
 
+    # ------------------------------------------------------------------
+    # Search services (M4)
+    # ------------------------------------------------------------------
+
+    def get_embedding_service(self) -> IEmbeddingService:
+        if not hasattr(self, "_embedding_service"):
+            self._embedding_service = SentenceTransformerEmbedder()
+        return self._embedding_service
+
+    def get_vector_repository(self) -> IVectorRepository:
+        if not hasattr(self, "_vector_repository"):
+            self._vector_repository = QdrantVectorRepository(self.get_qdrant)
+        return self._vector_repository
+
+    def get_bm25_repository(self) -> IBM25Repository:
+        if not hasattr(self, "_bm25_repository"):
+            self._bm25_repository = PostgresBM25Repository(self.get_postgres)
+        return self._bm25_repository
+
+    def get_embedding_use_case(self) -> EmbeddingUseCase:
+        if not hasattr(self, "_embedding_use_case"):
+            self._embedding_use_case = EmbeddingUseCase(
+                document_repo=self.get_document_repository(),
+                chunk_repo=self.get_chunk_repository(),
+                job_repo=self.get_job_repository(),
+                embedding_service=self.get_embedding_service(),
+                vector_repo=self.get_vector_repository(),
+                bm25_repo=self.get_bm25_repository(),
+                vector_dim=VECTOR_DIM,
+            )
+        return self._embedding_use_case
+
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):
             self._ingestion_worker = IngestionWorker(
                 get_redis_fn=self.get_redis,
                 get_parsing_use_case_fn=self.get_parsing_use_case,
+                get_embedding_use_case_fn=self.get_embedding_use_case,
             )
         return self._ingestion_worker
 

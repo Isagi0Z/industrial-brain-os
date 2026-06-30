@@ -17,7 +17,7 @@ passlib[bcrypt]>=1.7.4
 alembic>=1.13.0
 psycopg2-binary>=2.9.9
 neo4j>=5.18.0
-qdrant-client>=1.8.0
+qdrant-client>=1.9.0,<1.10.0
 redis>=5.0.3
 minio>=7.2.5
 
@@ -29,6 +29,11 @@ Pillow>=10.0.0
 openpyxl>=3.1.0
 paddlepaddle>=3.0.0
 paddleocr>=3.0.0
+
+# Embedding & search (M4)
+sentence-transformers>=2.7.0
+rank-bm25>=0.2.2
+tf-keras>=2.16.0
 
 # Shared Package (Installed in editable mode)
 -e ../shared/python
