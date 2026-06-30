@@ -83,14 +83,14 @@ def main() -> int:
     print("\nInitialising infrastructure...")
     try:
         run_all(qdrant, neo4j, minio)
-        print("✓ Qdrant collections ready.")
-        print("✓ Neo4j constraints and indexes applied.")
-        print("✓ MinIO buckets ready.")
+        print("OK Qdrant collections ready.")
+        print("OK Neo4j constraints and indexes applied.")
+        print("OK MinIO buckets ready.")
     except Exception as exc:
-        print(f"✗ Init failed: {exc}")
+        print(f"FAILED Init failed: {exc}")
         return 1
 
-    print("\n✓ All infrastructure initialised successfully.")
+    print("\nAll infrastructure initialised successfully.")
     return 0
 
 

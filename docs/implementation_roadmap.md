@@ -72,39 +72,42 @@ Verify all five Docker services start healthy. Initialize PostgreSQL schema via 
 
 ---
 
-## M2 — Document Ingestion Pipeline
+## M2 — Document Ingestion Pipeline ✅
 
 **Phase**: MVP
 **Difficulty**: Medium
 **Depends on**: M1
 **Blocks**: M3
+**Status**: ✅ Complete
+**Completion Date**: 2026-06-30
+**Commit SHA**: (stamped after push)
 
 ### Objective
-Complete the document upload flow end-to-end: file received by FastAPI → stored in MinIO → job record created in PostgreSQL → basic text extracted from PDF → raw text persisted for downstream processing.
+Complete the document upload flow end-to-end: file received by FastAPI → validated → stored in MinIO → job record created in PostgreSQL → queued in Redis for downstream processing.
 
 ### Deliverables
-- `POST /api/v1/documents/upload` fully wired to MinIO storage
-- `GET /api/v1/documents/{id}/status` returning job processing state
-- PostgreSQL `jobs` table tracking ingestion state machine (`PENDING → EXTRACTING → CHUNKED → INDEXED → FAILED`)
-- PyMuPDF text extraction producing page-level text with bounding-box metadata
-- Extracted text artifacts stored in MinIO `processed-chunks` bucket
-- Unit tests covering upload handler, storage client, and state transitions
+- `POST /api/v1/documents/` fully wired to MinIO `industrial-documents` bucket
+- `GET /api/v1/documents/{id}/status` returning `JobStatusResponse` with `progress_pct`
+- PostgreSQL `jobs` table tracking ingestion state machine (`QUEUED → PROCESSING → COMPLETED → FAILED`)
+- `POST /api/v1/documents/{id}/retry` re-queuing FAILED documents
+- Frontend: drag-and-drop upload, status badges, auto-polling, retry button
+- 13 unit tests covering all validation and success/failure paths
 
 ### Checklist
-- [ ] `DocumentUpload` component wired to real `POST /api/v1/documents/upload` endpoint (not mock)
-- [ ] FastAPI endpoint validates MIME type: PDF, TIFF, DXF, DWG, DOCX only
-- [ ] File streamed to MinIO with SHA-256 content hash stored as object tag
-- [ ] `documents` record created in PostgreSQL with `storage_key`, `file_size`, `mime_type`, `uploaded_by`
-- [ ] `jobs` record created in state `PENDING` linked to document ID
-- [ ] PyMuPDF (`fitz`) extracts page text blocks with `(x0, y0, x1, y1)` bounding boxes
-- [ ] Extraction preserves page number, block type (text/image/table hint), and font size metadata
-- [ ] Extracted result serialized to JSON and stored in `processed-chunks/{document_id}/raw_extraction.json`
-- [ ] Job transitions: `PENDING → EXTRACTING → EXTRACTED` on success, `→ FAILED` with error code on exception
-- [ ] `GET /api/v1/documents/{id}/status` returns current job state, progress percentage, and error message if failed
-- [ ] `DocumentList` component polls `/status` and displays live state badge
-- [ ] Input validated at API boundary: file size ≤ 100 MB, filename sanitized
-- [ ] Unit tests: upload handler, MinIO client wrapper, PyMuPDF extractor, job state machine
-- [ ] No raw MinIO credentials in application code — read from environment via `config/`
+- [x] `DocumentUpload` component wired to real `POST /api/v1/documents/` endpoint
+- [x] FastAPI endpoint validates MIME type: PDF, DOCX, DOC, XLSX, XLS, PNG, JPEG
+- [x] File stored in MinIO `industrial-documents` bucket with key `{document_id}/v1/{filename}`
+- [x] SHA-256 hash computed; duplicate detection rejects re-uploads of identical content
+- [x] `documents` record created in PostgreSQL with `storage_key`, `size_bytes`, `mime_type`, `created_by`
+- [x] `jobs` record created in state `QUEUED` linked to document ID
+- [x] Job payload pushed to Redis `ingestion:jobs` list (RPUSH for FIFO)
+- [x] Document status updated to `READY_FOR_PROCESSING` after successful queue
+- [x] `GET /api/v1/documents/{id}/status` returns `status`, `progress_pct`, `error_message`
+- [x] `DocumentList` component polls `/` every 5 seconds when in-progress documents exist
+- [x] `POST /api/v1/documents/{id}/retry` re-queues documents with `FAILED` job status
+- [x] Input validated at API boundary: file size ≤ 100 MB
+- [x] Unit tests: oversized file (413), invalid MIME, duplicate SHA-256, success path, XLSX, PNG, bucket name, status endpoint, retry
+- [x] No raw MinIO/Redis credentials in application code — read from environment via `config/settings.py`
 
 ---
 

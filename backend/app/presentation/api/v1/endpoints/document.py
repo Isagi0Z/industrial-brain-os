@@ -1,19 +1,25 @@
-from typing import List, Optional, Any, Dict
+from typing import List, Optional, Dict, Any
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, UploadFile, File, Query
 from pydantic import BaseModel
-from datetime import datetime
 
 from app.infrastructure.di.container import container
 from app.application.document.services import DocumentUseCase
 from app.presentation.api.dependencies.auth import get_current_user
 from app.domain.auth.models import User
-from app.domain.document.constants import DocumentStatus
+from app.domain.document.constants import DocumentStatus, JobStatus, JOB_PROGRESS
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
 
 def get_document_use_case() -> DocumentUseCase:
     return container.get_document_use_case()
+
+
+# ---------------------------------------------------------------------------
+# Response models
+# ---------------------------------------------------------------------------
 
 
 class DocumentVersionResponse(BaseModel):
@@ -43,6 +49,7 @@ class DocumentResponse(BaseModel):
     is_deleted: bool
     versions: List[DocumentVersionResponse] = []
     metadata: Optional[DocumentMetadataResponse] = None
+    job_status: Optional[JobStatus] = None
 
 
 class PaginatedDocumentResponse(BaseModel):
@@ -50,12 +57,45 @@ class PaginatedDocumentResponse(BaseModel):
     total: int
 
 
-@router.post("/", response_model=DocumentResponse)
+class JobStatusResponse(BaseModel):
+    job_id: str
+    document_id: str
+    status: JobStatus
+    progress_pct: int
+    error_message: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _build_document_response(
+    doc, job_status: Optional[JobStatus] = None
+) -> DocumentResponse:
+    doc_dict = doc.__dict__.copy()
+    if doc.metadata:
+        doc_dict["metadata"] = DocumentMetadataResponse(**doc.metadata.__dict__)
+    doc_dict["versions"] = [DocumentVersionResponse(**v.__dict__) for v in doc.versions]
+    doc_dict["job_status"] = job_status
+    doc_dict.pop("classifications", None)
+    return DocumentResponse(**doc_dict)
+
+
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post("/", response_model=DocumentResponse, status_code=201)
 async def upload_document(
     file: UploadFile = File(...),
     use_case: DocumentUseCase = Depends(get_document_use_case),
     current_user: User = Depends(get_current_user),
 ):
+    """Upload a document. Accepted formats: PDF, DOCX, XLSX, PNG, JPEG (max 100 MB)."""
     file_data = await file.read()
     mime_type = file.content_type or "application/octet-stream"
     filename = file.filename or "unknown_file"
@@ -66,14 +106,7 @@ async def upload_document(
         file_data=file_data,
         user_id=current_user.id,
     )
-
-    # Convert domain model to response model
-    doc_dict = doc.__dict__.copy()
-    if doc.metadata:
-        doc_dict["metadata"] = DocumentMetadataResponse(**doc.metadata.__dict__)
-    doc_dict["versions"] = [DocumentVersionResponse(**v.__dict__) for v in doc.versions]
-
-    return DocumentResponse(**doc_dict)
+    return _build_document_response(doc, job_status=JobStatus.QUEUED)
 
 
 @router.get("/", response_model=PaginatedDocumentResponse)
@@ -84,19 +117,48 @@ def list_documents(
     use_case: DocumentUseCase = Depends(get_document_use_case),
     current_user: User = Depends(get_current_user),
 ):
-    docs, total = use_case.list_documents(skip, limit, status)
-
-    response_docs = []
-    for doc in docs:
-        doc_dict = doc.__dict__.copy()
-        if doc.metadata:
-            doc_dict["metadata"] = DocumentMetadataResponse(**doc.metadata.__dict__)
-        doc_dict["versions"] = [
-            DocumentVersionResponse(**v.__dict__) for v in doc.versions
-        ]
-        response_docs.append(DocumentResponse(**doc_dict))
-
+    """List documents with their latest processing job status."""
+    pairs, total = use_case.list_documents_with_job_status(skip, limit, status)
+    response_docs = [_build_document_response(doc, js) for doc, js in pairs]
     return PaginatedDocumentResponse(documents=response_docs, total=total)
+
+
+@router.get("/{document_id}/status", response_model=JobStatusResponse)
+def get_document_status(
+    document_id: str,
+    use_case: DocumentUseCase = Depends(get_document_use_case),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the current processing job status for a document."""
+    job = use_case.get_document_status(document_id)
+    return JobStatusResponse(
+        job_id=job.id,
+        document_id=job.document_id,
+        status=job.status,
+        progress_pct=JOB_PROGRESS.get(job.status, 0),
+        error_message=job.error_message,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
+    )
+
+
+@router.post("/{document_id}/retry", response_model=JobStatusResponse)
+def retry_document(
+    document_id: str,
+    use_case: DocumentUseCase = Depends(get_document_use_case),
+    current_user: User = Depends(get_current_user),
+):
+    """Re-queue a failed document for processing."""
+    job = use_case.retry_document(document_id)
+    return JobStatusResponse(
+        job_id=job.id,
+        document_id=job.document_id,
+        status=job.status,
+        progress_pct=JOB_PROGRESS.get(job.status, 0),
+        error_message=job.error_message,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
+    )
 
 
 @router.get("/{document_id}", response_model=DocumentResponse)
@@ -106,11 +168,9 @@ def get_document(
     current_user: User = Depends(get_current_user),
 ):
     doc = use_case.get_document(document_id)
-    doc_dict = doc.__dict__.copy()
-    if doc.metadata:
-        doc_dict["metadata"] = DocumentMetadataResponse(**doc.metadata.__dict__)
-    doc_dict["versions"] = [DocumentVersionResponse(**v.__dict__) for v in doc.versions]
-    return DocumentResponse(**doc_dict)
+    job = use_case.job_repo.get_by_document_id(document_id)
+    job_status = job.status if job else None
+    return _build_document_response(doc, job_status)
 
 
 @router.get("/{document_id}/download")
@@ -151,5 +211,5 @@ def update_metadata(
     use_case: DocumentUseCase = Depends(get_document_use_case),
     current_user: User = Depends(get_current_user),
 ):
-    updated_meta = use_case.update_metadata(document_id, metadata)
-    return DocumentMetadataResponse(**updated_meta.__dict__)
+    updated = use_case.update_metadata(document_id, metadata)
+    return DocumentMetadataResponse(**updated.__dict__)

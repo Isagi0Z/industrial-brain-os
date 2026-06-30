@@ -1,7 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Tuple
-from app.domain.document.models import Document, DocumentVersion, DocumentMetadata
-from app.domain.document.constants import DocumentStatus
+from typing import Optional, List, Tuple, Dict
+from app.domain.document.models import (
+    Document,
+    DocumentVersion,
+    DocumentMetadata,
+    ProcessingJob,
+)
+from app.domain.document.constants import DocumentStatus, JobStatus
 
 
 class IDocumentRepository(ABC):
@@ -37,7 +42,7 @@ class IDocumentRepository(ABC):
         status: Optional[DocumentStatus] = None,
         include_deleted: bool = False,
     ) -> Tuple[List[Document], int]:
-        """Returns a tuple of (documents, total_count)"""
+        """Returns (documents, total_count)."""
         pass
 
     @abstractmethod
@@ -82,4 +87,40 @@ class IStorageService(ABC):
 
     @abstractmethod
     def file_exists(self, bucket_name: str, object_name: str) -> bool:
+        pass
+
+
+class IJobRepository(ABC):
+    """Persistence interface for document processing jobs."""
+
+    @abstractmethod
+    def create(self, job: ProcessingJob) -> ProcessingJob:
+        pass
+
+    @abstractmethod
+    def get_by_document_id(self, document_id: str) -> Optional[ProcessingJob]:
+        """Returns the most recent job for a document."""
+        pass
+
+    @abstractmethod
+    def update_status(
+        self,
+        job_id: str,
+        status: JobStatus,
+        error_message: Optional[str] = None,
+    ) -> None:
+        pass
+
+    @abstractmethod
+    def get_latest_statuses(self, document_ids: List[str]) -> Dict[str, JobStatus]:
+        """Batch-fetch the latest job status per document. Avoids N+1 queries."""
+        pass
+
+
+class IQueueService(ABC):
+    """Abstraction over the message queue used to trigger background processing."""
+
+    @abstractmethod
+    def enqueue_ingestion_job(self, document_id: str, job_id: str) -> None:
+        """Push a job payload onto the ingestion queue."""
         pass

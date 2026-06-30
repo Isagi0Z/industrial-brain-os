@@ -9,20 +9,14 @@ logger = logging.getLogger(__name__)
 
 
 class MinioStorageService(IStorageService):
+    """S3-compatible storage via MinIO (ADR-006).
+
+    Bucket creation and initialization is handled by infra_init.py at startup.
+    This service only performs object-level operations.
+    """
+
     def __init__(self, get_minio_fn):
         self.get_minio_fn = get_minio_fn
-        # We assume the default bucket for documents is 'documents'
-        self.default_bucket = "documents"
-        self._ensure_bucket(self.default_bucket)
-
-    def _ensure_bucket(self, bucket_name: str):
-        client: Minio = self.get_minio_fn()
-        try:
-            if not client.bucket_exists(bucket_name):
-                client.make_bucket(bucket_name)
-                logger.info(f"Created MinIO bucket: {bucket_name}")
-        except S3Error as e:
-            logger.error(f"Error checking/creating bucket {bucket_name}: {e}")
 
     def get_presigned_upload_url(
         self, bucket_name: str, object_name: str, expires_in_sec: int = 3600
@@ -52,17 +46,24 @@ class MinioStorageService(IStorageService):
             length=len(file_data),
             content_type=content_type,
         )
+        logger.info(
+            "Uploaded '%s' to bucket '%s' (%d bytes).",
+            object_name,
+            bucket_name,
+            len(file_data),
+        )
 
     def delete_file(self, bucket_name: str, object_name: str) -> None:
         client: Minio = self.get_minio_fn()
         client.remove_object(bucket_name, object_name)
+        logger.info("Deleted '%s' from bucket '%s'.", object_name, bucket_name)
 
     def file_exists(self, bucket_name: str, object_name: str) -> bool:
         client: Minio = self.get_minio_fn()
         try:
             client.stat_object(bucket_name, object_name)
             return True
-        except S3Error as e:
-            if e.code == "NoSuchKey":
+        except S3Error as exc:
+            if exc.code == "NoSuchKey":
                 return False
-            raise e
+            raise

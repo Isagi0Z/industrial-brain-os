@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from app.domain.document.constants import DocumentStatus
+from app.domain.document.constants import DocumentStatus, JobStatus
 
 
 @dataclass
@@ -54,7 +54,19 @@ class Document:
     created_by: str
     is_deleted: bool = False
 
-    # Navigation properties
+    # Navigation properties (not stored directly in the documents table)
     versions: List[DocumentVersion] = field(default_factory=list)
     metadata: Optional[DocumentMetadata] = None
     classifications: List[DocumentClassification] = field(default_factory=list)
+
+
+@dataclass
+class ProcessingJob:
+    """Tracks the async processing state for a single document."""
+
+    id: str
+    document_id: str
+    status: JobStatus
+    error_message: Optional[str]
+    created_at: datetime
+    updated_at: datetime

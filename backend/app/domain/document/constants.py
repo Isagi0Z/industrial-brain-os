@@ -11,13 +11,32 @@ class DocumentStatus(str, Enum):
     FAILED = "FAILED"
 
 
-ALLOWED_MIME_TYPES = {
-    "application/pdf",
-    "text/plain",
-    "image/jpeg",
-    "image/png",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-}
+class JobStatus(str, Enum):
+    QUEUED = "QUEUED"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
+    FAILED = "FAILED"
 
-MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB
+
+# MIME types accepted at the upload boundary (M2 scope: PDF, DOCX, XLSX, PNG, JPG)
+ALLOWED_MIME_TYPES: frozenset = frozenset(
+    {
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "image/jpeg",
+        "image/png",
+    }
+)
+
+MAX_FILE_SIZE_BYTES: int = 100 * 1024 * 1024  # 100 MB
+
+# Progress percentages by job status (for the /status endpoint)
+JOB_PROGRESS: dict = {
+    JobStatus.QUEUED: 10,
+    JobStatus.PROCESSING: 50,
+    JobStatus.COMPLETED: 100,
+    JobStatus.FAILED: 0,
+}

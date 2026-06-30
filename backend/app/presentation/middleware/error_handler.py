@@ -22,17 +22,22 @@ class DomainException(Exception):
         super().__init__(message)
 
 
+def _code_str(code: ErrorCode) -> str:
+    """Safely extract the string value from an ErrorCode (or raw string fallback)."""
+    return code.value if hasattr(code, "value") else str(code)
+
+
 async def domain_exception_handler(
     request: Request, exc: DomainException
 ) -> JSONResponse:
     correlation_id = correlation_id_ctx.get()
     error_payload = ErrorResponse(
-        code=exc.code.value,
+        code=_code_str(exc.code),
         message=exc.message,
         details=exc.details,
         correlation_id=correlation_id,
     )
-    logging.warn(f"Domain error: {exc.code.value} - {exc.message}")
+    logging.warning("Domain error: %s - %s", _code_str(exc.code), exc.message)
     return JSONResponse(status_code=exc.status_code, content=error_payload.model_dump())
 
 
@@ -47,7 +52,7 @@ async def validation_exception_handler(
         details=details,
         correlation_id=correlation_id,
     )
-    logging.warn(f"Validation error on {request.url.path}: {exc.errors()}")
+    logging.warning("Validation error on %s: %s", request.url.path, exc.errors())
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=error_payload.model_dump(),
@@ -62,7 +67,7 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
         details={"type": type(exc).__name__, "message": str(exc)},
         correlation_id=correlation_id,
     )
-    logging.error(f"Unhandled server error: {str(exc)}", exc_info=True)
+    logging.error("Unhandled server error: %s", str(exc), exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=error_payload.model_dump(),

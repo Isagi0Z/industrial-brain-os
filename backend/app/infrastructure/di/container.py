@@ -14,16 +14,21 @@ from app.infrastructure.auth.jwt_service import JWTService
 from app.infrastructure.auth.password_hasher import PasswordHasher
 from app.infrastructure.auth.user_repository import PostgresUserRepository
 
-from app.domain.document.interfaces import IDocumentRepository, IStorageService
+from app.domain.document.interfaces import (
+    IDocumentRepository,
+    IStorageService,
+    IJobRepository,
+    IQueueService,
+)
 from app.application.document.services import DocumentUseCase
 from app.infrastructure.document.minio_storage_service import MinioStorageService
 from app.infrastructure.document.document_repository import PostgresDocumentRepository
+from app.infrastructure.document.job_repository import PostgresJobRepository
+from app.infrastructure.document.queue_service import RedisQueueService
 
 
 class DIContainer:
-    """
-    Dependency Injection Container managing lifecycles of external connections.
-    """
+    """Manages the lifecycles of all external connections and service singletons."""
 
     def __init__(self):
         self._postgres_conn = None
@@ -32,11 +37,11 @@ class DIContainer:
         self._redis_client: Optional[redis.Redis] = None
         self._minio_client: Optional[Minio] = None
 
+    # ------------------------------------------------------------------
+    # Infrastructure connections
+    # ------------------------------------------------------------------
+
     def get_postgres(self):
-        """
-        Returns Postgres connection pool or connection.
-        In production, a database pool should be used, but for baseline, returns connection.
-        """
         if self._postgres_conn is None or self._postgres_conn.closed != 0:
             try:
                 self._postgres_conn = psycopg2.connect(
@@ -48,33 +53,26 @@ class DIContainer:
                     connect_timeout=3,
                 )
                 logging.info("Connected to PostgreSQL database successfully.")
-            except Exception as e:
-                logging.error(f"Failed to connect to PostgreSQL: {e}")
-                raise e
+            except Exception as exc:
+                logging.error("Failed to connect to PostgreSQL: %s", exc)
+                raise
         return self._postgres_conn
 
     def get_neo4j(self) -> Driver:
-        """
-        Returns Neo4j Bolt driver.
-        """
         if self._neo4j_driver is None:
             try:
                 uri = f"bolt://{settings.NEO4J_HOST}:{settings.NEO4J_BOLT_PORT}"
                 self._neo4j_driver = GraphDatabase.driver(
                     uri, auth=(settings.NEO4J_USER, settings.NEO4J_PASSWORD)
                 )
-                # Test connection connectivity
                 self._neo4j_driver.verify_connectivity()
                 logging.info("Connected to Neo4j graph database successfully.")
-            except Exception as e:
-                logging.error(f"Failed to connect to Neo4j: {e}")
-                raise e
+            except Exception as exc:
+                logging.error("Failed to connect to Neo4j: %s", exc)
+                raise
         return self._neo4j_driver
 
     def get_qdrant(self) -> QdrantClient:
-        """
-        Returns Qdrant vector database client.
-        """
         if self._qdrant_client is None:
             try:
                 self._qdrant_client = QdrantClient(
@@ -84,15 +82,12 @@ class DIContainer:
                     check_compatibility=False,
                 )
                 logging.info("Initialized Qdrant client successfully.")
-            except Exception as e:
-                logging.error(f"Failed to connect to Qdrant: {e}")
-                raise e
+            except Exception as exc:
+                logging.error("Failed to connect to Qdrant: %s", exc)
+                raise
         return self._qdrant_client
 
     def get_redis(self) -> redis.Redis:
-        """
-        Returns Redis connection client.
-        """
         if self._redis_client is None:
             try:
                 self._redis_client = redis.Redis(
@@ -104,15 +99,12 @@ class DIContainer:
                 )
                 self._redis_client.ping()
                 logging.info("Connected to Redis cache successfully.")
-            except Exception as e:
-                logging.error(f"Failed to connect to Redis: {e}")
-                raise e
+            except Exception as exc:
+                logging.error("Failed to connect to Redis: %s", exc)
+                raise
         return self._redis_client
 
     def get_minio(self) -> Minio:
-        """
-        Returns MinIO S3 object store client.
-        """
         if self._minio_client is None:
             try:
                 endpoint = f"{settings.MINIO_HOST}:{settings.MINIO_PORT}"
@@ -122,15 +114,17 @@ class DIContainer:
                     secret_key=settings.MINIO_ROOT_PASSWORD,
                     secure=False,
                 )
-                # Verify access by checking if a bucket exists or list buckets
                 self._minio_client.list_buckets()
                 logging.info("Connected to MinIO object store successfully.")
-            except Exception as e:
-                logging.error(f"Failed to connect to MinIO: {e}")
-                raise e
+            except Exception as exc:
+                logging.error("Failed to connect to MinIO: %s", exc)
+                raise
         return self._minio_client
 
-    # --- Auth Services ---
+    # ------------------------------------------------------------------
+    # Auth services
+    # ------------------------------------------------------------------
+
     def get_token_service(self) -> ITokenService:
         if not hasattr(self, "_token_service"):
             self._token_service = JWTService(self.get_redis)
@@ -155,7 +149,10 @@ class DIContainer:
             )
         return self._auth_use_case
 
-    # --- Document Services ---
+    # ------------------------------------------------------------------
+    # Document services
+    # ------------------------------------------------------------------
+
     def get_storage_service(self) -> IStorageService:
         if not hasattr(self, "_storage_service"):
             self._storage_service = MinioStorageService(self.get_minio)
@@ -166,18 +163,31 @@ class DIContainer:
             self._document_repository = PostgresDocumentRepository(self.get_postgres)
         return self._document_repository
 
+    def get_job_repository(self) -> IJobRepository:
+        if not hasattr(self, "_job_repository"):
+            self._job_repository = PostgresJobRepository(self.get_postgres)
+        return self._job_repository
+
+    def get_queue_service(self) -> IQueueService:
+        if not hasattr(self, "_queue_service"):
+            self._queue_service = RedisQueueService(self.get_redis)
+        return self._queue_service
+
     def get_document_use_case(self) -> DocumentUseCase:
         if not hasattr(self, "_document_use_case"):
             self._document_use_case = DocumentUseCase(
                 document_repo=self.get_document_repository(),
                 storage_service=self.get_storage_service(),
+                job_repo=self.get_job_repository(),
+                queue_service=self.get_queue_service(),
             )
         return self._document_use_case
 
+    # ------------------------------------------------------------------
+    # Shutdown
+    # ------------------------------------------------------------------
+
     def close_all(self):
-        """
-        Closes all open connections safely.
-        """
         if self._postgres_conn and not self._postgres_conn.closed:
             self._postgres_conn.close()
             logging.info("PostgreSQL database connection closed.")
