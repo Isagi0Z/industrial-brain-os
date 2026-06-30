@@ -198,7 +198,7 @@ Generate dense vector embeddings from `DocumentChunk` text, batch-upsert them in
 **Blocks**: M9 (agents extend this endpoint)
 **Status**: ✅ Complete
 **Completion Date**: 2026-06-30
-**Commit SHA**: `TBD — stamped after commit`
+**Commit SHA**: `7f914b9`
 
 ### Objective
 Wire vector search results into an LLM to produce cited answers. Expose a streaming `/chat` WebSocket endpoint. Connect the React frontend with a chat interface displaying streamed responses and source citations. **This is the first publicly demo-able milestone.**
