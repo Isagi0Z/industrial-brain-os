@@ -146,7 +146,7 @@ Transform raw page extraction into semantically structured, hierarchical chunks.
 - [x] Unit tests: layout zone classifier, OCR fallback trigger, hierarchical chunker, table cell extractor
 - [x] Integration test: process one sample industrial PDF end-to-end through M2→M3 and verify chunk count and structure
 
-**Completed:** 2026-06-30 | Commit: TBD
+**Completed:** 2026-06-30 | Commit: 12ede20
 
 ---
 
