@@ -1,26 +1,45 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft, Save, Trash2, RefreshCw } from 'lucide-react';
+
+interface DocumentVersion {
+  id: string;
+  version_number: number;
+  size_bytes: number;
+  created_at: string;
+}
+
+interface DocumentDetail {
+  original_filename: string;
+  is_deleted: boolean;
+  status: string;
+  mime_type: string;
+  size_bytes: number;
+  created_at: string;
+  sha256_hash: string;
+  metadata?: { metadata?: Record<string, unknown> };
+  versions?: DocumentVersion[];
+}
 
 export const DocumentDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { token } = useAuth();
-  
-  const [doc, setDoc] = useState<any>(null);
+
+  const [doc, setDoc] = useState<DocumentDetail | null>(null);
   const [metadataStr, setMetadataStr] = useState('{}');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchDoc = async () => {
+  const fetchDoc = useCallback(async () => {
     try {
       const res = await fetch(`/api/v1/documents/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as DocumentDetail;
         setDoc(data);
         if (data.metadata?.metadata) {
           setMetadataStr(JSON.stringify(data.metadata.metadata, null, 2));
@@ -33,11 +52,11 @@ export const DocumentDetails: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, token]);
 
   useEffect(() => {
     fetchDoc();
-  }, [id]);
+  }, [fetchDoc]);
 
   const handleSaveMetadata = async () => {
     setSaving(true);
@@ -55,8 +74,8 @@ export const DocumentDetails: React.FC = () => {
       if (!res.ok) throw new Error('Failed to save metadata');
       
       fetchDoc();
-    } catch (err: any) {
-      setError(err.message || 'Invalid JSON format');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid JSON format');
     } finally {
       setSaving(false);
     }
@@ -168,7 +187,7 @@ export const DocumentDetails: React.FC = () => {
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Version History</h2>
         {doc.versions && doc.versions.length > 0 ? (
           <div className="space-y-3">
-            {doc.versions.map((v: any) => (
+            {doc.versions.map((v: DocumentVersion) => (
               <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
                 <div>
                   <span className="font-semibold text-gray-800">v{v.version_number}</span>

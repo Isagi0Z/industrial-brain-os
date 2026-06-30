@@ -88,9 +88,9 @@ export const DocumentUpload: React.FC = () => {
         setUploadStatus('idle');
         setUploadProgress(0);
       }, 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setUploadStatus('error');
-      setErrorMessage(err.message || 'An unexpected error occurred during upload.');
+      setErrorMessage(err instanceof Error ? err.message : 'An unexpected error occurred during upload.');
     }
   };
 

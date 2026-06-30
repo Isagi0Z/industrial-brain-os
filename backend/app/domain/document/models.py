@@ -53,7 +53,7 @@ class Document:
     updated_at: datetime
     created_by: str
     is_deleted: bool = False
-    
+
     # Navigation properties
     versions: List[DocumentVersion] = field(default_factory=list)
     metadata: Optional[DocumentMetadata] = None

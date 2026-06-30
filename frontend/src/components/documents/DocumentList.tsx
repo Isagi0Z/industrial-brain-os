@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Search, Filter, Download, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -20,7 +20,7 @@ export const DocumentList: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const { token } = useAuth();
 
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     setLoading(true);
     try {
       let url = '/api/v1/documents/?limit=50';
@@ -31,7 +31,7 @@ export const DocumentList: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
+        const data = await res.json() as { documents: Document[] };
         setDocuments(data.documents);
       }
     } catch (err) {
@@ -39,11 +39,11 @@ export const DocumentList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, token]);
 
   useEffect(() => {
     fetchDocuments();
-  }, [statusFilter]);
+  }, [fetchDocuments]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this document?')) return;

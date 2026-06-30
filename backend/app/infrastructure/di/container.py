@@ -170,7 +170,7 @@ class DIContainer:
         if not hasattr(self, "_document_use_case"):
             self._document_use_case = DocumentUseCase(
                 document_repo=self.get_document_repository(),
-                storage_service=self.get_storage_service()
+                storage_service=self.get_storage_service(),
             )
         return self._document_use_case
 

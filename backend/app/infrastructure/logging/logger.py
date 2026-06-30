@@ -16,11 +16,9 @@ class CorrelationIdJsonFormatter(jsonlogger.JsonFormatter):
         if not log_record.get("level"):
             log_record["level"] = record.levelname
         if not log_record.get("timestamp"):
-            log_record["timestamp"] = (
-                record.asctime
-                if record.asctime
-                else self.formatTime(record, self.default_time_format)
-            )
+            log_record["timestamp"] = getattr(
+                record, "asctime", None
+            ) or self.formatTime(record, self.default_time_format)
 
 
 def setup_logging():

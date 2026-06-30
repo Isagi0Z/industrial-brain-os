@@ -28,14 +28,14 @@ class IDocumentRepository(ABC):
     @abstractmethod
     def restore(self, document_id: str) -> None:
         pass
-        
+
     @abstractmethod
     def list_documents(
         self,
         skip: int = 0,
         limit: int = 50,
         status: Optional[DocumentStatus] = None,
-        include_deleted: bool = False
+        include_deleted: bool = False,
     ) -> Tuple[List[Document], int]:
         """Returns a tuple of (documents, total_count)"""
         pass
@@ -59,15 +59,21 @@ class IDocumentRepository(ABC):
 
 class IStorageService(ABC):
     @abstractmethod
-    def get_presigned_upload_url(self, bucket_name: str, object_name: str, expires_in_sec: int = 3600) -> str:
+    def get_presigned_upload_url(
+        self, bucket_name: str, object_name: str, expires_in_sec: int = 3600
+    ) -> str:
         pass
 
     @abstractmethod
-    def get_presigned_download_url(self, bucket_name: str, object_name: str, expires_in_sec: int = 3600) -> str:
+    def get_presigned_download_url(
+        self, bucket_name: str, object_name: str, expires_in_sec: int = 3600
+    ) -> str:
         pass
 
     @abstractmethod
-    def upload_file(self, bucket_name: str, object_name: str, file_data: bytes, content_type: str) -> None:
+    def upload_file(
+        self, bucket_name: str, object_name: str, file_data: bytes, content_type: str
+    ) -> None:
         pass
 
     @abstractmethod
