@@ -53,6 +53,15 @@ class MinioStorageService(IStorageService):
             len(file_data),
         )
 
+    def download_file(self, bucket_name: str, object_name: str) -> bytes:
+        client: Minio = self.get_minio_fn()
+        response = client.get_object(bucket_name, object_name)
+        try:
+            return response.read()
+        finally:
+            response.close()
+            response.release_conn()
+
     def delete_file(self, bucket_name: str, object_name: str) -> None:
         client: Minio = self.get_minio_fn()
         client.remove_object(bucket_name, object_name)

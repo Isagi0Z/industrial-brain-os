@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Dict, Any, List
 from datetime import datetime
-from app.domain.document.constants import DocumentStatus, JobStatus
+from app.domain.document.constants import DocumentStatus, JobStatus, ChunkType
 
 
 @dataclass
@@ -70,3 +70,21 @@ class ProcessingJob:
     error_message: Optional[str]
     created_at: datetime
     updated_at: datetime
+
+
+@dataclass
+class DocumentChunk:
+    """A semantic chunk extracted from a document page (M3)."""
+
+    id: str
+    document_id: str
+    chunk_index: int
+    chunk_type: ChunkType
+    text: str
+    page_number: Optional[int]
+    parent_section_header: Optional[str]
+    bbox_json: Optional[Dict[str, Any]]
+    token_count: int
+    created_at: datetime
+    table_data_json: Optional[List[Dict[str, Any]]] = None
+    figure_storage_key: Optional[str] = None

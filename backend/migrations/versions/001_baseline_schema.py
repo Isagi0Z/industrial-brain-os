@@ -8,6 +8,7 @@ All CREATE TABLE statements use IF NOT EXISTS so this migration is safe to
 run against a database that was already bootstrapped by the _ensure_tables()
 calls in the repository layer during earlier development.
 """
+
 from alembic import op
 
 revision: str = "001"
@@ -20,7 +21,8 @@ def upgrade() -> None:
     # ------------------------------------------------------------------
     # Core identity tables
     # ------------------------------------------------------------------
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS users (
             id           VARCHAR(50)  PRIMARY KEY,
             email        VARCHAR(255) UNIQUE NOT NULL,
@@ -28,9 +30,11 @@ def upgrade() -> None:
             full_name    VARCHAR(255),
             is_active    BOOLEAN      DEFAULT TRUE
         );
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS roles (
             id          VARCHAR(50)  PRIMARY KEY,
             name        VARCHAR(100) UNIQUE NOT NULL,
@@ -38,12 +42,14 @@ def upgrade() -> None:
             permissions JSONB        NOT NULL DEFAULT '[]',
             created_at  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
-    """)
+    """
+    )
 
     # ------------------------------------------------------------------
     # Document pipeline tables
     # ------------------------------------------------------------------
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS documents (
             id                VARCHAR(50)  PRIMARY KEY,
             original_filename VARCHAR(255) NOT NULL,
@@ -56,9 +62,11 @@ def upgrade() -> None:
             created_by        VARCHAR(50)  NOT NULL,
             is_deleted        BOOLEAN      DEFAULT FALSE
         );
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_versions (
             id             VARCHAR(50)  PRIMARY KEY,
             document_id    VARCHAR(50)  REFERENCES documents(id) ON DELETE CASCADE,
@@ -68,9 +76,11 @@ def upgrade() -> None:
             created_at     TIMESTAMP    NOT NULL,
             created_by     VARCHAR(50)  NOT NULL
         );
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_metadata (
             id          VARCHAR(50) PRIMARY KEY,
             document_id VARCHAR(50) REFERENCES documents(id) ON DELETE CASCADE UNIQUE,
@@ -78,9 +88,11 @@ def upgrade() -> None:
             created_at  TIMESTAMP   NOT NULL,
             updated_at  TIMESTAMP   NOT NULL
         );
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_classifications (
             id          VARCHAR(50)  PRIMARY KEY,
             document_id VARCHAR(50)  REFERENCES documents(id) ON DELETE CASCADE,
@@ -88,10 +100,12 @@ def upgrade() -> None:
             confidence  FLOAT        NOT NULL,
             created_at  TIMESTAMP    NOT NULL
         );
-    """)
+    """
+    )
 
     # document_chunks — populated by the embedding pipeline (M4)
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS document_chunks (
             id                    VARCHAR(50) PRIMARY KEY,
             document_id           VARCHAR(50) REFERENCES documents(id) ON DELETE CASCADE,
@@ -104,12 +118,14 @@ def upgrade() -> None:
             token_count           INTEGER,
             created_at            TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
-    """)
+    """
+    )
 
     # ------------------------------------------------------------------
     # Operations / observability tables
     # ------------------------------------------------------------------
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS jobs (
             id             VARCHAR(50) PRIMARY KEY,
             document_id    VARCHAR(50) REFERENCES documents(id) ON DELETE SET NULL,
@@ -118,9 +134,11 @@ def upgrade() -> None:
             created_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP,
             updated_at     TIMESTAMP   NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
-    """)
+    """
+    )
 
-    op.execute("""
+    op.execute(
+        """
         CREATE TABLE IF NOT EXISTS audit_logs (
             id            VARCHAR(50)  PRIMARY KEY,
             user_id       VARCHAR(50),
@@ -132,19 +150,34 @@ def upgrade() -> None:
             metadata      JSONB,
             created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
-    """)
+    """
+    )
 
     # ------------------------------------------------------------------
     # Indexes — all use IF NOT EXISTS (Postgres 9.5+)
     # ------------------------------------------------------------------
-    op.execute("CREATE INDEX IF NOT EXISTS idx_documents_status      ON documents(status);")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_documents_created_by  ON documents(created_by);")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_chunks_document_id    ON document_chunks(document_id);")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_jobs_document_id      ON jobs(document_id);")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_documents_status      ON documents(status);"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_documents_created_by  ON documents(created_by);"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_chunks_document_id    ON document_chunks(document_id);"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_jobs_document_id      ON jobs(document_id);"
+    )
     op.execute("CREATE INDEX IF NOT EXISTS idx_jobs_status           ON jobs(status);")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_audit_user_id         ON audit_logs(user_id);")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_audit_created_at      ON audit_logs(created_at);")
-    op.execute("CREATE INDEX IF NOT EXISTS idx_audit_correlation_id  ON audit_logs(correlation_id);")
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_audit_user_id         ON audit_logs(user_id);"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_audit_created_at      ON audit_logs(created_at);"
+    )
+    op.execute(
+        "CREATE INDEX IF NOT EXISTS idx_audit_correlation_id  ON audit_logs(correlation_id);"
+    )
 
 
 def downgrade() -> None:

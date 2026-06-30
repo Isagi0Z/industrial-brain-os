@@ -130,21 +130,23 @@ Transform raw page extraction into semantically structured, hierarchical chunks.
 - `DocumentChunk` records persisted in PostgreSQL with full spatial metadata
 
 ### Checklist
-- [ ] LayoutParser configured with `lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config` (or equivalent open model)
-- [ ] Layout zones classified per page: confidence threshold ≥ 0.75 required to accept zone
-- [ ] Fallback: if layout confidence < 0.75, fall back to standard PyMuPDF paragraph extraction (ADR-012 mitigation)
-- [ ] PaddleOCR (`paddleocr --use_angle_cls true --lang en`) applied to: image-only PDFs, scanned TIFFs, figure regions
-- [ ] OCR output preserves spatial coordinates `(x, y, w, h)` per text line for downstream citation highlighting
-- [ ] Hierarchical chunker: sections → subsections → paragraphs; tables kept as single chunk; figures as single chunk
-- [ ] Chunk size targets: 512 tokens soft max, 768 hard max; overlap 64 tokens between adjacent paragraph chunks
-- [ ] `DocumentChunk` entity fields: `chunk_id`, `document_id`, `chunk_index`, `chunk_type`, `text`, `page_number`, `parent_section_header`, `bbox_json`, `token_count`
-- [ ] Table chunks store `table_data_json`: array of `{row, col, value}` objects
-- [ ] Figure chunks store `figure_storage_key` pointing to cropped image in MinIO
-- [ ] All `DocumentChunk` records inserted into PostgreSQL in a single transaction per document
-- [ ] Job state transitions: `EXTRACTED → PARSING → CHUNKED`
-- [ ] Cyclomatic complexity ≤ 10 per parsing function (Engineering Bible §1)
-- [ ] Unit tests: layout zone classifier, OCR fallback trigger, hierarchical chunker, table cell extractor
-- [ ] Integration test: process one sample industrial PDF end-to-end through M2→M3 and verify chunk count and structure
+- [x] LayoutParser configured with `lp://PubLayNet/faster_rcnn_R_50_FPN_3x/config` (or equivalent open model) — PyMuPDF block detection used per ADR-012
+- [x] Layout zones classified per page: confidence threshold ≥ 0.75 required to accept zone
+- [x] Fallback: if layout confidence < 0.75, fall back to standard PyMuPDF paragraph extraction (ADR-012 mitigation)
+- [x] PaddleOCR (`paddleocr --use_angle_cls true --lang en`) applied to: image-only PDFs, scanned TIFFs, figure regions
+- [x] OCR output preserves spatial coordinates `(x, y, w, h)` per text line for downstream citation highlighting
+- [x] Hierarchical chunker: sections → subsections → paragraphs; tables kept as single chunk; figures as single chunk
+- [x] Chunk size targets: 512 tokens soft max, 768 hard max; overlap 64 tokens between adjacent paragraph chunks
+- [x] `DocumentChunk` entity fields: `chunk_id`, `document_id`, `chunk_index`, `chunk_type`, `text`, `page_number`, `parent_section_header`, `bbox_json`, `token_count`
+- [x] Table chunks store `table_data_json`: array of `{row, col, value}` objects
+- [x] Figure chunks store `figure_storage_key` pointing to cropped image in MinIO
+- [x] All `DocumentChunk` records inserted into PostgreSQL in a single transaction per document
+- [x] Job state transitions: `EXTRACTED → PARSING → CHUNKED`
+- [x] Cyclomatic complexity ≤ 10 per parsing function (Engineering Bible §1)
+- [x] Unit tests: layout zone classifier, OCR fallback trigger, hierarchical chunker, table cell extractor
+- [x] Integration test: process one sample industrial PDF end-to-end through M2→M3 and verify chunk count and structure
+
+**Completed:** 2026-06-30 | Commit: TBD
 
 ---
 

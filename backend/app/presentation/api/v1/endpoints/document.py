@@ -8,7 +8,11 @@ from app.infrastructure.di.container import container
 from app.application.document.services import DocumentUseCase
 from app.presentation.api.dependencies.auth import get_current_user
 from app.domain.auth.models import User
-from app.domain.document.constants import DocumentStatus, JobStatus, JOB_PROGRESS
+from app.domain.document.constants import (
+    DocumentStatus,
+    JobStatus,
+    JOB_PROGRESS,
+)
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -192,6 +196,36 @@ def delete_document(
 ):
     use_case.soft_delete_document(document_id)
     return {"status": "deleted"}
+
+
+@router.get("/{document_id}/chunks")
+def list_chunks(
+    document_id: str,
+    use_case: DocumentUseCase = Depends(get_document_use_case),
+    current_user: User = Depends(get_current_user),
+):
+    """Return all parsed chunks for a document (available after M3 processing)."""
+    use_case.get_document(document_id)  # 404 if not found
+    chunks = container.get_chunk_repository().get_by_document_id(document_id)
+    return {
+        "document_id": document_id,
+        "total_chunks": len(chunks),
+        "chunks": [
+            {
+                "id": c.id,
+                "chunk_index": c.chunk_index,
+                "chunk_type": c.chunk_type.value,
+                "text": c.text[:500],
+                "page_number": c.page_number,
+                "parent_section_header": c.parent_section_header,
+                "token_count": c.token_count,
+                "has_table_data": c.table_data_json is not None,
+                "has_figure": c.figure_storage_key is not None,
+                "bbox": c.bbox_json,
+            }
+            for c in chunks
+        ],
+    }
 
 
 @router.post("/{document_id}/restore")

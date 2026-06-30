@@ -46,10 +46,15 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logging.error(f"Infrastructure init failed: {e}")
 
+    # 3. Start background ingestion worker (M3)
+    worker = container.get_ingestion_worker()
+    worker.start()
+
     yield
 
     # Shutdown actions
     logging.info("Shutting down Industrial Brain OS API...")
+    worker.stop()
     container.close_all()
 
 

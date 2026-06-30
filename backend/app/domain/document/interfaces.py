@@ -5,6 +5,7 @@ from app.domain.document.models import (
     DocumentVersion,
     DocumentMetadata,
     ProcessingJob,
+    DocumentChunk,
 )
 from app.domain.document.constants import DocumentStatus, JobStatus
 
@@ -82,6 +83,10 @@ class IStorageService(ABC):
         pass
 
     @abstractmethod
+    def download_file(self, bucket_name: str, object_name: str) -> bytes:
+        pass
+
+    @abstractmethod
     def delete_file(self, bucket_name: str, object_name: str) -> None:
         pass
 
@@ -123,4 +128,41 @@ class IQueueService(ABC):
     @abstractmethod
     def enqueue_ingestion_job(self, document_id: str, job_id: str) -> None:
         """Push a job payload onto the ingestion queue."""
+        pass
+
+
+class IChunkRepository(ABC):
+    """Persistence interface for document chunks (M3)."""
+
+    @abstractmethod
+    def bulk_insert(self, chunks: List[DocumentChunk]) -> None:
+        """Insert all chunks for a document in a single transaction."""
+        pass
+
+    @abstractmethod
+    def get_by_document_id(self, document_id: str) -> List[DocumentChunk]:
+        pass
+
+    @abstractmethod
+    def delete_by_document_id(self, document_id: str) -> None:
+        """Remove all chunks for a document (used on retry)."""
+        pass
+
+
+class IDocumentParser(ABC):
+    """Extracts structured chunks from raw file bytes (M3)."""
+
+    @abstractmethod
+    def can_parse(self, mime_type: str) -> bool:
+        pass
+
+    @abstractmethod
+    def parse(
+        self,
+        document_id: str,
+        filename: str,
+        mime_type: str,
+        file_bytes: bytes,
+    ) -> List[DocumentChunk]:
+        """Return a flat ordered list of DocumentChunk objects."""
         pass

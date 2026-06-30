@@ -19,12 +19,20 @@ from app.domain.document.interfaces import (
     IStorageService,
     IJobRepository,
     IQueueService,
+    IChunkRepository,
 )
 from app.application.document.services import DocumentUseCase
+from app.application.document.parsing_service import DocumentParsingUseCase
 from app.infrastructure.document.minio_storage_service import MinioStorageService
 from app.infrastructure.document.document_repository import PostgresDocumentRepository
 from app.infrastructure.document.job_repository import PostgresJobRepository
 from app.infrastructure.document.queue_service import RedisQueueService
+from app.infrastructure.document.chunk_repository import PostgresChunkRepository
+from app.infrastructure.document.parsing.pymupdf_parser import PyMuPDFParser
+from app.infrastructure.document.parsing.docx_parser import DocxParser
+from app.infrastructure.document.parsing.xlsx_parser import XlsxParser
+from app.infrastructure.document.parsing.image_parser import ImageParser
+from app.infrastructure.document.worker import IngestionWorker
 
 
 class DIContainer:
@@ -182,6 +190,30 @@ class DIContainer:
                 queue_service=self.get_queue_service(),
             )
         return self._document_use_case
+
+    def get_chunk_repository(self) -> IChunkRepository:
+        if not hasattr(self, "_chunk_repository"):
+            self._chunk_repository = PostgresChunkRepository(self.get_postgres)
+        return self._chunk_repository
+
+    def get_parsing_use_case(self) -> DocumentParsingUseCase:
+        if not hasattr(self, "_parsing_use_case"):
+            self._parsing_use_case = DocumentParsingUseCase(
+                document_repo=self.get_document_repository(),
+                storage_service=self.get_storage_service(),
+                job_repo=self.get_job_repository(),
+                chunk_repo=self.get_chunk_repository(),
+                parsers=[PyMuPDFParser(), DocxParser(), XlsxParser(), ImageParser()],
+            )
+        return self._parsing_use_case
+
+    def get_ingestion_worker(self) -> IngestionWorker:
+        if not hasattr(self, "_ingestion_worker"):
+            self._ingestion_worker = IngestionWorker(
+                get_redis_fn=self.get_redis,
+                get_parsing_use_case_fn=self.get_parsing_use_case,
+            )
+        return self._ingestion_worker
 
     # ------------------------------------------------------------------
     # Shutdown
