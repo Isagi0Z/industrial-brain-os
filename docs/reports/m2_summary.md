@@ -3,7 +3,7 @@
 **Milestone**: M2  
 **Phase**: MVP  
 **Completed**: 2026-06-30  
-**Commit**: (stamped after push)  
+**Commit**: `39cc5ad`  
 **Depends on**: M1 (infrastructure, auth)
 
 ---

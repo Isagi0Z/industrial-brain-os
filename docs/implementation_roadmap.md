@@ -80,7 +80,7 @@ Verify all five Docker services start healthy. Initialize PostgreSQL schema via 
 **Blocks**: M3
 **Status**: ✅ Complete
 **Completion Date**: 2026-06-30
-**Commit SHA**: (stamped after push)
+**Commit SHA**: `39cc5ad`
 
 ### Objective
 Complete the document upload flow end-to-end: file received by FastAPI → validated → stored in MinIO → job record created in PostgreSQL → queued in Redis for downstream processing.
