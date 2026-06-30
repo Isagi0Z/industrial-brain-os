@@ -158,7 +158,7 @@ Transform raw page extraction into semantically structured, hierarchical chunks.
 **Blocks**: M5, M8
 **Status**: ✅ Complete
 **Completion Date**: 2026-06-30
-**Commit SHA**: TBD (pending commit)
+**Commit SHA**: `0f05345`
 
 ### Objective
 Generate dense vector embeddings from `DocumentChunk` text, batch-upsert them into Qdrant with full metadata payloads, and expose a working `/search/semantic` endpoint. Also implement BM25 keyword search for exact technical code lookup per ADR-009, Stage 1.
