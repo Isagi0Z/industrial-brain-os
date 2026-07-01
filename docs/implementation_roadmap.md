@@ -407,7 +407,7 @@ Build the first of five sub-brains using LangGraph: the **Knowledge Brain**, whi
 
 **Pre-existing bugs found and fixed while verifying this milestone**: `get_chat_use_case()` (M5) and `get_extraction_use_case()` (M7) both resolved their `ai/prompts/*.yaml` paths via `Path(__file__).parents[4]`, which is the *repo root*, not `backend/` — since those prompt files live under `backend/ai/`, this silently made M5's ChatUseCase always fall back to its hardcoded default system prompt (never the curated `knowledge_copilot.yaml`), and would have hard-crashed `get_extraction_use_case()` the first time a real document reached the KG-extraction step (no fallback in `LLMRelationExtractor._load_prompt`). Both fixed to `parents[3]`; `get_ontology_validator()` was already correct since `ontology/` is genuinely repo-root-relative. Also added `spacy`/`rapidfuzz`/`langgraph`/`PyJWT`/`passlib[bcrypt]` to the dev venv and `requirements.txt` where missing (some of these were flagged in M8 too).
 
-**Commit**: TBD — stamped after commit
+**Commit**: 13710e5
 
 ---
 
