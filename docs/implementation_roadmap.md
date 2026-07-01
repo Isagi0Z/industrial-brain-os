@@ -450,7 +450,7 @@ Specialized LangGraph agent for maintenance operations: work order assistance, p
 
 **Known limitation**: `oem_manual_lookup`'s "document_category filter = OEM Manual" is implemented as a document-title keyword heuristic (`manual`, `oem`, `datasheet`, `spec sheet`, etc.), not a true category filter. No write path in this codebase currently populates `DocumentClassification.category` or indexes a category field into Qdrant's payload schema (verified: `IDocumentRepository` has no `add_classification` method, and `PostgresDocumentRepository.get_by_id()` never populates `Document.classifications`) — the ontology/data pipeline needed for true category filtering doesn't exist yet. Implementing it properly would require touching M2–M4 code, which is out of scope for a single milestone. Flagged for a future milestone.
 
-**Commit**: TBD — stamped after commit
+**Commit**: afd8d17
 
 ---
 
