@@ -1,15 +1,17 @@
-"""Redis-backed ingestion worker (M3+M4).
+"""Redis-backed ingestion worker (M3+M4+M7).
 
 Runs as a daemon thread started during FastAPI lifespan.
 Consumes the ``ingestion:jobs`` list via BLPOP and calls:
   1. DocumentParsingUseCase.parse_document  (QUEUED → CHUNKED)
   2. EmbeddingUseCase.embed_document        (CHUNKED → INDEXED)
+  3. ExtractionUseCase.run_for_document     (INDEXED → KG_POPULATED → COMPLETED)
 
 Replaced by Celery in M15.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import threading
@@ -29,10 +31,12 @@ class IngestionWorker:
         get_redis_fn: Callable[[], redis.Redis],
         get_parsing_use_case_fn: Callable,
         get_embedding_use_case_fn: Callable,
+        get_extraction_use_case_fn: Callable,
     ) -> None:
         self._get_redis = get_redis_fn
         self._get_parsing_uc = get_parsing_use_case_fn
         self._get_embedding_uc = get_embedding_use_case_fn
+        self._get_extraction_uc = get_extraction_use_case_fn
         self._stop_event = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -66,5 +70,8 @@ class IngestionWorker:
                 chunks = self._get_parsing_uc().parse_document(document_id, job_id)
                 if chunks:
                     self._get_embedding_uc().embed_document(document_id, job_id)
+                    asyncio.run(
+                        self._get_extraction_uc().run_for_document(document_id, job_id)
+                    )
             except Exception as exc:
                 logger.error("Worker loop error: %s", exc, exc_info=True)

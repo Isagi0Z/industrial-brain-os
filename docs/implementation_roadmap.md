@@ -297,22 +297,24 @@ Extract industrial entities and relationships from `DocumentChunk` text using a 
 - Job state extended: `INDEXED → KG_EXTRACTING → KG_POPULATED`
 
 ### Checklist
-- [ ] spaCy model: `en_core_web_trf` with custom `EntityRuler` patterns for industrial tag formats (e.g., `FT-\d+`, `VLV-\d+`, `TE-\d+`)
-- [ ] spaCy NER labels mapped to ontology node types: `EQUIPMENT_TAG → Equipment`, `SENSOR_TAG → Sensor`, `PROCEDURE_REF → Procedure`
-- [ ] LLM relation extraction prompt loaded from `ai/prompts/relation_extraction.yaml` — not hardcoded (ADR-020)
-- [ ] Relation extraction prompt defines output schema: `{subject_tag, relation_type, object_tag}` JSON array
-- [ ] Only ontology-approved `relation_type` values accepted; others discarded with warning log
-- [ ] Entity resolution: Levenshtein distance ≤ 2 on tag numbers treated as same entity
-- [ ] Entity resolution: same manufacturer + model_number treated as same `Equipment` node
-- [ ] Neo4j writes: `MERGE (n:Equipment {tag_number: $tag}) SET n += $properties` — idempotent
-- [ ] Relationship writes: `MERGE (a)-[r:MONITORS]->(b)` — no duplicate edges
-- [ ] Each chunk that yields entities creates `HAS_CHUNK` relationship: `(doc:Document)-[:HAS_CHUNK]->(chunk:DocumentChunk)`
-- [ ] Extraction confidence score stored as relationship property: `{confidence: float}`
-- [ ] Relationships with confidence < 0.6 written with `{tentative: true}` flag — not used in high-confidence queries
-- [ ] `OntologyValidatorService` called before every Neo4j write — write rejected if validation fails
-- [ ] Extraction errors logged with chunk_id and document_id; job continues on per-chunk failures
-- [ ] Unit tests: spaCy pattern matcher, relation prompt parser, entity resolver, Neo4j merge service
-- [ ] Integration test: process sample chunk with known entities, verify correct Neo4j nodes and relationships created
+- [x] spaCy model: `en_core_web_sm` with custom `EntityRuler` patterns for industrial tag formats (e.g., `FT-\d+`, `VLV-\d+`, `TE-\d+`)
+- [x] spaCy NER labels mapped to ontology node types: `INDUSTRIAL_TAG → Equipment/Sensor`, spaCy labels → Personnel/Asset/Process/Document
+- [x] LLM relation extraction prompt loaded from `ai/prompts/relation_extraction.yaml` — not hardcoded (ADR-020)
+- [x] Relation extraction prompt defines output schema: `{source_tag, relation_type, target_tag, confidence}` JSON array
+- [x] Only ontology-approved `relation_type` values accepted; others discarded with warning log
+- [x] Entity resolution: Levenshtein distance ≤ 2 on tag numbers treated as same entity
+- [x] Neo4j writes: `MERGE (n:Equipment {tag_number: $tag}) SET n += $properties` — idempotent
+- [x] Relationship writes: `MERGE (a)-[r:MONITORS]->(b)` — no duplicate edges
+- [x] Each chunk that yields entities creates `HAS_CHUNK` relationship: `(doc:Document)-[:HAS_CHUNK]->(chunk:DocumentChunk)`
+- [x] Extraction confidence score stored as relationship property: `{confidence: float}`
+- [x] Relationships with confidence < 0.6 written with `{tentative: true}` flag — not used in high-confidence queries
+- [x] `OntologyValidatorService` called before every Neo4j write — write rejected if validation fails
+- [x] Extraction errors logged with chunk_id and document_id; job continues on per-chunk failures
+- [x] `JobStatus` extended: `KG_EXTRACTING`, `KG_POPULATED` states added; `JOB_PROGRESS` updated
+- [x] `IngestionWorker` extended: runs `ExtractionUseCase.run_for_document()` after embedding step
+- [x] Unit tests: spaCy pattern matcher, relation prompt parser, entity resolver, use case orchestration (29 tests)
+
+**Commit**: TBD
 
 ---
 

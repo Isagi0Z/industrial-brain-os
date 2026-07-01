@@ -58,6 +58,14 @@ from app.domain.ontology.interfaces import IOntologyValidator
 from app.domain.ontology.validator import OntologyValidatorService
 from app.infrastructure.ontology.yaml_loader import load_ontology
 
+from app.application.extraction.extraction_use_case import ExtractionUseCase
+from app.infrastructure.extraction.spacy_entity_extractor import SpacyEntityExtractor
+from app.infrastructure.extraction.levenshtein_entity_resolver import (
+    LevenshteinEntityResolver,
+)
+from app.infrastructure.extraction.llm_relation_extractor import LLMRelationExtractor
+from app.infrastructure.extraction.neo4j_kg_writer import Neo4jKGWriter
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -343,12 +351,46 @@ class DIContainer:
             )
         return self._ontology_validator
 
+    # ------------------------------------------------------------------
+    # Extraction services (M7)
+    # ------------------------------------------------------------------
+
+    def get_extraction_use_case(self) -> ExtractionUseCase:
+        if not hasattr(self, "_extraction_use_case"):
+            from pathlib import Path
+
+            prompt_path = Path(settings.RELATION_EXTRACTION_PROMPT_FILE)
+            if not prompt_path.is_absolute():
+                prompt_path = (
+                    Path(__file__).parents[4] / settings.RELATION_EXTRACTION_PROMPT_FILE
+                )
+
+            # Reuse the primary gateway from ChatUseCase (IModelGateway)
+            chat_uc = self.get_chat_use_case()
+            gateway = chat_uc._primary  # type: ignore[attr-defined]
+
+            self._extraction_use_case = ExtractionUseCase(
+                chunk_repo=self.get_chunk_repository(),
+                job_repo=self.get_job_repository(),
+                entity_extractor=SpacyEntityExtractor(settings.SPACY_MODEL),
+                entity_resolver=LevenshteinEntityResolver(),
+                relation_extractor=LLMRelationExtractor(
+                    gateway=gateway,
+                    prompt_path=prompt_path,
+                ),
+                kg_writer=Neo4jKGWriter(self.get_neo4j()),
+                ontology_validator=self.get_ontology_validator(),
+            )
+            logging.info("ExtractionUseCase initialized.")
+        return self._extraction_use_case
+
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):
             self._ingestion_worker = IngestionWorker(
                 get_redis_fn=self.get_redis,
                 get_parsing_use_case_fn=self.get_parsing_use_case,
                 get_embedding_use_case_fn=self.get_embedding_use_case,
+                get_extraction_use_case_fn=self.get_extraction_use_case,
             )
         return self._ingestion_worker
 

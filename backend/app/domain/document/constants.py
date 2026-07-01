@@ -19,6 +19,8 @@ class JobStatus(str, Enum):
     CHUNKED = "CHUNKED"
     EMBEDDING = "EMBEDDING"
     INDEXED = "INDEXED"
+    KG_EXTRACTING = "KG_EXTRACTING"
+    KG_POPULATED = "KG_POPULATED"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
@@ -56,7 +58,9 @@ JOB_PROGRESS: dict = {
     JobStatus.PARSING: 55,
     JobStatus.CHUNKED: 70,
     JobStatus.EMBEDDING: 85,
-    JobStatus.INDEXED: 95,
+    JobStatus.INDEXED: 90,
+    JobStatus.KG_EXTRACTING: 93,
+    JobStatus.KG_POPULATED: 97,
     JobStatus.COMPLETED: 100,
     JobStatus.FAILED: 0,
 }

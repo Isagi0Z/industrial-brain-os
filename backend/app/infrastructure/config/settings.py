@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     # Ontology configuration (M6)
     ONTOLOGY_FILE: str = "ontology/industrial_ontology.yaml"
 
+    # Extraction / KG configuration (M7)
+    SPACY_MODEL: str = "en_core_web_sm"
+    KG_CONFIDENCE_THRESHOLD: float = 0.6
+    RELATION_EXTRACTION_PROMPT_FILE: str = "ai/prompts/relation_extraction.yaml"
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(
