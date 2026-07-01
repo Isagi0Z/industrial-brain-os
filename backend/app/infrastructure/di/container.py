@@ -73,6 +73,9 @@ from app.infrastructure.graphrag.cross_encoder_reranker import CrossEncoderReran
 from app.infrastructure.graphrag.neo4j_kg_traversal import Neo4jKGTraversalService
 from app.infrastructure.graphrag.redis_graphrag_cache import RedisGraphRAGCache
 
+from app.application.knowledge_brain.knowledge_brain_agent import KnowledgeBrainAgent
+from app.domain.knowledge_brain.interfaces import IKnowledgeBrainAgent
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -309,17 +312,22 @@ class DIContainer:
             )
         return None
 
+    def get_chat_history_repository(self) -> RedisChatHistoryRepository:
+        if not hasattr(self, "_chat_history_repository"):
+            self._chat_history_repository = RedisChatHistoryRepository(self.get_redis)
+        return self._chat_history_repository
+
     def get_chat_use_case(self) -> ChatUseCase:
         if not hasattr(self, "_chat_use_case"):
             from pathlib import Path
 
             prompt_path = Path(settings.PROMPT_FILE)
             if not prompt_path.is_absolute():
-                prompt_path = Path(__file__).parents[4] / settings.PROMPT_FILE
+                # backend/ai/... — parents[3] is the `backend/` dir (di -> infrastructure -> app -> backend)
+                prompt_path = Path(__file__).parents[3] / settings.PROMPT_FILE
 
             prompt_loader = YamlPromptLoader(prompt_path)
             context_builder = ContextBuilder()
-            history_repo = RedisChatHistoryRepository(self.get_redis)
 
             primary = self._build_primary_gateway()
             fallback = self._build_fallback_gateway()
@@ -328,7 +336,7 @@ class DIContainer:
                 graphrag_engine=self.get_graphrag_engine(),
                 primary_gateway=primary,
                 fallback_gateway=fallback,
-                history_repo=history_repo,
+                history_repo=self.get_chat_history_repository(),
                 context_builder=context_builder,
                 prompt_loader=prompt_loader,
                 max_tokens=settings.CHAT_MAX_TOKENS,
@@ -378,8 +386,9 @@ class DIContainer:
 
             prompt_path = Path(settings.RELATION_EXTRACTION_PROMPT_FILE)
             if not prompt_path.is_absolute():
+                # backend/ai/... — parents[3] is the `backend/` dir
                 prompt_path = (
-                    Path(__file__).parents[4] / settings.RELATION_EXTRACTION_PROMPT_FILE
+                    Path(__file__).parents[3] / settings.RELATION_EXTRACTION_PROMPT_FILE
                 )
 
             # Reuse the gateway already wired up for the chat use case
@@ -437,6 +446,38 @@ class DIContainer:
             )
             logging.info("GraphRAGEngine initialized.")
         return self._graphrag_engine
+
+    # ------------------------------------------------------------------
+    # Knowledge Brain agent (M9)
+    # ------------------------------------------------------------------
+
+    def get_knowledge_brain_agent(self) -> IKnowledgeBrainAgent:
+        if not hasattr(self, "_knowledge_brain_agent"):
+            from pathlib import Path
+
+            prompt_path = Path(settings.KNOWLEDGE_BRAIN_PROMPT_FILE)
+            if not prompt_path.is_absolute():
+                # backend/ai/... — parents[3] is the `backend/` dir
+                prompt_path = (
+                    Path(__file__).parents[3] / settings.KNOWLEDGE_BRAIN_PROMPT_FILE
+                )
+
+            self._knowledge_brain_agent = KnowledgeBrainAgent(
+                graphrag_engine=self.get_graphrag_engine(),
+                entity_extractor=self.get_entity_extractor(),
+                kg_traversal=self.get_kg_traversal_service(),
+                model_gateway=self._build_primary_gateway(),
+                history_repo=self.get_chat_history_repository(),
+                prompt_path=prompt_path,
+                max_steps=settings.KNOWLEDGE_BRAIN_MAX_STEPS,
+                top_k=settings.KNOWLEDGE_BRAIN_TOP_K,
+                kg_depth=settings.GRAPHRAG_MAX_KG_DEPTH,
+                kg_limit=settings.GRAPHRAG_KG_TRAVERSAL_LIMIT,
+                max_tokens=settings.CHAT_MAX_TOKENS,
+                session_ttl_seconds=settings.CHAT_SESSION_TTL_SECONDS,
+            )
+            logging.info("KnowledgeBrainAgent initialized.")
+        return self._knowledge_brain_agent
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

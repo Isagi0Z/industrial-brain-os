@@ -387,21 +387,27 @@ Build the first of five sub-brains using LangGraph: the **Knowledge Brain**, whi
 - `/api/v1/brain/knowledge/chat` endpoint routing to this agent
 
 ### Checklist
-- [ ] `AgentState` TypedDict defined with: `query`, `session_id`, `user_role`, `retrieved_chunks`, `kg_paths`, `draft_answer`, `citations`, `step_count`, `error_flag`
-- [ ] LangGraph `StateGraph` compiled with nodes: `route_query → retrieve_context → synthesize_answer → validate_citations → format_response`
-- [ ] `route_query` node: classifies query as `document_search | entity_lookup | procedural | unknown`; unknown routes to `synthesize_answer` with explicit uncertainty
-- [ ] `retrieve_context` node: calls `GraphRAGEngine` (M8); populates `retrieved_chunks` and `kg_paths` in state
-- [ ] `synthesize_answer` node: calls `ModelGateway` (M5) with assembled context; draft stored in state
-- [ ] `validate_citations` node: verifies each citation in draft maps to a real chunk_id in `retrieved_chunks`; removes hallucinated citations
-- [ ] `format_response` node: renders final markdown with validated citations
-- [ ] Step counter incremented at each node; graph exits with `STEP_LIMIT_EXCEEDED` error if > 10 steps (Engineering Bible §21)
-- [ ] Fallback: any tool exception sets `error_flag = True`; agent routes to `format_response` with partial answer
-- [ ] All agent tool definitions in `ai/agents/knowledge_brain/tools.py` — separate from state machine definition
-- [ ] All prompt templates in `ai/prompts/knowledge_brain/*.yaml` — not hardcoded (ADR-020)
-- [ ] Agent execution steps logged with step number, node name, duration, and Correlation-ID (Engineering Bible §16)
-- [ ] `/api/v1/brain/knowledge/chat` validates user auth and RBAC before passing to agent
-- [ ] Unit tests: each LangGraph node independently; state transitions; step limit enforcement; fallback handler
-- [ ] Integration test: multi-turn conversation; verify state accumulates across turns via Redis session
+- [x] `AgentState` TypedDict defined with: `query`, `session_id`, `user_role`, `retrieved_chunks`, `kg_paths`, `draft_answer`, `citations`, `step_count`, `error_flag`
+- [x] LangGraph `StateGraph` compiled with nodes: `route_query → retrieve_context → synthesize_answer → validate_citations → format_response`
+- [x] `route_query` node: classifies query as `document_search | entity_lookup | procedural | unknown` (deterministic, regex-based — no LLM round-trip needed for routing); unknown routes to `synthesize_answer` with explicit uncertainty
+- [x] `retrieve_context` node: calls `GraphRAGEngine` (M8) for document_search/procedural; calls the lighter `entity_lookup`+`graph_search` tools directly for entity_lookup (skips BM25/vector/rerank when a tag is already known); populates `retrieved_chunks` and `kg_paths` in state
+- [x] `synthesize_answer` node: calls `ModelGateway` (M5) with assembled context; draft stored in state
+- [x] `validate_citations` node: verifies each `[[chunk:<id>]]` marker in the draft maps to a real chunk_id in `retrieved_chunks`; hallucinated markers are stripped and excluded from `citations`
+- [x] `format_response` node: renders final markdown with validated citations as numbered footnotes + a Sources list
+- [x] Step counter incremented at each node (via each node's *returned* state delta — LangGraph merges only return values, not in-place mutation); graph raises `StepLimitExceededError` ("STEP_LIMIT_EXCEEDED") if > 10 steps (Engineering Bible §21)
+- [x] Fallback: any tool exception inside a node sets `error_flag = True` and the node returns normally (no raise); conditional edges route straight to `format_response`, which appends an uncertainty note to the partial answer
+- [x] All agent tool definitions in `ai/agents/knowledge_brain/tools.py` — separate from state machine definition (`app/application/knowledge_brain/knowledge_brain_agent.py`)
+- [x] All prompt templates in `ai/prompts/knowledge_brain/*.yaml` — not hardcoded (ADR-020)
+- [x] Agent execution steps logged with step number, node name, duration, and Correlation-ID (Engineering Bible §16 — correlation_id is auto-attached by the existing JSON log formatter's contextvar)
+- [x] `/api/v1/brain/knowledge/chat` validates user auth and RBAC before passing to agent (verified live: unauthenticated request → 401)
+- [x] Unit tests: each LangGraph node exercised independently via full-graph runs with mocked dependencies; state transitions; step limit enforcement (max_steps=1/2/10 cases); fallback handler (30 unit tests in `test_knowledge_brain.py`)
+- [x] Integration test: multi-turn conversation against real Redis; verified state accumulates across turns (2nd turn's LLM call includes 1st turn's history) — both as an automated test and live against the running backend
+
+**Known limitation**: answer *quality* from the locally-available `mistral:latest` (via Ollama) is imperfect on structured KG-table context in this sandbox — this is a small local model's capability limit, not a defect in the retrieval/routing/citation pipeline, which was verified mechanically correct end-to-end (real KG path found and passed into context; the model simply didn't always leverage it well). Production should target `llama3.2`+ or Gemini for this reason.
+
+**Pre-existing bugs found and fixed while verifying this milestone**: `get_chat_use_case()` (M5) and `get_extraction_use_case()` (M7) both resolved their `ai/prompts/*.yaml` paths via `Path(__file__).parents[4]`, which is the *repo root*, not `backend/` — since those prompt files live under `backend/ai/`, this silently made M5's ChatUseCase always fall back to its hardcoded default system prompt (never the curated `knowledge_copilot.yaml`), and would have hard-crashed `get_extraction_use_case()` the first time a real document reached the KG-extraction step (no fallback in `LLMRelationExtractor._load_prompt`). Both fixed to `parents[3]`; `get_ontology_validator()` was already correct since `ontology/` is genuinely repo-root-relative. Also added `spacy`/`rapidfuzz`/`langgraph`/`PyJWT`/`passlib[bcrypt]` to the dev venv and `requirements.txt` where missing (some of these were flagged in M8 too).
+
+**Commit**: TBD — stamped after commit
 
 ---
 

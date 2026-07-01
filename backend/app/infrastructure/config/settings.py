@@ -70,6 +70,13 @@ class Settings(BaseSettings):
     GRAPHRAG_MAX_KG_DEPTH: int = 2
     GRAPHRAG_KG_TRAVERSAL_LIMIT: int = 50
 
+    # Knowledge Brain agent configuration (M9)
+    KNOWLEDGE_BRAIN_PROMPT_FILE: str = (
+        "ai/prompts/knowledge_brain/synthesize_answer.yaml"
+    )
+    KNOWLEDGE_BRAIN_MAX_STEPS: int = 10
+    KNOWLEDGE_BRAIN_TOP_K: int = 5
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(
