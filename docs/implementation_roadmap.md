@@ -364,6 +364,8 @@ Implement Stages 1–6 of the 8-stage hybrid retrieval pipeline from the archite
 
 **Environment fixes applied this session** (pre-existing gaps unrelated to M8 logic, but blocking anything that imports the DI container): `spacy`, `rapidfuzz`, `PyJWT`, and `passlib[bcrypt]` were missing from the M7 dev venv despite being hard imports — `spacy` and `rapidfuzz` were also missing from `requirements.txt` and have been added. `qdrant-client` had drifted to 1.16.1 (removing the `.search()` method used by M4 code) and was pinned back to the `requirements.txt`-specified `<1.10.0` range.
 
+**Commit**: e45dd28
+
 ---
 
 ## M9 — Knowledge Brain Agent (LangGraph)
