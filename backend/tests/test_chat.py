@@ -21,8 +21,20 @@ from app.domain.chat.models import (
     Citation,
     MessageRole,
 )
+from app.domain.graphrag.models import HybridSearchResult
 from app.domain.search.models import SearchResult
 from app.domain.document.constants import ChunkType
+
+
+def _make_graphrag_engine(ranked_chunks=None):
+    """Fake IGraphRAGEngine returning an empty (or given) HybridSearchResult."""
+    engine = MagicMock()
+
+    async def _retrieve(*a, **kw):
+        return HybridSearchResult(ranked_chunks=ranked_chunks or [])
+
+    engine.retrieve = _retrieve
+    return engine
 
 
 # ---------------------------------------------------------------------------
@@ -189,15 +201,7 @@ def test_chat_use_case_calls_primary_gateway():
     primary = FakeGateway("ollama/llama3.2")
     fallback = FakeGateway("gemini/gemini-2.0-flash")
 
-    embedding_uc = MagicMock()
-    embedding_uc.search_semantic = MagicMock(
-        return_value=asyncio.coroutine(lambda *a, **kw: [])()
-    )
-
-    async def _search(*a, **kw):
-        return []
-
-    embedding_uc.search_semantic = _search
+    graphrag_engine = _make_graphrag_engine()
 
     history_repo = MagicMock()
     history_repo.get_history.return_value = []
@@ -211,7 +215,7 @@ def test_chat_use_case_calls_primary_gateway():
     prompt_loader.wrap_context.return_value = "=== context ==="
 
     uc = ChatUseCase(
-        embedding_use_case=embedding_uc,
+        graphrag_engine=graphrag_engine,
         primary_gateway=primary,
         fallback_gateway=fallback,
         history_repo=history_repo,
@@ -239,9 +243,6 @@ def test_chat_use_case_falls_back_on_primary_failure():
     primary = FailingGateway()
     fallback = FakeGateway("gemini/gemini-2.0-flash", response="Fallback answer.")
 
-    async def _search(*a, **kw):
-        return []
-
     history_repo = MagicMock()
     history_repo.get_history.return_value = []
     history_repo.append_messages.return_value = None
@@ -253,11 +254,10 @@ def test_chat_use_case_falls_back_on_primary_failure():
     prompt_loader.system_prompt.return_value = "You are a copilot."
     prompt_loader.wrap_context.return_value = "=== ctx ==="
 
-    embedding_uc = MagicMock()
-    embedding_uc.search_semantic = _search
+    graphrag_engine = _make_graphrag_engine()
 
     uc = ChatUseCase(
-        embedding_use_case=embedding_uc,
+        graphrag_engine=graphrag_engine,
         primary_gateway=primary,
         fallback_gateway=fallback,
         history_repo=history_repo,
@@ -284,9 +284,6 @@ def test_chat_use_case_both_gateways_fail():
     primary = FailingGateway()
     fallback = FailingGateway()
 
-    async def _search(*a, **kw):
-        return []
-
     history_repo = MagicMock()
     history_repo.get_history.return_value = []
 
@@ -297,11 +294,10 @@ def test_chat_use_case_both_gateways_fail():
     prompt_loader.system_prompt.return_value = ""
     prompt_loader.wrap_context.return_value = ""
 
-    embedding_uc = MagicMock()
-    embedding_uc.search_semantic = _search
+    graphrag_engine = _make_graphrag_engine()
 
     uc = ChatUseCase(
-        embedding_use_case=embedding_uc,
+        graphrag_engine=graphrag_engine,
         primary_gateway=primary,
         fallback_gateway=fallback,
         history_repo=history_repo,

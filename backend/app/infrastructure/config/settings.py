@@ -63,6 +63,13 @@ class Settings(BaseSettings):
     KG_CONFIDENCE_THRESHOLD: float = 0.6
     RELATION_EXTRACTION_PROMPT_FILE: str = "ai/prompts/relation_extraction.yaml"
 
+    # GraphRAG / Hybrid Retrieval configuration (M8)
+    GRAPHRAG_RERANKER_MODEL: str = "BAAI/bge-reranker-large"
+    GRAPHRAG_CACHE_TTL_SECONDS: int = 300
+    GRAPHRAG_TOKEN_BUDGET: int = 6000
+    GRAPHRAG_MAX_KG_DEPTH: int = 2
+    GRAPHRAG_KG_TRAVERSAL_LIMIT: int = 50
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

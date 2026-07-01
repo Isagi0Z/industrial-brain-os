@@ -5,7 +5,6 @@ import logging
 import time
 from typing import AsyncGenerator, List, Optional, Tuple
 
-from app.application.search.embedding_use_case import EmbeddingUseCase
 from app.domain.chat.interfaces import (
     IChatHistoryRepository,
     IContextBuilder,
@@ -20,6 +19,7 @@ from app.domain.chat.models import (
     MessageRole,
     TokenUsage,
 )
+from app.domain.graphrag.interfaces import IGraphRAGEngine
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +34,7 @@ class GatewayError(Exception):
 class ChatUseCase:
     def __init__(
         self,
-        embedding_use_case: EmbeddingUseCase,
+        graphrag_engine: IGraphRAGEngine,
         primary_gateway: IModelGateway,
         fallback_gateway: Optional[IModelGateway],
         history_repo: IChatHistoryRepository,
@@ -43,7 +43,7 @@ class ChatUseCase:
         max_tokens: int = 2048,
         session_ttl_seconds: int = 3600,
     ) -> None:
-        self._embedding_uc = embedding_use_case
+        self._graphrag = graphrag_engine
         self._primary = primary_gateway
         self._fallback = fallback_gateway
         self._history = history_repo
@@ -53,18 +53,26 @@ class ChatUseCase:
         self._session_ttl = session_ttl_seconds
 
     async def prepare(self, request: ChatRequest) -> ChatContext:
-        """Fetch history, run semantic search, build context, assemble messages."""
+        """Fetch history, run the GraphRAG hybrid pipeline, build context."""
         history = self._history.get_history(request.session_id)
 
-        search_results = await self._embedding_uc.search_semantic(
+        hybrid_result = await self._graphrag.retrieve(
             query=request.query,
             role_scope=request.role_scope,
-            limit=request.top_k,
+            top_k=request.top_k,
         )
 
+        search_results = [rc.result for rc in hybrid_result.ranked_chunks]
         context_text, citations = self._ctx_builder.build(
             search_results, _MAX_CONTEXT_TOKENS
         )
+
+        kg_markdown = hybrid_result.kg_paths_as_markdown()
+        if kg_markdown:
+            context_text = (
+                f"{context_text}\n\n### Related Knowledge Graph Relationships\n"
+                f"{kg_markdown}"
+            )
 
         system_content = (
             self._prompts.system_prompt()

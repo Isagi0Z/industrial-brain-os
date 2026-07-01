@@ -59,12 +59,19 @@ from app.domain.ontology.validator import OntologyValidatorService
 from app.infrastructure.ontology.yaml_loader import load_ontology
 
 from app.application.extraction.extraction_use_case import ExtractionUseCase
+from app.domain.extraction.interfaces import IEntityExtractor
 from app.infrastructure.extraction.spacy_entity_extractor import SpacyEntityExtractor
 from app.infrastructure.extraction.levenshtein_entity_resolver import (
     LevenshteinEntityResolver,
 )
 from app.infrastructure.extraction.llm_relation_extractor import LLMRelationExtractor
 from app.infrastructure.extraction.neo4j_kg_writer import Neo4jKGWriter
+
+from app.application.graphrag.graphrag_engine import GraphRAGEngine
+from app.domain.graphrag.interfaces import IGraphRAGEngine
+from app.infrastructure.graphrag.cross_encoder_reranker import CrossEncoderReranker
+from app.infrastructure.graphrag.neo4j_kg_traversal import Neo4jKGTraversalService
+from app.infrastructure.graphrag.redis_graphrag_cache import RedisGraphRAGCache
 
 
 class DIContainer:
@@ -274,6 +281,34 @@ class DIContainer:
     # Chat services (M5)
     # ------------------------------------------------------------------
 
+    def _build_primary_gateway(self):
+        if settings.LLM_PROVIDER == "gemini":
+            return GeminiGateway(
+                api_key=settings.GEMINI_API_KEY,
+                model=settings.GEMINI_MODEL,
+            )
+        return OllamaGateway(
+            host=settings.OLLAMA_HOST,
+            port=settings.OLLAMA_PORT,
+            model=settings.OLLAMA_MODEL,
+        )
+
+    def _build_fallback_gateway(self):
+        if settings.LLM_PROVIDER == "gemini":
+            if settings.OLLAMA_HOST:
+                return OllamaGateway(
+                    host=settings.OLLAMA_HOST,
+                    port=settings.OLLAMA_PORT,
+                    model=settings.OLLAMA_MODEL,
+                )
+            return None
+        if settings.GEMINI_API_KEY:
+            return GeminiGateway(
+                api_key=settings.GEMINI_API_KEY,
+                model=settings.GEMINI_MODEL,
+            )
+        return None
+
     def get_chat_use_case(self) -> ChatUseCase:
         if not hasattr(self, "_chat_use_case"):
             from pathlib import Path
@@ -286,34 +321,11 @@ class DIContainer:
             context_builder = ContextBuilder()
             history_repo = RedisChatHistoryRepository(self.get_redis)
 
-            primary: OllamaGateway | GeminiGateway
-            fallback: OllamaGateway | GeminiGateway | None = None
-
-            if settings.LLM_PROVIDER == "gemini":
-                primary = GeminiGateway(
-                    api_key=settings.GEMINI_API_KEY,
-                    model=settings.GEMINI_MODEL,
-                )
-                if settings.OLLAMA_HOST:
-                    fallback = OllamaGateway(
-                        host=settings.OLLAMA_HOST,
-                        port=settings.OLLAMA_PORT,
-                        model=settings.OLLAMA_MODEL,
-                    )
-            else:
-                primary = OllamaGateway(
-                    host=settings.OLLAMA_HOST,
-                    port=settings.OLLAMA_PORT,
-                    model=settings.OLLAMA_MODEL,
-                )
-                if settings.GEMINI_API_KEY:
-                    fallback = GeminiGateway(
-                        api_key=settings.GEMINI_API_KEY,
-                        model=settings.GEMINI_MODEL,
-                    )
+            primary = self._build_primary_gateway()
+            fallback = self._build_fallback_gateway()
 
             self._chat_use_case = ChatUseCase(
-                embedding_use_case=self.get_embedding_use_case(),
+                graphrag_engine=self.get_graphrag_engine(),
                 primary_gateway=primary,
                 fallback_gateway=fallback,
                 history_repo=history_repo,
@@ -355,6 +367,11 @@ class DIContainer:
     # Extraction services (M7)
     # ------------------------------------------------------------------
 
+    def get_entity_extractor(self) -> IEntityExtractor:
+        if not hasattr(self, "_entity_extractor"):
+            self._entity_extractor = SpacyEntityExtractor(settings.SPACY_MODEL)
+        return self._entity_extractor
+
     def get_extraction_use_case(self) -> ExtractionUseCase:
         if not hasattr(self, "_extraction_use_case"):
             from pathlib import Path
@@ -366,12 +383,12 @@ class DIContainer:
                 )
 
             # Reuse the gateway already wired up for the chat use case
-            gateway = self.get_chat_use_case()._primary  # type: ignore[attr-defined]
+            gateway = self._build_primary_gateway()
 
             self._extraction_use_case = ExtractionUseCase(
                 chunk_repo=self.get_chunk_repository(),
                 job_repo=self.get_job_repository(),
-                entity_extractor=SpacyEntityExtractor(settings.SPACY_MODEL),
+                entity_extractor=self.get_entity_extractor(),
                 entity_resolver=LevenshteinEntityResolver(),
                 relation_extractor=LLMRelationExtractor(
                     gateway=gateway,
@@ -383,6 +400,43 @@ class DIContainer:
             )
             logging.info("ExtractionUseCase initialized.")
         return self._extraction_use_case
+
+    # ------------------------------------------------------------------
+    # GraphRAG services (M8)
+    # ------------------------------------------------------------------
+
+    def get_kg_traversal_service(self) -> Neo4jKGTraversalService:
+        if not hasattr(self, "_kg_traversal_service"):
+            self._kg_traversal_service = Neo4jKGTraversalService(self.get_neo4j())
+        return self._kg_traversal_service
+
+    def get_cross_encoder_reranker(self) -> CrossEncoderReranker:
+        if not hasattr(self, "_cross_encoder_reranker"):
+            self._cross_encoder_reranker = CrossEncoderReranker(
+                settings.GRAPHRAG_RERANKER_MODEL
+            )
+        return self._cross_encoder_reranker
+
+    def get_graphrag_cache(self) -> RedisGraphRAGCache:
+        if not hasattr(self, "_graphrag_cache"):
+            self._graphrag_cache = RedisGraphRAGCache(self.get_redis)
+        return self._graphrag_cache
+
+    def get_graphrag_engine(self) -> IGraphRAGEngine:
+        if not hasattr(self, "_graphrag_engine"):
+            self._graphrag_engine = GraphRAGEngine(
+                embedding_use_case=self.get_embedding_use_case(),
+                entity_extractor=self.get_entity_extractor(),
+                kg_traversal=self.get_kg_traversal_service(),
+                reranker=self.get_cross_encoder_reranker(),
+                cache=self.get_graphrag_cache(),
+                token_budget=settings.GRAPHRAG_TOKEN_BUDGET,
+                cache_ttl_seconds=settings.GRAPHRAG_CACHE_TTL_SECONDS,
+                max_kg_depth=settings.GRAPHRAG_MAX_KG_DEPTH,
+                kg_traversal_limit=settings.GRAPHRAG_KG_TRAVERSAL_LIMIT,
+            )
+            logging.info("GraphRAGEngine initialized.")
+        return self._graphrag_engine
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

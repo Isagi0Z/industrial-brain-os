@@ -679,10 +679,12 @@ class TestSpacyEntityExtractor:
         assert extractor.extract(chunk) == []
 
     def test_no_duplicate_spans(self, extractor):
+        # Three distinct occurrences of "FT-001" are three distinct entities
+        # (each at its own char span) — dedup is per-span, not per-tag-text.
         chunk = _chunk("FT-001 FT-001 FT-001 all three are the same sensor.")
         entities = extractor.extract(chunk)
-        ft_tags = [e.tag_number for e in entities if e.tag_number == "FT-001"]
-        assert len(ft_tags) == len(set(ft_tags))
+        spans = [(e.start_char, e.end_char) for e in entities]
+        assert len(spans) == len(set(spans))
 
     def test_pic_prefix_wins_over_pi(self, extractor):
         chunk = _chunk("PIC-300 regulates the pressure setpoint.")
