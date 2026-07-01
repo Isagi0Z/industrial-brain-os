@@ -522,7 +522,7 @@ Guides reliability engineers through structured Root Cause Analysis using 5-Whys
 - [x] Unit tests: 5-Whys iteration (start → suggest → advance → report at depth); Fishbone all-six-branches + branch-failure isolation; human interrupt/resume via the persisted state store (24 unit tests in `test_rca_brain.py`)
 - [x] Demo test: initiated RCA for "pump P-102A bearing failure" — completed a full multi-turn 5-Whys and generated a report, verified **live against real Ollama + Postgres + Neo4j + Redis** (root cause "Skipped preventive maintenance resulting in insufficient lubrication", real `FM-BRG-02` cited, persisted `COMPLETED`) and via an automated integration test
 
-**Commit**: TBD — stamped after commit
+**Commit**: 8074f74
 
 ---
 
