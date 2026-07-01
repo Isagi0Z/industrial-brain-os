@@ -247,7 +247,7 @@ Wire vector search results into an LLM to produce cited answers. Expose a stream
 **Blocks**: M7
 **Status**: ✅ Complete
 **Completion Date**: 2026-06-30
-**Commit SHA**: `TBD — stamped after commit`
+**Commit SHA**: `f9388e3`
 
 ### Objective
 Define and enforce the Industrial Ontology in Neo4j per the architecture specification (§3) and ADR-010. Node types, required properties, and relationship types must be schema-validated before any entity extraction pipeline writes to the graph.

@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 from typing import Any, Dict
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 try:
     import jsonschema
