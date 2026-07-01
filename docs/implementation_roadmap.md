@@ -435,18 +435,22 @@ Specialized LangGraph agent for maintenance operations: work order assistance, p
 - `/api/v1/brain/maintenance/chat` endpoint
 
 ### Checklist
-- [ ] `work_orders` table in PostgreSQL: `wo_id`, `asset_tag`, `description`, `status`, `priority`, `scheduled_date`, `completed_date`
-- [ ] Mock CMMS CSV loaded via `scripts/load_mock_cmms.py` into `work_orders` table
-- [ ] `work_order_lookup` tool: queries PostgreSQL by asset_tag or work order ID
-- [ ] `failure_history_search` tool: queries Neo4j for `(Equipment)-[:EXHIBITS]->(FailureMode)` paths filtered by asset tag
-- [ ] `oem_manual_lookup` tool: calls GraphRAG with document_category filter = "OEM Manual"
-- [ ] `maintenance_schedule_query` tool: returns open work orders for an asset sorted by scheduled_date
-- [ ] LangGraph nodes: `classify_maintenance_query → retrieve_asset_context → retrieve_work_orders → synthesize_guidance → format_response`
-- [ ] Prompt templates in `ai/prompts/maintenance_brain/*.yaml`
-- [ ] Step limit: 10; fallback handler inherited from Knowledge Brain pattern
-- [ ] Agent logs include asset_tag extracted from query for audit trail
-- [ ] Unit tests: each tool independently; state machine transitions
-- [ ] Demo test: "Show me all open work orders for pump P-102A and the relevant maintenance procedure"
+- [x] `work_orders` table in PostgreSQL: `wo_id`, `asset_tag`, `description`, `status`, `priority`, `scheduled_date`, `completed_date` (migration `004_work_orders_m10`)
+- [x] Mock CMMS CSV loaded via `scripts/load_mock_cmms.py` into `work_orders` table (idempotent upsert by `wo_id`; 10 demo rows across 4 assets in `scripts/mock_cmms_data.csv`)
+- [x] `work_order_lookup` tool: queries PostgreSQL by asset_tag or work order ID
+- [x] `failure_history_search` tool: queries Neo4j for `(Equipment)-[:EXHIBITS]->(FailureMode)` paths filtered by asset tag
+- [x] `oem_manual_lookup` tool: calls GraphRAG (M8) and filters results via a document-title keyword heuristic — see **Known limitation** below re: `document_category`
+- [x] `maintenance_schedule_query` tool: returns open work orders (`OPEN`/`IN_PROGRESS`) for an asset sorted by scheduled_date ascending
+- [x] LangGraph nodes: `classify_maintenance_query → retrieve_asset_context → retrieve_work_orders → synthesize_guidance → format_response`
+- [x] Prompt templates in `ai/prompts/maintenance_brain/*.yaml` (ADR-020)
+- [x] Step limit: 10 (configurable); fallback handler follows the same pattern as the Knowledge Brain (M9) — return-value-based step counting, per-node try/except with `error_flag`, conditional edges routing straight to `format_response` on error
+- [x] Agent logs include `asset_tag` extracted from the query on every node, for audit trail (Engineering Bible §16)
+- [x] Unit tests: each tool independently (`ai/agents/maintenance_brain/tools.py`); state machine transitions, routing, step limit, fallback, citation validation (29 unit tests in `test_maintenance_brain.py`)
+- [x] Demo test: "Show me all open work orders for pump P-102A and the relevant maintenance procedure" — verified live against the running backend with real Postgres work orders, real Neo4j failure history, and real Ollama generation (see verification report)
+
+**Known limitation**: `oem_manual_lookup`'s "document_category filter = OEM Manual" is implemented as a document-title keyword heuristic (`manual`, `oem`, `datasheet`, `spec sheet`, etc.), not a true category filter. No write path in this codebase currently populates `DocumentClassification.category` or indexes a category field into Qdrant's payload schema (verified: `IDocumentRepository` has no `add_classification` method, and `PostgresDocumentRepository.get_by_id()` never populates `Document.classifications`) — the ontology/data pipeline needed for true category filtering doesn't exist yet. Implementing it properly would require touching M2–M4 code, which is out of scope for a single milestone. Flagged for a future milestone.
+
+**Commit**: TBD — stamped after commit
 
 ---
 

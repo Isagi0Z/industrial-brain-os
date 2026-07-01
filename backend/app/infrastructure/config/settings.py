@@ -77,6 +77,13 @@ class Settings(BaseSettings):
     KNOWLEDGE_BRAIN_MAX_STEPS: int = 10
     KNOWLEDGE_BRAIN_TOP_K: int = 5
 
+    # Maintenance Brain agent configuration (M10)
+    MAINTENANCE_BRAIN_PROMPT_FILE: str = (
+        "ai/prompts/maintenance_brain/synthesize_guidance.yaml"
+    )
+    MAINTENANCE_BRAIN_MAX_STEPS: int = 10
+    MAINTENANCE_BRAIN_TOP_K: int = 5
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

@@ -76,6 +76,21 @@ from app.infrastructure.graphrag.redis_graphrag_cache import RedisGraphRAGCache
 from app.application.knowledge_brain.knowledge_brain_agent import KnowledgeBrainAgent
 from app.domain.knowledge_brain.interfaces import IKnowledgeBrainAgent
 
+from app.application.maintenance_brain.maintenance_brain_agent import (
+    MaintenanceBrainAgent,
+)
+from app.domain.maintenance_brain.interfaces import (
+    IFailureHistoryRepository,
+    IMaintenanceBrainAgent,
+    IWorkOrderRepository,
+)
+from app.infrastructure.maintenance.failure_history_repository import (
+    Neo4jFailureHistoryRepository,
+)
+from app.infrastructure.maintenance.work_order_repository import (
+    PostgresWorkOrderRepository,
+)
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -478,6 +493,49 @@ class DIContainer:
             )
             logging.info("KnowledgeBrainAgent initialized.")
         return self._knowledge_brain_agent
+
+    # ------------------------------------------------------------------
+    # Maintenance Brain agent (M10)
+    # ------------------------------------------------------------------
+
+    def get_work_order_repository(self) -> IWorkOrderRepository:
+        if not hasattr(self, "_work_order_repository"):
+            self._work_order_repository = PostgresWorkOrderRepository(self.get_postgres)
+        return self._work_order_repository
+
+    def get_failure_history_repository(self) -> IFailureHistoryRepository:
+        if not hasattr(self, "_failure_history_repository"):
+            self._failure_history_repository = Neo4jFailureHistoryRepository(
+                self.get_neo4j()
+            )
+        return self._failure_history_repository
+
+    def get_maintenance_brain_agent(self) -> IMaintenanceBrainAgent:
+        if not hasattr(self, "_maintenance_brain_agent"):
+            from pathlib import Path
+
+            prompt_path = Path(settings.MAINTENANCE_BRAIN_PROMPT_FILE)
+            if not prompt_path.is_absolute():
+                # backend/ai/... — parents[3] is the `backend/` dir
+                prompt_path = (
+                    Path(__file__).parents[3] / settings.MAINTENANCE_BRAIN_PROMPT_FILE
+                )
+
+            self._maintenance_brain_agent = MaintenanceBrainAgent(
+                graphrag_engine=self.get_graphrag_engine(),
+                entity_extractor=self.get_entity_extractor(),
+                work_order_repo=self.get_work_order_repository(),
+                failure_history_repo=self.get_failure_history_repository(),
+                model_gateway=self._build_primary_gateway(),
+                history_repo=self.get_chat_history_repository(),
+                prompt_path=prompt_path,
+                max_steps=settings.MAINTENANCE_BRAIN_MAX_STEPS,
+                top_k=settings.MAINTENANCE_BRAIN_TOP_K,
+                max_tokens=settings.CHAT_MAX_TOKENS,
+                session_ttl_seconds=settings.CHAT_SESSION_TTL_SECONDS,
+            )
+            logging.info("MaintenanceBrainAgent initialized.")
+        return self._maintenance_brain_agent
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

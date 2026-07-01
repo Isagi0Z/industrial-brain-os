@@ -1,0 +1,11 @@
+wo_id,asset_tag,description,status,priority,scheduled_date,completed_date
+WO-1001,P-102A,Replace mechanical seal on centrifugal pump,OPEN,HIGH,2026-07-05,
+WO-1002,P-102A,Quarterly vibration analysis,OPEN,MEDIUM,2026-07-12,
+WO-1003,P-102A,Bearing lubrication service,IN_PROGRESS,MEDIUM,2026-07-03,
+WO-1004,P-102A,Annual motor insulation resistance test,COMPLETED,LOW,2026-05-20,2026-05-21
+WO-1005,FT-101,Calibrate flow transmitter,OPEN,MEDIUM,2026-07-08,
+WO-1006,FT-101,Replace transmitter battery,COMPLETED,LOW,2026-04-10,2026-04-10
+WO-1007,VLV-202,Inspect valve actuator for leaks,OPEN,CRITICAL,2026-07-02,
+WO-1008,VLV-202,Replace valve packing,CANCELLED,MEDIUM,2026-06-15,
+WO-1009,TK-301,Internal tank inspection per API 653,OPEN,HIGH,2026-08-01,
+WO-1010,TK-301,External coating touch-up,OPEN,LOW,2026-09-15,
