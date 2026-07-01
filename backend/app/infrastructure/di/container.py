@@ -91,6 +91,17 @@ from app.infrastructure.maintenance.work_order_repository import (
     PostgresWorkOrderRepository,
 )
 
+from app.application.compliance_brain.compliance_brain_agent import (
+    ComplianceBrainAgent,
+)
+from app.domain.compliance_brain.interfaces import (
+    IComplianceBrainAgent,
+    IComplianceReportRepository,
+)
+from app.infrastructure.compliance.compliance_report_repository import (
+    PostgresComplianceReportRepository,
+)
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -536,6 +547,45 @@ class DIContainer:
             )
             logging.info("MaintenanceBrainAgent initialized.")
         return self._maintenance_brain_agent
+
+    # ------------------------------------------------------------------
+    # Compliance Brain agent (M11)
+    # ------------------------------------------------------------------
+
+    def get_compliance_report_repository(self) -> IComplianceReportRepository:
+        if not hasattr(self, "_compliance_report_repository"):
+            self._compliance_report_repository = PostgresComplianceReportRepository(
+                self.get_postgres
+            )
+        return self._compliance_report_repository
+
+    def get_compliance_brain_agent(self) -> IComplianceBrainAgent:
+        if not hasattr(self, "_compliance_brain_agent"):
+            from pathlib import Path
+
+            def _resolve(rel_path: str) -> Path:
+                # backend/ai/... — parents[3] is the `backend/` dir
+                path = Path(rel_path)
+                if not path.is_absolute():
+                    path = Path(__file__).parents[3] / rel_path
+                return path
+
+            self._compliance_brain_agent = ComplianceBrainAgent(
+                graphrag_engine=self.get_graphrag_engine(),
+                model_gateway=self._build_primary_gateway(),
+                report_repo=self.get_compliance_report_repository(),
+                history_repo=self.get_chat_history_repository(),
+                gap_detection_prompt_path=_resolve(
+                    settings.COMPLIANCE_GAP_DETECTION_PROMPT_FILE
+                ),
+                evidence_prompt_path=_resolve(settings.COMPLIANCE_EVIDENCE_PROMPT_FILE),
+                max_steps=settings.COMPLIANCE_BRAIN_MAX_STEPS,
+                top_k=settings.COMPLIANCE_BRAIN_TOP_K,
+                max_tokens=settings.CHAT_MAX_TOKENS,
+                session_ttl_seconds=settings.CHAT_SESSION_TTL_SECONDS,
+            )
+            logging.info("ComplianceBrainAgent initialized.")
+        return self._compliance_brain_agent
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

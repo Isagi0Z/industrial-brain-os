@@ -84,6 +84,16 @@ class Settings(BaseSettings):
     MAINTENANCE_BRAIN_MAX_STEPS: int = 10
     MAINTENANCE_BRAIN_TOP_K: int = 5
 
+    # Compliance Brain agent configuration (M11)
+    COMPLIANCE_GAP_DETECTION_PROMPT_FILE: str = (
+        "ai/prompts/compliance_brain/gap_detection.yaml"
+    )
+    COMPLIANCE_EVIDENCE_PROMPT_FILE: str = (
+        "ai/prompts/compliance_brain/generate_evidence.yaml"
+    )
+    COMPLIANCE_BRAIN_MAX_STEPS: int = 10
+    COMPLIANCE_BRAIN_TOP_K: int = 5
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

@@ -472,17 +472,21 @@ Agentic system that maps regulatory requirements against current procedures and 
 - `/api/v1/brain/compliance/chat` endpoint
 
 ### Checklist
-- [ ] Regulatory documents ingested with `document_category = "Regulation"` metadata tag
-- [ ] `regulation_lookup` tool: GraphRAG search filtered to `document_category = "Regulation"` chunks only
-- [ ] `procedure_lookup` tool: GraphRAG search filtered to `document_category = "SOP"` chunks only
-- [ ] `compliance_gap_detector` tool: sends regulation text + procedure text to LLM with structured gap detection prompt; returns `{gaps: [{regulation_clause, procedure_gap, severity}]}`
-- [ ] Gap severity levels: `CRITICAL | MAJOR | MINOR` — mapped from regulation language
-- [ ] LangGraph nodes: `identify_regulation_scope → retrieve_procedures → detect_gaps → generate_evidence → format_report`
-- [ ] `ComplianceGapReport` output schema enforced via Pydantic — not free-text (Engineering Bible §33)
-- [ ] Report stored in PostgreSQL `compliance_reports` table for audit trail
-- [ ] Prompt templates in `ai/prompts/compliance_brain/*.yaml`
-- [ ] Unit tests: gap detector with mock regulation/procedure pairs; severity classification
-- [ ] Demo test: "Check if our valve inspection procedure complies with OSHA 1910.119"
+- [x] Regulatory documents ingested with `document_category = "Regulation"` metadata tag — see **Known limitation** below; implemented as a document-title keyword heuristic, same as M10's `oem_manual_lookup`, since no document-classification write/index pipeline exists in this codebase
+- [x] `regulation_lookup` tool: GraphRAG (M8) search filtered to chunks that look like regulatory content via title heuristic
+- [x] `procedure_lookup` tool: GraphRAG (M8) search filtered to chunks that look like SOP/procedure content via title heuristic
+- [x] `compliance_gap_detector` tool: sends regulation text + procedure text to the LLM with a structured gap-detection prompt (`ai/prompts/compliance_brain/gap_detection.yaml`); parses and validates the response into `{gaps: [{regulation_clause, procedure_gap, severity}]}` using the same multi-strategy JSON parsing as M7's `LLMRelationExtractor` (direct parse → bracket extraction → fence stripping), with malformed items skipped rather than crashing the whole response
+- [x] Gap severity levels: `CRITICAL | MAJOR | MINOR` — the prompt explicitly maps these from the regulation's own language (mandatory "shall/must" → CRITICAL, "should" → MAJOR, best-practice phrasing → MINOR)
+- [x] LangGraph nodes: `identify_regulation_scope → retrieve_procedures → detect_gaps → generate_evidence → format_report`
+- [x] `ComplianceGapReport` output schema enforced via Pydantic — `ComplianceGap`/`ComplianceGapReport`/`GapSeverity` are Pydantic models (not dataclasses), so a malformed LLM response is rejected by validation rather than silently accepted as free text (Engineering Bible §33)
+- [x] Report stored in PostgreSQL `compliance_reports` table for audit trail (migration `005_compliance_reports_m11`); persistence failures are logged and swallowed in `format_report` rather than failing the user-facing response, since the audit write is best-effort
+- [x] Prompt templates in `ai/prompts/compliance_brain/*.yaml` (two files: `gap_detection.yaml` for strict JSON output, `generate_evidence.yaml` for the cited prose summary — genuinely two different LLM call shapes, not over-splitting)
+- [x] Unit tests: gap detector with mock regulation/procedure pairs (valid JSON, fenced JSON, empty array, malformed items, unparseable text); severity classification and validation (26 unit tests in `test_compliance_brain.py`)
+- [x] Demo test: "Check if our valve inspection procedure complies with OSHA 1910.119" — verified live against the running backend (honest "no matching documents" result, since no regulation/SOP content is indexed in this sandbox) and via an automated integration test with realistic seeded regulation/procedure content that produces a real detected `CRITICAL` gap, persisted to real Postgres
+
+**Known limitation**: identical to M10's `oem_manual_lookup` finding — `document_category = "Regulation"/"SOP"` filtering has no real data source anywhere in this codebase (`IDocumentRepository` has no method to write `DocumentClassification.category`, and Qdrant's payload schema has no category field). `regulation_lookup`/`procedure_lookup` use a documented title-keyword heuristic instead of expanding this milestone's scope into M2/M4. Flagged for a future milestone (see M10's identical note).
+
+**Commit**: TBD — stamped after commit
 
 ---
 
