@@ -317,7 +317,7 @@ Extract industrial entities and relationships from `DocumentChunk` text using a 
 - [x] `DocumentExtractionReport` logged per ingestion job with entity/relation counts and per-chunk failure count
 - [x] Per-chunk error isolation: failed chunks counted; pipeline never aborts on a single chunk failure
 
-**Commit**: TBD — stamped after commit
+**Commit**: 855521e
 
 ---
 
