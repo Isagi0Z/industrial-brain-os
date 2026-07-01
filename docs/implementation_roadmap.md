@@ -486,7 +486,7 @@ Agentic system that maps regulatory requirements against current procedures and 
 
 **Known limitation**: identical to M10's `oem_manual_lookup` finding — `document_category = "Regulation"/"SOP"` filtering has no real data source anywhere in this codebase (`IDocumentRepository` has no method to write `DocumentClassification.category`, and Qdrant's payload schema has no category field). `regulation_lookup`/`procedure_lookup` use a documented title-keyword heuristic instead of expanding this milestone's scope into M2/M4. Flagged for a future milestone (see M10's identical note).
 
-**Commit**: TBD — stamped after commit
+**Commit**: bcf2de0
 
 ---
 
