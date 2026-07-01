@@ -6,6 +6,10 @@ Consumes the ``ingestion:jobs`` list via BLPOP and calls:
   2. EmbeddingUseCase.embed_document        (CHUNKED → INDEXED)
   3. ExtractionUseCase.run_for_document     (INDEXED → KG_POPULATED → COMPLETED)
 
+Per-chunk failures in step 3 are isolated inside ExtractionUseCase — the
+worker only sees a completed (possibly partial) extraction, never a crash
+from a single bad chunk.
+
 Replaced by Celery in M15.
 """
 
@@ -71,7 +75,9 @@ class IngestionWorker:
                 if chunks:
                     self._get_embedding_uc().embed_document(document_id, job_id)
                     asyncio.run(
-                        self._get_extraction_uc().run_for_document(document_id, job_id)
+                        self._get_extraction_uc().run_for_document(
+                            document_id, job_id
+                        )
                     )
             except Exception as exc:
                 logger.error("Worker loop error: %s", exc, exc_info=True)

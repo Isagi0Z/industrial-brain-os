@@ -312,9 +312,12 @@ Extract industrial entities and relationships from `DocumentChunk` text using a 
 - [x] Extraction errors logged with chunk_id and document_id; job continues on per-chunk failures
 - [x] `JobStatus` extended: `KG_EXTRACTING`, `KG_POPULATED` states added; `JOB_PROGRESS` updated
 - [x] `IngestionWorker` extended: runs `ExtractionUseCase.run_for_document()` after embedding step
-- [x] Unit tests: spaCy pattern matcher, relation prompt parser, entity resolver, use case orchestration (29 tests)
+- [x] Unit tests: spaCy pattern matcher, relation prompt parser, entity resolver, use case orchestration (55 tests)
+- [x] Manufacturer + model_number two-pass deduplication for Equipment entities (Pass 2 of LevenshteinEntityResolver)
+- [x] `DocumentExtractionReport` logged per ingestion job with entity/relation counts and per-chunk failure count
+- [x] Per-chunk error isolation: failed chunks counted; pipeline never aborts on a single chunk failure
 
-**Commit**: 2dda16a
+**Commit**: TBD — stamped after commit
 
 ---
 

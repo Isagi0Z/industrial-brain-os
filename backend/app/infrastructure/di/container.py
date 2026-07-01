@@ -365,9 +365,8 @@ class DIContainer:
                     Path(__file__).parents[4] / settings.RELATION_EXTRACTION_PROMPT_FILE
                 )
 
-            # Reuse the primary gateway from ChatUseCase (IModelGateway)
-            chat_uc = self.get_chat_use_case()
-            gateway = chat_uc._primary  # type: ignore[attr-defined]
+            # Reuse the gateway already wired up for the chat use case
+            gateway = self.get_chat_use_case()._primary  # type: ignore[attr-defined]
 
             self._extraction_use_case = ExtractionUseCase(
                 chunk_repo=self.get_chunk_repository(),
@@ -380,6 +379,7 @@ class DIContainer:
                 ),
                 kg_writer=Neo4jKGWriter(self.get_neo4j()),
                 ontology_validator=self.get_ontology_validator(),
+                confidence_threshold=settings.KG_CONFIDENCE_THRESHOLD,
             )
             logging.info("ExtractionUseCase initialized.")
         return self._extraction_use_case
