@@ -314,7 +314,7 @@ Extract industrial entities and relationships from `DocumentChunk` text using a 
 - [x] `IngestionWorker` extended: runs `ExtractionUseCase.run_for_document()` after embedding step
 - [x] Unit tests: spaCy pattern matcher, relation prompt parser, entity resolver, use case orchestration (29 tests)
 
-**Commit**: TBD
+**Commit**: 2dda16a
 
 ---
 
