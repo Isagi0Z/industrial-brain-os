@@ -102,6 +102,19 @@ from app.infrastructure.compliance.compliance_report_repository import (
     PostgresComplianceReportRepository,
 )
 
+from app.application.rca_brain.rca_brain_agent import RCABrainAgent
+from app.domain.rca_brain.interfaces import (
+    IIncidentHistoryRepository,
+    IRCABrainAgent,
+    IRCASessionRepository,
+    IRCASessionStateStore,
+)
+from app.infrastructure.rca.incident_history_repository import (
+    PostgresIncidentHistoryRepository,
+)
+from app.infrastructure.rca.rca_session_repository import PostgresRCASessionRepository
+from app.infrastructure.rca.redis_rca_state_store import RedisRCAStateStore
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -586,6 +599,62 @@ class DIContainer:
             )
             logging.info("ComplianceBrainAgent initialized.")
         return self._compliance_brain_agent
+
+    # ------------------------------------------------------------------
+    # RCA Brain agent (M12)
+    # ------------------------------------------------------------------
+
+    def get_incident_history_repository(self) -> IIncidentHistoryRepository:
+        if not hasattr(self, "_incident_history_repository"):
+            self._incident_history_repository = PostgresIncidentHistoryRepository(
+                self.get_postgres
+            )
+        return self._incident_history_repository
+
+    def get_rca_session_repository(self) -> IRCASessionRepository:
+        if not hasattr(self, "_rca_session_repository"):
+            self._rca_session_repository = PostgresRCASessionRepository(
+                self.get_postgres
+            )
+        return self._rca_session_repository
+
+    def get_rca_state_store(self) -> IRCASessionStateStore:
+        if not hasattr(self, "_rca_state_store"):
+            self._rca_state_store = RedisRCAStateStore(self.get_redis)
+        return self._rca_state_store
+
+    def get_rca_brain_agent(self) -> IRCABrainAgent:
+        if not hasattr(self, "_rca_brain_agent"):
+            from pathlib import Path
+
+            def _resolve(rel_path: str) -> Path:
+                # backend/ai/... — parents[3] is the `backend/` dir
+                path = Path(rel_path)
+                if not path.is_absolute():
+                    path = Path(__file__).parents[3] / rel_path
+                return path
+
+            self._rca_brain_agent = RCABrainAgent(
+                graphrag_engine=self.get_graphrag_engine(),
+                model_gateway=self._build_primary_gateway(),
+                failure_history_repo=self.get_failure_history_repository(),
+                incident_repo=self.get_incident_history_repository(),
+                session_repo=self.get_rca_session_repository(),
+                state_store=self.get_rca_state_store(),
+                suggest_why_prompt_path=_resolve(settings.RCA_SUGGEST_WHY_PROMPT_FILE),
+                generate_report_prompt_path=_resolve(
+                    settings.RCA_GENERATE_REPORT_PROMPT_FILE
+                ),
+                fishbone_prompt_path=_resolve(settings.RCA_FISHBONE_PROMPT_FILE),
+                max_steps=settings.RCA_BRAIN_MAX_STEPS,
+                max_whys=settings.RCA_BRAIN_MAX_WHYS,
+                top_k=settings.RCA_BRAIN_TOP_K,
+                incident_history_limit=settings.RCA_INCIDENT_HISTORY_LIMIT,
+                max_tokens=settings.CHAT_MAX_TOKENS,
+                session_ttl_seconds=settings.CHAT_SESSION_TTL_SECONDS,
+            )
+            logging.info("RCABrainAgent initialized.")
+        return self._rca_brain_agent
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

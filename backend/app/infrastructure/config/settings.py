@@ -94,6 +94,15 @@ class Settings(BaseSettings):
     COMPLIANCE_BRAIN_MAX_STEPS: int = 10
     COMPLIANCE_BRAIN_TOP_K: int = 5
 
+    # RCA Brain agent configuration (M12)
+    RCA_SUGGEST_WHY_PROMPT_FILE: str = "ai/prompts/rca_brain/suggest_why.yaml"
+    RCA_GENERATE_REPORT_PROMPT_FILE: str = "ai/prompts/rca_brain/generate_report.yaml"
+    RCA_FISHBONE_PROMPT_FILE: str = "ai/prompts/rca_brain/fishbone.yaml"
+    RCA_BRAIN_MAX_STEPS: int = 10
+    RCA_BRAIN_MAX_WHYS: int = 5
+    RCA_BRAIN_TOP_K: int = 5
+    RCA_INCIDENT_HISTORY_LIMIT: int = 5
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

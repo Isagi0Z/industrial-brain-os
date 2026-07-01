@@ -9,6 +9,7 @@ from app.presentation.api.v1.endpoints import (
     knowledge_brain,
     maintenance_brain,
     compliance_brain,
+    rca_brain,
 )
 
 api_router = APIRouter()
@@ -23,6 +24,7 @@ api_router.include_router(ontology.router)
 api_router.include_router(knowledge_brain.router)
 api_router.include_router(maintenance_brain.router)
 api_router.include_router(compliance_brain.router)
+api_router.include_router(rca_brain.router)
 
 
 # Placeholder routers for the five core sub-brains

@@ -508,19 +508,21 @@ Guides reliability engineers through structured Root Cause Analysis using 5-Whys
 - `/api/v1/brain/rca/session` endpoint (session-based, multi-turn)
 
 ### Checklist
-- [ ] LangGraph `interrupt_before` configured at human-in-the-loop nodes (LangGraph built-in pause feature per ADR-007)
-- [ ] `rca_session` table in PostgreSQL: `session_id`, `asset_tag`, `incident_description`, `status`, `rca_report_json`, `created_at`
-- [ ] 5-Whys workflow nodes: `define_problem → suggest_why_1 → [human_confirm] → suggest_why_2 → ... → identify_root_cause → generate_report`
-- [ ] At each `suggest_why_N` node: LLM queries Neo4j for `FailureMode` patterns on the affected asset before suggesting
-- [ ] Fishbone workflow: parallel branches per Ishikawa category; each branch queries relevant document chunks
-- [ ] `failure_pattern_search` tool: Cypher query `MATCH (e:Equipment {tag_number: $tag})-[:EXHIBITS]->(f:FailureMode) RETURN f.failure_code, f.effect_severity`
-- [ ] `incident_history_search` tool: queries historical work orders for similar failure descriptions
-- [ ] `RCAReport` Pydantic schema: `{problem_statement, root_cause, contributing_factors[], recommended_actions[], evidence_citations[]}`
-- [ ] Report citations validated: every `evidence_citation` maps to real `chunk_id` or Neo4j node ID
-- [ ] Session state persisted in LangGraph checkpoint store (Redis-backed) enabling resume after human input
-- [ ] Prompt templates in `ai/prompts/rca_brain/*.yaml`
-- [ ] Unit tests: 5-Whys iteration logic; Fishbone branch merge; human interrupt/resume
-- [ ] Demo test: initiate RCA for "pump P-102A bearing failure" — complete full 5-Whys and generate report
+- [x] LangGraph `interrupt_before` configured at the `human_confirm` node (compiled with a `MemorySaver` so the pause is a real LangGraph interrupt); the graph genuinely pauses there each turn (ADR-007)
+- [x] `rca_sessions` table in PostgreSQL: `session_id`, `asset_tag`, `incident_description`, `status`, `rca_report_json`, `created_at` (migration `006_rca_sessions_m12`)
+- [x] 5-Whys workflow nodes: `define_problem → decide → suggest_why → [interrupt_before] human_confirm` (per turn) and `define_problem → identify_root_cause → generate_report` (completion turn) — one compiled graph, driven across turns by `start_session`/`advance_session`
+- [x] `define_problem` gathers Neo4j `FailureMode` patterns + Postgres incident history up front each turn and feeds them to the `suggest_why` LLM call
+- [x] Fishbone workflow: **six genuinely concurrent branches** (`asyncio.gather` over the 6M categories), each retrieving category-relevant document chunks (GraphRAG, M8); a branch failure is isolated to an empty category
+- [x] `failure_pattern_search` tool: reuses M10's `Neo4jFailureHistoryRepository` (`(Equipment)-[:EXHIBITS]->(FailureMode)`, returning `failure_code` + `severity` — the ontology field is `severity`, not the checklist's aspirational `effect_severity`); no duplicate failure-query code written
+- [x] `incident_history_search` tool: queries the M10 `work_orders` table by description `ILIKE` on keywords extracted from the incident (new focused `PostgresIncidentHistoryRepository`, M10 files untouched)
+- [x] `RCAReport` Pydantic schema: `{problem_statement, root_cause, contributing_factors[], recommended_actions[], evidence_citations[]}` (+ a `fishbone` map), validated at the LLM-output boundary (§33)
+- [x] Report citations validated: every `evidence_citation` must map to a real retrieved `chunk_id` or a known failure code, else it is dropped — verified live (real `FM-BRG-02` kept) and in unit tests (hallucinated `[[chunk:...]]` dropped)
+- [x] Session state persisted for resume after human input: live working-state in a **Redis-backed** store (`RedisRCAStateStore`) + audit/report in Postgres. **Deliberate deviation from LangGraph's own checkpointer** — `langgraph-checkpoint-redis` needs the RedisJSON module absent from plain `redis:7.2-alpine`, and an in-process `MemorySaver` would break §28 statelessness; documented in the walkthrough/verification.
+- [x] Prompt templates in `ai/prompts/rca_brain/*.yaml` (`suggest_why`, `generate_report`, `fishbone`)
+- [x] Unit tests: 5-Whys iteration (start → suggest → advance → report at depth); Fishbone all-six-branches + branch-failure isolation; human interrupt/resume via the persisted state store (24 unit tests in `test_rca_brain.py`)
+- [x] Demo test: initiated RCA for "pump P-102A bearing failure" — completed a full multi-turn 5-Whys and generated a report, verified **live against real Ollama + Postgres + Neo4j + Redis** (root cause "Skipped preventive maintenance resulting in insufficient lubrication", real `FM-BRG-02` cited, persisted `COMPLETED`) and via an automated integration test
+
+**Commit**: TBD — stamped after commit
 
 ---
 
