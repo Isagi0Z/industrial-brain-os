@@ -1,0 +1,178 @@
+[
+  {
+    "question": "What is the rated discharge pressure of centrifugal pump P-102A?",
+    "expected_answer": "Pump P-102A has a rated discharge pressure of 12 bar.",
+    "source_document_id": "OEM-P102A-MANUAL",
+    "source_page": 4,
+    "expected_entity_mentions": ["P-102A"],
+    "category": "equipment_lookup"
+  },
+  {
+    "question": "Who is the manufacturer of gate valve VLV-501?",
+    "expected_answer": "Gate valve VLV-501 is manufactured by Velan.",
+    "source_document_id": "ASSET-REGISTER-UNIT03",
+    "source_page": 12,
+    "expected_entity_mentions": ["VLV-501"],
+    "category": "equipment_lookup"
+  },
+  {
+    "question": "What measurement range does flow transmitter FT-101 cover?",
+    "expected_answer": "Flow transmitter FT-101 measures 0 to 500 m3/h.",
+    "source_document_id": "INSTRUMENT-DATASHEET-FT101",
+    "source_page": 1,
+    "expected_entity_mentions": ["FT-101"],
+    "category": "equipment_lookup"
+  },
+  {
+    "question": "What is the model number of thermocouple TE-202?",
+    "expected_answer": "Thermocouple TE-202 is a type-K sensor, model TC-K-202.",
+    "source_document_id": "INSTRUMENT-DATASHEET-TE202",
+    "source_page": 1,
+    "expected_entity_mentions": ["TE-202"],
+    "category": "equipment_lookup"
+  },
+  {
+    "question": "What is the rated power of motor M-330?",
+    "expected_answer": "Motor M-330 is rated at 75 kW.",
+    "source_document_id": "OEM-M330-MANUAL",
+    "source_page": 2,
+    "expected_entity_mentions": ["M-330"],
+    "category": "equipment_lookup"
+  },
+  {
+    "question": "How do I isolate pump P-102A before maintenance?",
+    "expected_answer": "Close the suction and discharge valves, apply lockout-tagout, and depressurise the casing before opening the pump.",
+    "source_document_id": "SOP-PUMP-ISOLATION",
+    "source_page": 3,
+    "expected_entity_mentions": ["P-102A"],
+    "category": "procedure_query"
+  },
+  {
+    "question": "What are the steps to replace the mechanical seal on P-102A?",
+    "expected_answer": "Isolate and drain the pump, remove the coupling guard and coupling, remove the seal gland, extract the worn seal, install the new seal, and reassemble to torque spec.",
+    "source_document_id": "OEM-P102A-MANUAL",
+    "source_page": 18,
+    "expected_entity_mentions": ["P-102A"],
+    "category": "procedure_query"
+  },
+  {
+    "question": "What is the lockout-tagout procedure for the cooling loop A pumps?",
+    "expected_answer": "Stop the pump, open the electrical isolator, apply a personal lock and tag, and verify zero energy before work.",
+    "source_document_id": "SOP-LOTO-COOLING-A",
+    "source_page": 1,
+    "expected_entity_mentions": ["Cooling Loop A"],
+    "category": "procedure_query"
+  },
+  {
+    "question": "What is the quarterly calibration procedure for flow transmitter FT-101?",
+    "expected_answer": "Apply a known reference flow at 0, 50, and 100 percent, record the transmitter output, and adjust zero and span within tolerance.",
+    "source_document_id": "SOP-CALIBRATION-FT",
+    "source_page": 2,
+    "expected_entity_mentions": ["FT-101"],
+    "category": "procedure_query"
+  },
+  {
+    "question": "What PPE is required to open the high-pressure steam header?",
+    "expected_answer": "Heat-resistant gloves, face shield, and flame-retardant coveralls are required before opening the high-pressure steam header.",
+    "source_document_id": "SOP-STEAM-HEADER",
+    "source_page": 5,
+    "expected_entity_mentions": [],
+    "category": "procedure_query"
+  },
+  {
+    "question": "What is the failure code for bearing seizure and its severity?",
+    "expected_answer": "Bearing seizure is failure code FM-BRG-01 with HIGH severity.",
+    "source_document_id": "FMEA-ROTATING-EQUIPMENT",
+    "source_page": 7,
+    "expected_entity_mentions": ["FM-BRG-01"],
+    "category": "failure_mode_query"
+  },
+  {
+    "question": "What is the typical cause of gasket leakage failure mode FM-SEAL-03?",
+    "expected_answer": "Gasket leakage FM-SEAL-03 is typically caused by over-torqued or degraded gaskets and thermal cycling.",
+    "source_document_id": "FMEA-STATIC-EQUIPMENT",
+    "source_page": 4,
+    "expected_entity_mentions": ["FM-SEAL-03"],
+    "category": "failure_mode_query"
+  },
+  {
+    "question": "How is sensor drift detected on thermocouple TE-202?",
+    "expected_answer": "Sensor drift on TE-202 is detected by comparing readings against a reference thermocouple during calibration and flagging deviation beyond tolerance.",
+    "source_document_id": "FMEA-INSTRUMENTATION",
+    "source_page": 9,
+    "expected_entity_mentions": ["TE-202"],
+    "category": "failure_mode_query"
+  },
+  {
+    "question": "What is the detection method for impeller erosion in centrifugal pumps?",
+    "expected_answer": "Impeller erosion is detected through vibration analysis and a drop in discharge pressure over time.",
+    "source_document_id": "FMEA-ROTATING-EQUIPMENT",
+    "source_page": 11,
+    "expected_entity_mentions": [],
+    "category": "failure_mode_query"
+  },
+  {
+    "question": "What failure mode is associated with motor winding insulation breakdown?",
+    "expected_answer": "Motor winding insulation breakdown is failure mode FM-MOT-02, detected by insulation resistance testing.",
+    "source_document_id": "FMEA-ELECTRICAL",
+    "source_page": 3,
+    "expected_entity_mentions": ["FM-MOT-02"],
+    "category": "failure_mode_query"
+  },
+  {
+    "question": "Which failure modes does pump P-102A exhibit and which procedure addresses them?",
+    "expected_answer": "Pump P-102A exhibits bearing seizure (FM-BRG-01), which is addressed by the mechanical seal and bearing replacement procedure in the OEM manual.",
+    "source_document_id": "FMEA-ROTATING-EQUIPMENT",
+    "source_page": 7,
+    "expected_entity_mentions": ["P-102A", "FM-BRG-01"],
+    "category": "multi_hop"
+  },
+  {
+    "question": "What sensors monitor pump P-102A and what do they measure?",
+    "expected_answer": "Pump P-102A is monitored by flow transmitter FT-101 (flow) and thermocouple TE-202 (bearing temperature).",
+    "source_document_id": "PID-UNIT03",
+    "source_page": 2,
+    "expected_entity_mentions": ["P-102A", "FT-101", "TE-202"],
+    "category": "multi_hop"
+  },
+  {
+    "question": "Which asset does gate valve VLV-501 belong to, and what process does it serve?",
+    "expected_answer": "Gate valve VLV-501 is part of Cooling Loop A, serving the cooling water supply process.",
+    "source_document_id": "PID-UNIT03",
+    "source_page": 6,
+    "expected_entity_mentions": ["VLV-501", "Cooling Loop A"],
+    "category": "multi_hop"
+  },
+  {
+    "question": "What regulation governs the pressure relief testing of the steam header, and what procedure implements it?",
+    "expected_answer": "ASME BPVC Section VIII governs pressure relief testing, implemented by the annual relief-valve test procedure.",
+    "source_document_id": "REG-ASME-BPVC",
+    "source_page": 21,
+    "expected_entity_mentions": [],
+    "category": "multi_hop"
+  },
+  {
+    "question": "Which maintenance work orders reference bearing seizure on rotating equipment?",
+    "expected_answer": "Work order WO-99201 references bearing seizure repair on pump P-102A.",
+    "source_document_id": "CMMS-WORKORDERS",
+    "source_page": 1,
+    "expected_entity_mentions": ["WO-99201", "P-102A"],
+    "category": "multi_hop"
+  },
+  {
+    "question": "What is the recommended lubrication interval for pump P-102A bearings?",
+    "expected_answer": "Pump P-102A bearings should be lubricated monthly per the preventive maintenance schedule.",
+    "source_document_id": "OEM-P102A-MANUAL",
+    "source_page": 22,
+    "expected_entity_mentions": ["P-102A"],
+    "category": "procedure_query"
+  },
+  {
+    "question": "What is the operating temperature range of process area Refining Unit 03?",
+    "expected_answer": "Refining Unit 03 operates between 40 and 180 degrees Celsius.",
+    "source_document_id": "PROCESS-DESIGN-UNIT03",
+    "source_page": 8,
+    "expected_entity_mentions": ["Refining Unit 03"],
+    "category": "equipment_lookup"
+  }
+]

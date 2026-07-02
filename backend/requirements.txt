@@ -52,6 +52,9 @@ llmlingua>=0.2.2
 # Event-driven ingestion — Celery + Redis (M15)
 celery[redis]>=5.3.0
 
+# Evaluation Layer metrics — Prometheus (M16)
+prometheus-client>=0.20.0
+
 # Shared Package (Installed in editable mode)
 -e ../shared/python
 

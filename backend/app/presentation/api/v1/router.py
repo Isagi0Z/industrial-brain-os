@@ -13,6 +13,7 @@ from app.presentation.api.v1.endpoints import (
     incidents,
     lessons_brain,
     jobs,
+    eval as eval_endpoint,
 )
 
 api_router = APIRouter()
@@ -31,6 +32,7 @@ api_router.include_router(rca_brain.router)
 api_router.include_router(incidents.router)
 api_router.include_router(lessons_brain.router)
 api_router.include_router(jobs.router)
+api_router.include_router(eval_endpoint.router)
 
 
 # Placeholder routers for the five core sub-brains

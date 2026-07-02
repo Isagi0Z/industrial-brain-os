@@ -55,6 +55,13 @@ async def lifespan(app: FastAPI):
         worker = container.get_ingestion_worker()
         worker.start()
 
+    # 4. Register the evaluation Prometheus gauges (M16) so /metrics exposes
+    #    them from boot, before the first evaluation run.
+    try:
+        container.get_metrics_recorder()
+    except Exception as exc:
+        logging.warning("Evaluation metrics init skipped: %s", exc)
+
     yield
 
     # Shutdown actions
@@ -91,6 +98,16 @@ app.add_exception_handler(Exception, generic_exception_handler)
 
 # 6. Include API Routers
 app.include_router(api_router, prefix="/api/v1")
+
+# 7. Prometheus metrics endpoint (M16, ADR-017). Guarded so a missing
+#    prometheus_client degrades gracefully rather than blocking startup.
+try:
+    from prometheus_client import make_asgi_app
+
+    app.mount("/metrics", make_asgi_app())
+    logging.info("Prometheus /metrics endpoint mounted.")
+except Exception as exc:  # pragma: no cover
+    logging.warning("Prometheus /metrics not mounted: %s", exc)
 
 
 @app.get("/")

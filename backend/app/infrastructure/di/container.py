@@ -743,6 +743,69 @@ class DIContainer:
             logging.info("LessonsLearnedBrainAgent initialized.")
         return self._lessons_brain_agent
 
+    # ------------------------------------------------------------------
+    # Evaluation Layer (M16)
+    # ------------------------------------------------------------------
+
+    def get_evaluation_judge(self):
+        if not hasattr(self, "_evaluation_judge"):
+            from pathlib import Path
+
+            from app.infrastructure.evaluation.llm_judge import LLMJudge
+
+            def _resolve(rel_path: str) -> Path:
+                path = Path(rel_path)
+                if not path.is_absolute():
+                    path = Path(__file__).parents[3] / rel_path
+                return path
+
+            self._evaluation_judge = LLMJudge(
+                gateway=self._build_primary_gateway(),
+                faithfulness_prompt_path=_resolve(
+                    settings.EVAL_FAITHFULNESS_PROMPT_FILE
+                ),
+                relevance_prompt_path=_resolve(
+                    settings.EVAL_CONTEXT_PRECISION_PROMPT_FILE
+                ),
+                max_tokens=settings.EVAL_JUDGE_MAX_TOKENS,
+            )
+        return self._evaluation_judge
+
+    def get_evaluation_repository(self):
+        if not hasattr(self, "_evaluation_repository"):
+            from app.infrastructure.evaluation.eval_repository import (
+                PostgresEvaluationRepository,
+            )
+
+            self._evaluation_repository = PostgresEvaluationRepository(
+                self.get_postgres
+            )
+        return self._evaluation_repository
+
+    def get_metrics_recorder(self):
+        if not hasattr(self, "_metrics_recorder"):
+            from app.infrastructure.evaluation.metrics import (
+                PrometheusMetricsRecorder,
+            )
+
+            self._metrics_recorder = PrometheusMetricsRecorder()
+        return self._metrics_recorder
+
+    def get_evaluation_runner(self):
+        if not hasattr(self, "_evaluation_runner"):
+            from app.application.evaluation.evaluation_runner import EvaluationRunner
+
+            self._evaluation_runner = EvaluationRunner(
+                graphrag_engine=self.get_graphrag_engine(),
+                chat_use_case=self.get_chat_use_case(),
+                judge=self.get_evaluation_judge(),
+                repository=self.get_evaluation_repository(),
+                metrics_recorder=self.get_metrics_recorder(),
+                top_k=settings.EVAL_TOP_K,
+            )
+            logging.info("EvaluationRunner initialized.")
+        return self._evaluation_runner
+
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):
             self._ingestion_worker = IngestionWorker(

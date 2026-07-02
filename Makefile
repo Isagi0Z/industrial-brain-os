@@ -1,4 +1,4 @@
-.PHONY: help install dev lint format test up down clean db-migrate db-reset init-infra
+.PHONY: help install dev lint format test up down clean db-migrate db-reset init-infra eval
 
 help:
 	@echo "Industrial Brain OS Task Runner"
@@ -8,12 +8,16 @@ help:
 	@echo "  lint         - Lint the codebase (Python and TypeScript)"
 	@echo "  format       - Format the codebase (Python and TypeScript)"
 	@echo "  test         - Run backend unit tests"
+	@echo "  eval         - Run the RAG evaluation suite (M16) and write the baseline"
 	@echo "  up           - Spin up docker infrastructure services"
 	@echo "  down         - Shut down docker infrastructure services"
 	@echo "  db-migrate   - Apply all pending Alembic database migrations"
 	@echo "  db-reset     - Drop and re-apply all migrations (destroys data)"
 	@echo "  init-infra   - Initialise Qdrant/Neo4j/MinIO (run after docker up)"
 	@echo "  clean        - Clean build, cache, and temporary files"
+
+eval:
+	python scripts/run_eval.py
 
 install:
 	pip install -r backend/requirements.txt

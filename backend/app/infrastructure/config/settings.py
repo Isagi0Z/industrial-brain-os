@@ -141,6 +141,16 @@ class Settings(BaseSettings):
             f"{self.REDIS_PORT}/{self.CELERY_RESULT_DB}"
         )
 
+    # Evaluation Layer (M16)
+    EVAL_FAITHFULNESS_PROMPT_FILE: str = "ai/prompts/evaluation/faithfulness.yaml"
+    EVAL_CONTEXT_PRECISION_PROMPT_FILE: str = (
+        "ai/prompts/evaluation/context_precision.yaml"
+    )
+    EVAL_GOLDEN_DATASET: str = "datasets/golden_qa.json"  # repo-root relative
+    EVAL_TOP_K: int = 10
+    EVAL_JUDGE_MAX_TOKENS: int = 64
+    EVAL_HALLUCINATION_THRESHOLD: float = 0.15  # CI gate
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(
