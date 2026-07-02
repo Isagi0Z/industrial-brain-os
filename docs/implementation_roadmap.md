@@ -556,7 +556,7 @@ Captures post-incident logs and patterns, surfaces relevant historical warnings 
 - [x] Unit tests: incident ingestion, similarity detection, warning injection logic (21 tests in `test_lessons_brain.py`, covering domain models, tool registry, the full ingestion graph, `chat()`, and the `ProactiveWarningDetector` in isolation)
 - [x] Demo test: ingest a bearing failure incident, then query about pump P-102A — verify warning appears — passed both as an automated mocked test (`TestDemoScenario`) and live against real Docker services + Ollama (`mistral:latest`)
 
-**Commit**: TBD
+**Commit**: bdd540f
 
 ---
 
