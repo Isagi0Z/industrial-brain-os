@@ -566,6 +566,8 @@ Captures post-incident logs and patterns, surfaces relevant historical warnings 
 **Difficulty**: Hard
 **Depends on**: M8
 **Blocks**: None (enhances existing pipeline)
+**Status**: ✅ Complete
+**Completion Date**: 2026-07-02
 
 ### Objective
 Complete the retrieval pipeline by adding Stage 7 (LLMLingua context compression) and Stage 8 (citation validation with absolute source coordinates). Updates the `GraphRAGEngine` from M8 in place.
@@ -577,16 +579,18 @@ Complete the retrieval pipeline by adding Stage 7 (LLMLingua context compression
 - `CitationValidationReport` appended to every `/chat` response
 
 ### Checklist
-- [ ] `llmlingua` library integrated as Stage 7 in `GraphRAGEngine`
-- [ ] Compression ratio logged per request: `{original_tokens, compressed_tokens, ratio}` (Engineering Bible §17)
-- [ ] LLMLingua target ratio: 0.7 (compress to 70% of input size); configurable via env
-- [ ] Compression skipped if context is already under 2000 tokens (avoid over-compression on small results)
-- [ ] Stage 8: parse LLM response for citation markers `[source_N]`; resolve each to chunk record in PostgreSQL
-- [ ] If cited `source_N` does not match any chunk in `retrieved_chunks[]`, citation removed and `hallucinated_citation_count` incremented
-- [ ] `hallucinated_citation_count > 0` sets `response_quality_flag = "CITATION_WARNING"` in API response
-- [ ] `CitationValidationReport` returned in response: `{validated_count, hallucinated_count, quality_flag}`
-- [ ] Compression and citation stats logged as structured JSON per request (Engineering Bible §16)
-- [ ] Unit tests: LLMLingua wrapper, citation resolver, hallucinated citation detection
+- [x] `llmlingua` library integrated as Stage 7 in `GraphRAGEngine` (`IContextCompressor` / `LLMLinguaCompressor`, wired as an optional dependency; assembles a source-numbered context and compresses it in `run_in_threadpool`, ADR-001)
+- [x] Compression ratio logged per request: `{original_tokens, compressed_tokens, ratio}` (Engineering Bible §16/§17)
+- [x] LLMLingua target ratio: 0.7; configurable via `GRAPHRAG_COMPRESSION_RATIO`
+- [x] Compression skipped if context is under 2000 tokens (`GRAPHRAG_COMPRESSION_MIN_TOKENS`); also graceful passthrough when the model/library is unavailable
+- [x] Stage 8: parse LLM response for `[source_N]` markers; resolve each to its retrieved chunk record (in-memory — the chunks already carry their Postgres coordinates, avoiding a redundant blocking DB round-trip per ADR-001; documented in the walkthrough)
+- [x] Unresolved `source_N` (not in `retrieved_chunks[]`) removed from the answer and `hallucinated_citation_count` incremented
+- [x] `hallucinated_count > 0` sets `response_quality_flag = "CITATION_WARNING"` in the API response
+- [x] `CitationValidationReport {validated_count, hallucinated_count, quality_flag}` (+ `validated_sources` with absolute `document_id/page_number/bbox_json`) returned on every `/chat` response (HTTP + WS)
+- [x] Compression and citation stats logged as structured JSON per request (Engineering Bible §16)
+- [x] Unit tests: LLMLingua wrapper, citation resolver, hallucinated citation detection (13 tests in `test_pipeline_m14.py`; 325 total pass)
+
+**Commit**: 7b9ae4e
 
 ---
 
