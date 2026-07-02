@@ -46,11 +46,29 @@ class TokenUsageOut(BaseModel):
     latency_ms: float
 
 
+class ValidatedSourceOut(BaseModel):
+    source_index: int
+    chunk_id: str
+    document_id: str
+    document_title: str
+    page_number: Optional[int]
+    bbox_json: Optional[dict]
+
+
+class CitationValidationOut(BaseModel):
+    validated_count: int
+    hallucinated_count: int
+    quality_flag: str
+    validated_sources: List[ValidatedSourceOut]
+
+
 class ChatResponseBody(BaseModel):
     answer: str
     citations: List[CitationOut]
     token_usage: TokenUsageOut
     session_id: str
+    citation_validation: Optional[CitationValidationOut] = None
+    response_quality_flag: str = "OK"
 
 
 # ------------------------------------------------------------------
@@ -73,6 +91,32 @@ def _get_current_user(
 
 def _get_use_case() -> ChatUseCase:
     return container.get_chat_use_case()
+
+
+def _validation_out(report) -> Optional[CitationValidationOut]:
+    if report is None:
+        return None
+    return CitationValidationOut(
+        validated_count=report.validated_count,
+        hallucinated_count=report.hallucinated_count,
+        quality_flag=report.quality_flag,
+        validated_sources=[
+            ValidatedSourceOut(
+                source_index=s.source_index,
+                chunk_id=s.chunk_id,
+                document_id=s.document_id,
+                document_title=s.document_title,
+                page_number=s.page_number,
+                bbox_json=s.bbox_json,
+            )
+            for s in report.validated_sources
+        ],
+    )
+
+
+def _validation_dict(report) -> Optional[dict]:
+    out = _validation_out(report)
+    return out.model_dump() if out is not None else None
 
 
 # ------------------------------------------------------------------
@@ -115,6 +159,8 @@ async def chat(
             latency_ms=response.token_usage.latency_ms,
         ),
         session_id=response.session_id,
+        citation_validation=_validation_out(response.citation_validation),
+        response_quality_flag=response.response_quality_flag,
     )
 
 
@@ -183,6 +229,7 @@ async def chat_stream(
             json.dumps(
                 {
                     "type": "done",
+                    "answer": response.answer,
                     "citations": [
                         {
                             "chunk_id": c.chunk_id,
@@ -201,6 +248,10 @@ async def chat_stream(
                         "latency_ms": response.token_usage.latency_ms,
                     },
                     "session_id": response.session_id,
+                    "citation_validation": _validation_dict(
+                        response.citation_validation
+                    ),
+                    "response_quality_flag": response.response_quality_flag,
                 }
             )
         )

@@ -16,6 +16,7 @@ import redis
 from app.domain.document.constants import ChunkType
 from app.domain.graphrag.interfaces import IGraphRAGCache
 from app.domain.graphrag.models import (
+    CompressionResult,
     EntityMention,
     HybridSearchResult,
     KGPath,
@@ -89,7 +90,33 @@ def _serialize(result: HybridSearchResult) -> dict:
         ],
         "total_candidates_before_rerank": result.total_candidates_before_rerank,
         "rerank_latency_ms": result.rerank_latency_ms,
+        "compressed_context": result.compressed_context,
+        "compression": _serialize_compression(result.compression),
     }
+
+
+def _serialize_compression(compression: Optional[CompressionResult]) -> Optional[dict]:
+    if compression is None:
+        return None
+    return {
+        "compressed_text": compression.compressed_text,
+        "original_tokens": compression.original_tokens,
+        "compressed_tokens": compression.compressed_tokens,
+        "ratio": compression.ratio,
+        "was_compressed": compression.was_compressed,
+    }
+
+
+def _deserialize_compression(data: Optional[dict]) -> Optional[CompressionResult]:
+    if not data:
+        return None
+    return CompressionResult(
+        compressed_text=data.get("compressed_text", ""),
+        original_tokens=data.get("original_tokens", 0),
+        compressed_tokens=data.get("compressed_tokens", 0),
+        ratio=data.get("ratio", 1.0),
+        was_compressed=data.get("was_compressed", False),
+    )
 
 
 def _deserialize(data: dict) -> HybridSearchResult:
@@ -131,4 +158,6 @@ def _deserialize(data: dict) -> HybridSearchResult:
         entity_mentions=entity_mentions,
         total_candidates_before_rerank=data.get("total_candidates_before_rerank", 0),
         rerank_latency_ms=data.get("rerank_latency_ms", 0.0),
+        compressed_context=data.get("compressed_context", ""),
+        compression=_deserialize_compression(data.get("compression")),
     )

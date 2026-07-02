@@ -46,6 +46,9 @@ rapidfuzz>=3.9.0
 # Knowledge Brain Agent (M9)
 langgraph>=0.2.0
 
+# Context compression — Stage 7 (M14)
+llmlingua>=0.2.2
+
 # Shared Package (Installed in editable mode)
 -e ../shared/python
 

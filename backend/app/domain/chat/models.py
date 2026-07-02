@@ -20,6 +20,8 @@ class Citation:
     chunk_text_excerpt: str
     score: float
     storage_key: Optional[str] = None
+    # M14 Stage 8 — absolute source coordinates for citation validation.
+    bbox_json: Optional[dict] = None
 
 
 @dataclass
@@ -57,11 +59,43 @@ class ChatContext:
 
 
 @dataclass
+class ValidatedSource:
+    """A single validated citation with its absolute source coordinates
+    (M14 Stage 8). ``source_index`` is the 1-based ``[source_N]`` marker the
+    LLM emitted; the rest maps back to the retrieved chunk record."""
+
+    source_index: int
+    chunk_id: str
+    document_id: str
+    document_title: str
+    page_number: Optional[int]
+    bbox_json: Optional[dict] = None
+
+
+@dataclass
+class CitationValidationReport:
+    """Stage 8 output (M14) — appended to every /chat response.
+
+    quality_flag is ``"CITATION_WARNING"`` when the LLM cited one or more
+    ``[source_N]`` markers that do not resolve to a retrieved chunk
+    (hallucinated), else ``"OK"``.
+    """
+
+    validated_count: int
+    hallucinated_count: int
+    quality_flag: str
+    validated_sources: List[ValidatedSource] = field(default_factory=list)
+
+
+@dataclass
 class ChatResponse:
     answer: str
     citations: List[Citation]
     token_usage: TokenUsage
     session_id: str
+    # M14 Stage 8 — citation validation report + overall quality flag.
+    citation_validation: Optional[CitationValidationReport] = None
+    response_quality_flag: str = "OK"
 
 
 @dataclass

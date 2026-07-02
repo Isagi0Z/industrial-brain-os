@@ -70,6 +70,14 @@ class Settings(BaseSettings):
     GRAPHRAG_MAX_KG_DEPTH: int = 2
     GRAPHRAG_KG_TRAVERSAL_LIMIT: int = 50
 
+    # Stage 7 context compression (M14 — LLMLingua)
+    GRAPHRAG_COMPRESSION_ENABLED: bool = True
+    GRAPHRAG_COMPRESSION_RATIO: float = 0.7  # keep ~70% of tokens
+    GRAPHRAG_COMPRESSION_MIN_TOKENS: int = 2000  # skip small contexts
+    LLMLINGUA_MODEL: str = (
+        "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank"
+    )
+
     # Knowledge Brain agent configuration (M9)
     KNOWLEDGE_BRAIN_PROMPT_FILE: str = (
         "ai/prompts/knowledge_brain/synthesize_answer.yaml"

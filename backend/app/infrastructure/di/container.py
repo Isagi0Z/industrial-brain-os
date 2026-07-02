@@ -68,8 +68,9 @@ from app.infrastructure.extraction.llm_relation_extractor import LLMRelationExtr
 from app.infrastructure.extraction.neo4j_kg_writer import Neo4jKGWriter
 
 from app.application.graphrag.graphrag_engine import GraphRAGEngine
-from app.domain.graphrag.interfaces import IGraphRAGEngine
+from app.domain.graphrag.interfaces import IContextCompressor, IGraphRAGEngine
 from app.infrastructure.graphrag.cross_encoder_reranker import CrossEncoderReranker
+from app.infrastructure.graphrag.llmlingua_compressor import LLMLinguaCompressor
 from app.infrastructure.graphrag.neo4j_kg_traversal import Neo4jKGTraversalService
 from app.infrastructure.graphrag.redis_graphrag_cache import RedisGraphRAGCache
 
@@ -481,6 +482,16 @@ class DIContainer:
             self._graphrag_cache = RedisGraphRAGCache(self.get_redis)
         return self._graphrag_cache
 
+    def get_context_compressor(self) -> Optional[IContextCompressor]:
+        if not hasattr(self, "_context_compressor"):
+            if settings.GRAPHRAG_COMPRESSION_ENABLED:
+                self._context_compressor: Optional[IContextCompressor] = (
+                    LLMLinguaCompressor(settings.LLMLINGUA_MODEL)
+                )
+            else:
+                self._context_compressor = None
+        return self._context_compressor
+
     def get_graphrag_engine(self) -> IGraphRAGEngine:
         if not hasattr(self, "_graphrag_engine"):
             self._graphrag_engine = GraphRAGEngine(
@@ -493,6 +504,9 @@ class DIContainer:
                 cache_ttl_seconds=settings.GRAPHRAG_CACHE_TTL_SECONDS,
                 max_kg_depth=settings.GRAPHRAG_MAX_KG_DEPTH,
                 kg_traversal_limit=settings.GRAPHRAG_KG_TRAVERSAL_LIMIT,
+                compressor=self.get_context_compressor(),
+                compression_ratio=settings.GRAPHRAG_COMPRESSION_RATIO,
+                compression_min_tokens=settings.GRAPHRAG_COMPRESSION_MIN_TOKENS,
             )
             logging.info("GraphRAGEngine initialized.")
         return self._graphrag_engine

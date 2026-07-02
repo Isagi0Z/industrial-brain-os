@@ -20,7 +20,7 @@ import hashlib
 import logging
 import time
 from datetime import datetime, timezone
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from starlette.concurrency import run_in_threadpool
 
@@ -30,12 +30,18 @@ from app.domain.document.models import DocumentChunk
 from app.domain.extraction.interfaces import IEntityExtractor
 from app.domain.extraction.models import ExtractedEntity
 from app.domain.graphrag.interfaces import (
+    IContextCompressor,
     ICrossEncoderReranker,
     IGraphRAGCache,
     IGraphRAGEngine,
     IKGTraversalService,
 )
-from app.domain.graphrag.models import EntityMention, HybridSearchResult, RankedChunk
+from app.domain.graphrag.models import (
+    CompressionResult,
+    EntityMention,
+    HybridSearchResult,
+    RankedChunk,
+)
 from app.domain.search.models import SearchResult
 
 logger = logging.getLogger(__name__)
@@ -45,6 +51,8 @@ _KG_TRAVERSAL_LIMIT = 50
 _TOKEN_BUDGET = 6000
 _APPROX_CHARS_PER_TOKEN = 4
 _CACHE_TTL_SECONDS = 300  # 5 minutes
+_COMPRESSION_RATIO = 0.7  # Stage 7 (M14) — keep ~70% of tokens
+_COMPRESSION_MIN_TOKENS = 2000  # skip compression on small contexts
 
 
 class GraphRAGEngine(IGraphRAGEngine):
@@ -59,6 +67,9 @@ class GraphRAGEngine(IGraphRAGEngine):
         cache_ttl_seconds: int = _CACHE_TTL_SECONDS,
         max_kg_depth: int = _MAX_KG_DEPTH,
         kg_traversal_limit: int = _KG_TRAVERSAL_LIMIT,
+        compressor: Optional[IContextCompressor] = None,
+        compression_ratio: float = _COMPRESSION_RATIO,
+        compression_min_tokens: int = _COMPRESSION_MIN_TOKENS,
     ) -> None:
         self._embedding_uc = embedding_use_case
         self._entity_extractor = entity_extractor
@@ -69,6 +80,9 @@ class GraphRAGEngine(IGraphRAGEngine):
         self._cache_ttl = cache_ttl_seconds
         self._max_kg_depth = max_kg_depth
         self._kg_limit = kg_traversal_limit
+        self._compressor = compressor
+        self._compression_ratio = compression_ratio
+        self._compression_min_tokens = compression_min_tokens
 
     async def retrieve(
         self, query: str, role_scope: str, top_k: int
@@ -97,6 +111,9 @@ class GraphRAGEngine(IGraphRAGEngine):
 
         ranked_chunks = _apply_token_budget(reranked, self._token_budget)
 
+        # Stage 7 (M14) — compress the assembled, source-numbered context.
+        compressed_context, compression = await self._compress_context(ranked_chunks)
+
         rerank_latency_ms = (time.monotonic() - t0) * 1000.0
 
         result = HybridSearchResult(
@@ -105,10 +122,42 @@ class GraphRAGEngine(IGraphRAGEngine):
             entity_mentions=entity_mentions,
             total_candidates_before_rerank=total_before_rerank,
             rerank_latency_ms=round(rerank_latency_ms, 1),
+            compressed_context=compressed_context,
+            compression=compression,
         )
 
         self._cache.set(cache_key, result, self._cache_ttl)
         return result
+
+    # ------------------------------------------------------------------
+    # Stage 7 — context compression (M14)
+    # ------------------------------------------------------------------
+
+    async def _compress_context(
+        self, ranked_chunks: List[RankedChunk]
+    ) -> Tuple[str, Optional[CompressionResult]]:
+        """Assemble the reranked chunks into a source-numbered context and
+        run LLMLingua compression (blocking → run_in_threadpool, ADR-001).
+        Returns ("", None) when no compressor is wired (e.g. unit tests)."""
+        if self._compressor is None or not ranked_chunks:
+            return "", None
+        numbered = _assemble_numbered_context(ranked_chunks)
+        compression = await run_in_threadpool(
+            self._compressor.compress,
+            numbered,
+            self._compression_ratio,
+            self._compression_min_tokens,
+        )
+        logger.info(
+            "GraphRAG Stage 7 executed",
+            extra={
+                "was_compressed": compression.was_compressed,
+                "original_tokens": compression.original_tokens,
+                "compressed_tokens": compression.compressed_tokens,
+                "ratio": compression.ratio,
+            },
+        )
+        return compression.compressed_text, compression
 
     # ------------------------------------------------------------------
     # Stage 4 — KG traversal
@@ -160,6 +209,17 @@ class GraphRAGEngine(IGraphRAGEngine):
 def _cache_key(query: str, role_scope: str) -> str:
     digest = hashlib.sha256(f"{query}|{role_scope}".encode("utf-8")).hexdigest()
     return f"graphrag:cache:{digest}"
+
+
+def _assemble_numbered_context(ranked_chunks: List[RankedChunk]) -> str:
+    """Assemble reranked chunks into a source-numbered context so the LLM can
+    cite ``[source_N]`` markers that Stage 8 resolves back to coordinates."""
+    blocks: List[str] = []
+    for i, rc in enumerate(ranked_chunks, start=1):
+        r = rc.result
+        page = f"p.{r.page_number}" if r.page_number else "p.?"
+        blocks.append(f"[source_{i}] ({r.document_title}, {page})\n{r.text}")
+    return "\n\n---\n\n".join(blocks)
 
 
 def _merge_candidates(

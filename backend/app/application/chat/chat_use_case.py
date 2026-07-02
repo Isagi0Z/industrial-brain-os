@@ -5,6 +5,7 @@ import logging
 import time
 from typing import AsyncGenerator, List, Optional, Tuple
 
+from app.application.chat.citation_validation import validate_citations
 from app.domain.chat.interfaces import (
     IChatHistoryRepository,
     IContextBuilder,
@@ -16,10 +17,12 @@ from app.domain.chat.models import (
     ChatMessage,
     ChatRequest,
     ChatResponse,
+    Citation,
     MessageRole,
     TokenUsage,
 )
 from app.domain.graphrag.interfaces import IGraphRAGEngine
+from app.domain.graphrag.models import RankedChunk
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,27 @@ _MAX_CONTEXT_TOKENS = 4000
 
 class GatewayError(Exception):
     pass
+
+
+def _citations_from_ranked(ranked_chunks: List[RankedChunk]) -> List[Citation]:
+    """Derive ordered citations from reranked chunks so citation index N
+    matches the ``[source_N]`` marker assigned during context assembly.
+    Carries the absolute source coordinates (bbox_json) for Stage 8."""
+    citations: List[Citation] = []
+    for rc in ranked_chunks:
+        r = rc.result
+        citations.append(
+            Citation(
+                chunk_id=r.chunk_id,
+                document_title=r.document_title,
+                page_number=r.page_number,
+                chunk_text_excerpt=r.text[:200],
+                score=round(r.score, 4),
+                storage_key=r.document_id,
+                bbox_json=r.bbox_json,
+            )
+        )
+    return citations
 
 
 class ChatUseCase:
@@ -62,10 +86,16 @@ class ChatUseCase:
             top_k=request.top_k,
         )
 
-        search_results = [rc.result for rc in hybrid_result.ranked_chunks]
-        context_text, citations = self._ctx_builder.build(
-            search_results, _MAX_CONTEXT_TOKENS
-        )
+        if hybrid_result.compression is not None:
+            # Stage 7 (M14) ran — feed the compressed, source-numbered context
+            # to the LLM and derive citations in the matching [source_N] order.
+            context_text = hybrid_result.compressed_context
+            citations = _citations_from_ranked(hybrid_result.ranked_chunks)
+        else:
+            search_results = [rc.result for rc in hybrid_result.ranked_chunks]
+            context_text, citations = self._ctx_builder.build(
+                search_results, _MAX_CONTEXT_TOKENS
+            )
 
         kg_markdown = hybrid_result.kg_paths_as_markdown()
         if kg_markdown:
@@ -106,7 +136,9 @@ class ChatUseCase:
         )
         latency_ms = (time.monotonic() - t0) * 1000.0
 
-        self._store_exchange(context, full_text)
+        # Stage 8 (M14) — validate [source_N] citations in the answer.
+        cleaned_text, validation = validate_citations(full_text, context.citations)
+        self._store_exchange(context, cleaned_text)
 
         logger.info(
             "Chat token usage",
@@ -116,11 +148,14 @@ class ChatUseCase:
                 "model": gateway.model_name,
                 "latency_ms": round(latency_ms, 1),
                 "session_id": context.request.session_id,
+                "validated_citations": validation.validated_count,
+                "hallucinated_citations": validation.hallucinated_count,
+                "quality_flag": validation.quality_flag,
             },
         )
 
         return ChatResponse(
-            answer=full_text,
+            answer=cleaned_text,
             citations=context.citations,
             token_usage=TokenUsage(
                 prompt_tokens=prompt_tokens,
@@ -129,6 +164,8 @@ class ChatUseCase:
                 latency_ms=round(latency_ms, 1),
             ),
             session_id=context.request.session_id,
+            citation_validation=validation,
+            response_quality_flag=validation.quality_flag,
         )
 
     async def finalize(
@@ -142,7 +179,10 @@ class ChatUseCase:
         """Called after streaming completes to persist history and build response."""
         latency_ms = (time.monotonic() - t0) * 1000.0
         gateway = await self._active_gateway(context.messages)
-        self._store_exchange(context, full_text)
+
+        # Stage 8 (M14) — validate [source_N] citations in the streamed answer.
+        cleaned_text, validation = validate_citations(full_text, context.citations)
+        self._store_exchange(context, cleaned_text)
 
         logger.info(
             "Chat stream completed",
@@ -152,11 +192,14 @@ class ChatUseCase:
                 "model": gateway.model_name,
                 "latency_ms": round(latency_ms, 1),
                 "session_id": context.request.session_id,
+                "validated_citations": validation.validated_count,
+                "hallucinated_citations": validation.hallucinated_count,
+                "quality_flag": validation.quality_flag,
             },
         )
 
         return ChatResponse(
-            answer=full_text,
+            answer=cleaned_text,
             citations=context.citations,
             token_usage=TokenUsage(
                 prompt_tokens=prompt_tokens,
@@ -165,6 +208,8 @@ class ChatUseCase:
                 latency_ms=round(latency_ms, 1),
             ),
             session_id=context.request.session_id,
+            citation_validation=validation,
+            response_quality_flag=validation.quality_flag,
         )
 
     # ------------------------------------------------------------------

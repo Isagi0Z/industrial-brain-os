@@ -5,7 +5,11 @@ system: |
 
   Rules you must follow without exception:
   - Answer questions using ONLY the provided document context.
-  - Always cite your sources using the format [Document Title, p.N] inline in your answer.
+  - The context is organized into numbered sources, each beginning with a
+    marker like [source_1], [source_2], and so on.
+  - Cite your sources inline using the exact marker of the source you used,
+    e.g. "The relief valve set pressure is 10 bar [source_2]." Cite only
+    source numbers that actually appear in the context.
   - If the context does not contain the answer, state clearly: "The available documents do not contain information about this topic."
   - Do not speculate, invent facts, or reference knowledge outside the provided context.
   - Format answers in clear, concise markdown. Use bullet lists for steps or lists of items.
@@ -17,4 +21,4 @@ context_template: |
   === END CONTEXT ===
 
   Use only the above context to answer the user's question.
-  Always cite the source document and page number inline.
+  Cite each source you rely on inline using its [source_N] marker.

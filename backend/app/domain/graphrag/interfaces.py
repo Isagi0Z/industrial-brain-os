@@ -5,7 +5,11 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Optional, Tuple
 
-from app.domain.graphrag.models import HybridSearchResult, KGPath
+from app.domain.graphrag.models import (
+    CompressionResult,
+    HybridSearchResult,
+    KGPath,
+)
 from app.domain.search.models import SearchResult
 
 
@@ -14,7 +18,20 @@ class IGraphRAGEngine(ABC):
     async def retrieve(
         self, query: str, role_scope: str, top_k: int
     ) -> HybridSearchResult:
-        """Run the full hybrid retrieval pipeline (Stages 1-6) for a query."""
+        """Run the full hybrid retrieval pipeline (Stages 1-7) for a query."""
+
+
+class IContextCompressor(ABC):
+    """Stage 7 (M14) — compress an assembled context string before the LLM
+    call (e.g. LLMLingua). Implementations must degrade gracefully: if the
+    backend is unavailable or the context is below the min-token threshold,
+    return the input unchanged with ``was_compressed=False``."""
+
+    @abstractmethod
+    def compress(
+        self, context: str, target_ratio: float, min_tokens: int
+    ) -> CompressionResult:
+        """Return a CompressionResult; never raises for the caller."""
 
 
 class IKGTraversalService(ABC):
