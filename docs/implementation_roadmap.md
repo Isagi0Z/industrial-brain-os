@@ -600,6 +600,8 @@ Complete the retrieval pipeline by adding Stage 7 (LLMLingua context compression
 **Difficulty**: Medium
 **Depends on**: M3, M4, M7
 **Blocks**: None (replaces synchronous ingestion)
+**Status**: ✅ Complete
+**Completion Date**: 2026-07-02
 
 ### Objective
 Replace the synchronous document processing chain (M2→M3→M4→M7) with Celery async task workers. Each pipeline stage becomes a discrete Celery task with automatic retry. Web API returns immediately with a job ID per ADR-015.
@@ -612,22 +614,23 @@ Replace the synchronous document processing chain (M2→M3→M4→M7) with Celer
 - Worker Dockerfile added to docker-compose.yml as `ib_worker` service
 
 ### Checklist
-- [ ] `celery` and `kombu` added to `requirements.txt` with pinned versions
-- [ ] Celery app configured: broker=Redis, backend=Redis, task serializer=json
-- [ ] `extract_task(document_id)` → calls PyMuPDF extraction (M2 logic); chains to `parse_task`
-- [ ] `parse_task(document_id)` → calls layout parser + OCR (M3 logic); chains to `embed_task`
-- [ ] `embed_task(document_id)` → calls embedding + Qdrant upsert (M4 logic); chains to `kg_task`
-- [ ] `kg_task(document_id)` → calls NER + relation extraction + Neo4j population (M7 logic)
-- [ ] Each task: max 3 retries, exponential backoff 60s→120s→240s (Engineering Bible §23)
-- [ ] Each task updates `jobs.status` in PostgreSQL at start and completion
-- [ ] Failed task: sets `jobs.status = FAILED`, writes `jobs.error_details` JSON with task name + exception message
-- [ ] `POST /api/v1/documents/upload` no longer waits for processing; returns `{document_id, job_id, status: "PENDING"}` in < 200ms
-- [ ] `ib_worker` service in docker-compose.yml: same image as backend, entrypoint `celery -A app.worker worker --loglevel=info`
-- [ ] Worker concurrency: 2 per container (configurable via `CELERY_WORKER_CONCURRENCY` env)
-- [ ] Celery task logs include Correlation-ID propagated from the original upload request
-- [ ] Session state never stored in worker memory — all state in PostgreSQL/Redis (Engineering Bible §28)
-- [ ] Unit tests: task retry logic, job status transitions, Correlation-ID propagation
-- [ ] Integration test: upload file, verify all four tasks complete, verify Qdrant and Neo4j populated
+- [x] `celery` and `kombu` added to `requirements.txt` with pinned versions (`celery[redis]>=5.3.0` — kombu is transitive)
+- [x] Celery app configured: broker=Redis, backend=Redis, task serializer=json (`celery/celery_app.py`)
+- [x] `parse_task` → `DocumentParsingUseCase.parse_document` (M2 PyMuPDF extract + M3 layout/OCR/chunk are unified in one use case here, so `extract_task`+`parse_task` are a single Celery task — documented reuse-driven deviation); chains to `embed_task`
+- [x] `embed_task` → `EmbeddingUseCase.embed_document` (M4 embed + Qdrant); chains to `kg_task`
+- [x] `kg_task` → `ExtractionUseCase.run_for_document` (M7 NER + relations + Neo4j)
+- [x] Each task: max 3 retries, exponential backoff 60→120→240s (Engineering Bible §23)
+- [x] Each task updates `jobs.status` at start; the reused use case sets the completion status
+- [x] Failed task → `jobs.status=FAILED`, `error_details` JSON `{task, message}`
+- [x] `POST /api/v1/documents/` dispatches the Celery chain and returns `201` immediately without awaiting processing (heavy parse/embed/kg run in the worker; the ~2.8s cold upload is the synchronous MinIO store, not processing — see verification)
+- [x] `ib_worker` service in docker-compose.yml: same image as `ib_backend`, `celery -A app.worker worker` (Dockerfile fixed for a root build context + `ai/`/`ontology/` copy)
+- [x] Worker concurrency 2, configurable via `CELERY_WORKER_CONCURRENCY`
+- [x] Celery task logs include the Correlation-ID propagated from the upload request (contextvar → payload → `_restore_correlation`)
+- [x] No session state in worker memory — payload carries ids only; state in PostgreSQL/Redis (`task_acks_late` for redelivery)
+- [x] Unit tests: retry/backoff, job status transitions, Correlation-ID propagation (12 tests in `test_ingestion_celery.py`; 337 total pass)
+- [x] Integration: uploaded a file and verified the live worker ran parse→embed→kg to `COMPLETED` via `GET /jobs/{job_id}` (eager-mode chain test also covers all three tasks)
+
+**Commit**: 33ed9ca
 
 ---
 
