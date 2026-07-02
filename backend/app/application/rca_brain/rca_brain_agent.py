@@ -26,15 +26,19 @@ the root-cause/report path to completion.
 from __future__ import annotations
 
 import logging
-import re
 import time
 from pathlib import Path
 from typing import Any, Dict, List
 
-import yaml  # type: ignore[import-untyped]
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
+from app.application.agents.base import (
+    BaseBrainAgent,
+    CITATION_PATTERN as _CITATION_PATTERN,
+    StepLimitExceededError,
+    load_prompt,
+)
 from app.domain.chat.interfaces import IModelGateway
 from app.domain.chat.models import Citation
 from app.domain.graphrag.interfaces import IGraphRAGEngine
@@ -65,14 +69,9 @@ from ai.agents.rca_brain.tools import (
 logger = logging.getLogger(__name__)
 
 MAX_STEPS = 10
-_CITATION_PATTERN = re.compile(r"\[\[chunk:([^\]]+)\]\]")
 
 
-class StepLimitExceededError(Exception):
-    """Raised when the agent exceeds its configured max step count."""
-
-
-class RCABrainAgent(IRCABrainAgent):
+class RCABrainAgent(BaseBrainAgent, IRCABrainAgent):
     def __init__(
         self,
         graphrag_engine: IGraphRAGEngine,
@@ -97,9 +96,9 @@ class RCABrainAgent(IRCABrainAgent):
         self._incident_repo = incident_repo
         self._session_repo = session_repo
         self._state_store = state_store
-        self._suggest_prompt = _load_prompt(suggest_why_prompt_path)
-        self._report_prompt = _load_prompt(generate_report_prompt_path)
-        self._fishbone_prompt = _load_prompt(fishbone_prompt_path)
+        self._suggest_prompt = load_prompt(suggest_why_prompt_path)
+        self._report_prompt = load_prompt(generate_report_prompt_path)
+        self._fishbone_prompt = load_prompt(fishbone_prompt_path)
         self._max_steps = max_steps
         self._max_whys = max_whys
         self._top_k = top_k
@@ -241,22 +240,13 @@ class RCABrainAgent(IRCABrainAgent):
         graph.add_edge("human_confirm", END)
         graph.add_conditional_edges(
             "identify_root_cause",
-            _error_or(default="generate_report"),
+            self._error_or(default="generate_report"),
             {"error": END, "generate_report": "generate_report"},
         )
         graph.add_edge("generate_report", END)
         return graph.compile(
             checkpointer=MemorySaver(), interrupt_before=["human_confirm"]
         )
-
-    def _check_step_limit(self, state: RCAAgentState) -> int:
-        new_count = state["step_count"] + 1
-        if new_count > self._max_steps:
-            raise StepLimitExceededError(
-                f"STEP_LIMIT_EXCEEDED: exceeded {self._max_steps} steps "
-                f"(session={state['session_id']})"
-            )
-        return new_count
 
     def _route_after_define(self, state: RCAAgentState) -> str:
         if state["error_flag"]:
@@ -488,13 +478,6 @@ class RCABrainAgent(IRCABrainAgent):
 # ---------------------------------------------------------------------------
 
 
-def _error_or(default: str):
-    def _selector(state: RCAAgentState) -> str:
-        return "error" if state["error_flag"] else default
-
-    return _selector
-
-
 def _format_whys(whys: List[WhyStep]) -> str:
     if not whys:
         return ""
@@ -539,8 +522,3 @@ def _validate_citations(
             seen.add(s)
             validated.append(s)
     return validated, citation_objs
-
-
-def _load_prompt(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}

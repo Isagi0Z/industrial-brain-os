@@ -10,10 +10,13 @@ pattern established for the Knowledge Brain (M9) and Maintenance Brain
 from __future__ import annotations
 
 import dataclasses
-import json
-import re
 from typing import Any, List, Optional
 
+from ai.agents.common.json_parse import (
+    try_bracket_extract,
+    try_direct,
+    try_strip_fences,
+)
 from app.domain.chat.interfaces import IModelGateway
 from app.domain.compliance_brain.models import (
     ComplianceGap,
@@ -135,7 +138,7 @@ async def compliance_gap_detector(
 
 def _parse_gap_response(text: str) -> List[ComplianceGap]:
     text = text.strip()
-    raw = _try_direct(text) or _try_bracket_extract(text) or _try_strip_fences(text)
+    raw = try_direct(text) or try_bracket_extract(text) or try_strip_fences(text)
     if raw is None or not isinstance(raw, list):
         return []
 
@@ -145,41 +148,6 @@ def _parse_gap_response(text: str) -> List[ComplianceGap]:
         if gap is not None:
             gaps.append(gap)
     return gaps
-
-
-def _try_direct(text: str) -> Optional[Any]:
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        return None
-
-
-def _try_bracket_extract(text: str) -> Optional[Any]:
-    """Find the first '[' … ']' balanced block and parse it."""
-    start = text.find("[")
-    if start == -1:
-        return None
-    depth = 0
-    for i, ch in enumerate(text[start:], start):
-        if ch == "[":
-            depth += 1
-        elif ch == "]":
-            depth -= 1
-            if depth == 0:
-                try:
-                    return json.loads(text[start : i + 1])
-                except json.JSONDecodeError:
-                    return None
-    return None
-
-
-def _try_strip_fences(text: str) -> Optional[Any]:
-    """Remove ``` fences and retry."""
-    cleaned = re.sub(r"```[a-zA-Z]*\n?", "", text).strip()
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        return None
 
 
 def _item_to_gap(item: Any) -> Optional[ComplianceGap]:

@@ -37,12 +37,18 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List
 
-import yaml  # type: ignore[import-untyped]
 from langgraph.graph import END, StateGraph
 from starlette.concurrency import run_in_threadpool
 
+from app.application.agents.base import (
+    BaseBrainAgent,
+    StepLimitExceededError,
+    format_context_blocks as _format_context_blocks,
+    load_prompt,
+    render_citations,
+    validate_chunk_citations,
+)
 from app.domain.chat.interfaces import IChatHistoryRepository, IModelGateway
-from app.domain.chat.models import ChatMessage, Citation, MessageRole
 from app.domain.extraction.interfaces import IEntityExtractor
 from app.domain.graphrag.interfaces import IGraphRAGEngine, IKGTraversalService
 from app.domain.graphrag.models import HybridSearchResult, KGPath
@@ -60,17 +66,12 @@ from ai.agents.knowledge_brain.tools import (
 logger = logging.getLogger(__name__)
 
 MAX_STEPS = 10
-_CITATION_PATTERN = re.compile(r"\[\[chunk:([^\]]+)\]\]")
 _PROCEDURAL_KEYWORDS = re.compile(
     r"\b(how to|how do i|steps to|procedure|instructions|walk me through)\b", re.I
 )
 
 
-class StepLimitExceededError(Exception):
-    """Raised when the agent exceeds its configured max step count."""
-
-
-class KnowledgeBrainAgent(IKnowledgeBrainAgent):
+class KnowledgeBrainAgent(BaseBrainAgent, IKnowledgeBrainAgent):
     def __init__(
         self,
         graphrag_engine: IGraphRAGEngine,
@@ -92,7 +93,7 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
         self._kg_traversal = kg_traversal
         self._gateway = model_gateway
         self._history = history_repo
-        self._prompt = _load_prompt(prompt_path)
+        self._prompt = load_prompt(prompt_path)
         self._max_steps = max_steps
         self._top_k = top_k
         self._kg_depth = kg_depth
@@ -157,30 +158,17 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
         )
         graph.add_conditional_edges(
             "retrieve_context",
-            _error_or(default="synthesize_answer"),
+            self._error_or(default="synthesize_answer"),
             {"error": "format_response", "synthesize_answer": "synthesize_answer"},
         )
         graph.add_conditional_edges(
             "synthesize_answer",
-            _error_or(default="validate_citations"),
+            self._error_or(default="validate_citations"),
             {"error": "format_response", "validate_citations": "validate_citations"},
         )
         graph.add_edge("validate_citations", "format_response")
         graph.add_edge("format_response", END)
         return graph.compile()
-
-    def _check_step_limit(self, state: AgentState) -> int:
-        """Returns the incremented step count. LangGraph only merges a
-        node's *returned* dict into its managed state — mutating `state`
-        in place has no effect — so every node must include this value
-        in its own return dict."""
-        new_count = state["step_count"] + 1
-        if new_count > self._max_steps:
-            raise StepLimitExceededError(
-                f"STEP_LIMIT_EXCEEDED: exceeded {self._max_steps} steps "
-                f"(session={state['session_id']})"
-            )
-        return new_count
 
     def _route_after_classification(self, state: AgentState) -> str:
         if state["error_flag"]:
@@ -309,24 +297,9 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
         if state["error_flag"]:
             return {"step_count": step_count}
         try:
-            by_chunk_id = {c.chunk_id: c for c in state["retrieved_chunks"]}
-            seen: set = set()
-            citations: List[Citation] = []
-            for match in _CITATION_PATTERN.finditer(state["draft_answer"]):
-                chunk_id = match.group(1)
-                if chunk_id in by_chunk_id and chunk_id not in seen:
-                    seen.add(chunk_id)
-                    sr = by_chunk_id[chunk_id]
-                    citations.append(
-                        Citation(
-                            chunk_id=sr.chunk_id,
-                            document_title=sr.document_title,
-                            page_number=sr.page_number,
-                            chunk_text_excerpt=sr.text[:200],
-                            score=round(sr.score, 4),
-                            storage_key=sr.document_id,
-                        )
-                    )
+            citations = validate_chunk_citations(
+                state["draft_answer"], state["retrieved_chunks"]
+            )
 
             duration_ms = round((time.monotonic() - t0) * 1000, 1)
             logger.info(
@@ -352,22 +325,7 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
         t0 = time.monotonic()
         step_count = self._check_step_limit(state)
         try:
-            text = state["draft_answer"]
-            citations = state["citations"]
-            footnote_of = {c.chunk_id: i + 1 for i, c in enumerate(citations)}
-
-            def _replace(match: "re.Match[str]") -> str:
-                chunk_id = match.group(1)
-                return f"[{footnote_of[chunk_id]}]" if chunk_id in footnote_of else ""
-
-            rendered = _CITATION_PATTERN.sub(_replace, text)
-
-            if citations:
-                lines = ["", "**Sources:**"]
-                for i, c in enumerate(citations, start=1):
-                    page_str = f"p.{c.page_number}" if c.page_number else "p.?"
-                    lines.append(f"{i}. {c.document_title}, {page_str}")
-                rendered = rendered.rstrip() + "\n" + "\n".join(lines)
+            rendered = render_citations(state["draft_answer"], state["citations"])
 
             if state["error_flag"]:
                 if not rendered.strip():
@@ -436,30 +394,10 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
             )
             return None
 
-    # ------------------------------------------------------------------
-    # Session persistence (Redis, shared with M5's chat history)
-    # ------------------------------------------------------------------
-
-    def _persist_turn(self, session_id: str, query: str, state: AgentState) -> None:
-        user_msg = ChatMessage(role=MessageRole.USER, content=query)
-        assistant_msg = ChatMessage(
-            role=MessageRole.ASSISTANT, content=state["draft_answer"]
-        )
-        self._history.append_messages(
-            session_id, [user_msg, assistant_msg], self._session_ttl
-        )
-
 
 # ---------------------------------------------------------------------------
 # Module-level helpers
 # ---------------------------------------------------------------------------
-
-
-def _error_or(default: str):
-    def _selector(state: AgentState) -> str:
-        return "error" if state["error_flag"] else default
-
-    return _selector
 
 
 def _classify_intent(query: str) -> str:
@@ -478,16 +416,6 @@ def _classify_intent(query: str) -> str:
     return "document_search"
 
 
-def _format_context_blocks(chunks: List[SearchResult]) -> str:
-    blocks = []
-    for c in chunks:
-        page_str = f"p.{c.page_number}" if c.page_number else "p.?"
-        blocks.append(
-            f"[chunk_id: {c.chunk_id} | {c.document_title}, {page_str}]\n{c.text}"
-        )
-    return "\n\n---\n\n".join(blocks)
-
-
 def _format_kg_markdown(kg_paths: List[KGPath]) -> str:
     if not kg_paths:
         return ""
@@ -498,8 +426,3 @@ def _format_kg_markdown(kg_paths: List[KGPath]) -> str:
             f"| {p.target_type}:{p.target_tag} |"
         )
     return "\n".join(lines)
-
-
-def _load_prompt(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}

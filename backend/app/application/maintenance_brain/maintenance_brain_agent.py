@@ -26,11 +26,17 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List
 
-import yaml  # type: ignore[import-untyped]
 from langgraph.graph import END, StateGraph
 
+from app.application.agents.base import (
+    BaseBrainAgent,
+    StepLimitExceededError,
+    format_context_blocks as _format_context_blocks,
+    load_prompt,
+    render_citations,
+    validate_chunk_citations,
+)
 from app.domain.chat.interfaces import IChatHistoryRepository, IModelGateway
-from app.domain.chat.models import ChatMessage, Citation, MessageRole
 from app.domain.extraction.interfaces import IEntityExtractor
 from app.domain.graphrag.interfaces import IGraphRAGEngine
 from app.domain.maintenance_brain.interfaces import (
@@ -56,15 +62,10 @@ from ai.agents.maintenance_brain.tools import (
 logger = logging.getLogger(__name__)
 
 MAX_STEPS = 10
-_CITATION_PATTERN = re.compile(r"\[\[chunk:([^\]]+)\]\]")
 _WO_ID_PATTERN = re.compile(r"\bWO-\d+\b", re.I)
 
 
-class StepLimitExceededError(Exception):
-    """Raised when the agent exceeds its configured max step count."""
-
-
-class MaintenanceBrainAgent(IMaintenanceBrainAgent):
+class MaintenanceBrainAgent(BaseBrainAgent, IMaintenanceBrainAgent):
     def __init__(
         self,
         graphrag_engine: IGraphRAGEngine,
@@ -85,7 +86,7 @@ class MaintenanceBrainAgent(IMaintenanceBrainAgent):
         self._failure_history_repo = failure_history_repo
         self._gateway = model_gateway
         self._history = history_repo
-        self._prompt = _load_prompt(prompt_path)
+        self._prompt = load_prompt(prompt_path)
         self._max_steps = max_steps
         self._top_k = top_k
         self._max_tokens = max_tokens
@@ -150,7 +151,7 @@ class MaintenanceBrainAgent(IMaintenanceBrainAgent):
         )
         graph.add_conditional_edges(
             "retrieve_asset_context",
-            _error_or(default="retrieve_work_orders"),
+            self._error_or(default="retrieve_work_orders"),
             {
                 "error": "format_response",
                 "retrieve_work_orders": "retrieve_work_orders",
@@ -158,30 +159,16 @@ class MaintenanceBrainAgent(IMaintenanceBrainAgent):
         )
         graph.add_conditional_edges(
             "retrieve_work_orders",
-            _error_or(default="synthesize_guidance"),
+            self._error_or(default="synthesize_guidance"),
             {"error": "format_response", "synthesize_guidance": "synthesize_guidance"},
         )
         graph.add_conditional_edges(
             "synthesize_guidance",
-            _error_or(default="format_response"),
+            self._error_or(default="format_response"),
             {"error": "format_response", "format_response": "format_response"},
         )
         graph.add_edge("format_response", END)
         return graph.compile()
-
-    def _check_step_limit(self, state: MaintenanceAgentState) -> int:
-        """Returns the incremented step count. LangGraph only merges a
-        node's *returned* dict into its managed state — mutating `state`
-        in place has no effect — so every node must include this value
-        in its own return dict (see M9's KnowledgeBrainAgent for the same
-        lesson learned)."""
-        new_count = state["step_count"] + 1
-        if new_count > self._max_steps:
-            raise StepLimitExceededError(
-                f"STEP_LIMIT_EXCEEDED: exceeded {self._max_steps} steps "
-                f"(session={state['session_id']})"
-            )
-        return new_count
 
     def _route_after_classification(self, state: MaintenanceAgentState) -> str:
         if state["error_flag"]:
@@ -365,39 +352,14 @@ class MaintenanceBrainAgent(IMaintenanceBrainAgent):
         t0 = time.monotonic()
         step_count = self._check_step_limit(state)
         try:
-            by_chunk_id = {c.chunk_id: c for c in state["retrieved_chunks"]}
-            seen: set = set()
-            citations: List[Citation] = []
-            for match in _CITATION_PATTERN.finditer(state["draft_answer"]):
-                chunk_id = match.group(1)
-                if chunk_id in by_chunk_id and chunk_id not in seen:
-                    seen.add(chunk_id)
-                    sr = by_chunk_id[chunk_id]
-                    citations.append(
-                        Citation(
-                            chunk_id=sr.chunk_id,
-                            document_title=sr.document_title,
-                            page_number=sr.page_number,
-                            chunk_text_excerpt=sr.text[:200],
-                            score=round(sr.score, 4),
-                            storage_key=sr.document_id,
-                        )
-                    )
-
-            footnote_of = {c.chunk_id: i + 1 for i, c in enumerate(citations)}
-
-            def _replace(match: "re.Match[str]") -> str:
-                chunk_id = match.group(1)
-                return f"[{footnote_of[chunk_id]}]" if chunk_id in footnote_of else ""
-
-            rendered = _CITATION_PATTERN.sub(_replace, state["draft_answer"])
-
-            if citations:
-                lines = ["", "**Manual Sources:**"]
-                for i, c in enumerate(citations, start=1):
-                    page_str = f"p.{c.page_number}" if c.page_number else "p.?"
-                    lines.append(f"{i}. {c.document_title}, {page_str}")
-                rendered = rendered.rstrip() + "\n" + "\n".join(lines)
+            citations = validate_chunk_citations(
+                state["draft_answer"], state["retrieved_chunks"]
+            )
+            rendered = render_citations(
+                state["draft_answer"],
+                citations,
+                sources_header="**Manual Sources:**",
+            )
 
             if state["error_flag"]:
                 if not rendered.strip():
@@ -442,42 +404,10 @@ class MaintenanceBrainAgent(IMaintenanceBrainAgent):
                 "step_count": step_count,
             }
 
-    # ------------------------------------------------------------------
-    # Session persistence (Redis, shared with M5/M9's chat history)
-    # ------------------------------------------------------------------
-
-    def _persist_turn(
-        self, session_id: str, query: str, state: MaintenanceAgentState
-    ) -> None:
-        user_msg = ChatMessage(role=MessageRole.USER, content=query)
-        assistant_msg = ChatMessage(
-            role=MessageRole.ASSISTANT, content=state["draft_answer"]
-        )
-        self._history.append_messages(
-            session_id, [user_msg, assistant_msg], self._session_ttl
-        )
-
 
 # ---------------------------------------------------------------------------
 # Module-level helpers
 # ---------------------------------------------------------------------------
-
-
-def _error_or(default: str):
-    def _selector(state: MaintenanceAgentState) -> str:
-        return "error" if state["error_flag"] else default
-
-    return _selector
-
-
-def _format_context_blocks(chunks: List[SearchResult]) -> str:
-    blocks = []
-    for c in chunks:
-        page_str = f"p.{c.page_number}" if c.page_number else "p.?"
-        blocks.append(
-            f"[chunk_id: {c.chunk_id} | {c.document_title}, {page_str}]\n{c.text}"
-        )
-    return "\n\n---\n\n".join(blocks)
 
 
 def _format_work_orders(work_orders: List[WorkOrder]) -> str:
@@ -503,8 +433,3 @@ def _format_failure_history(failure_history: List[FailureRecord]) -> str:
             + (f" (severity={f.severity})" if f.severity else "")
         )
     return "\n".join(lines)
-
-
-def _load_prompt(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}

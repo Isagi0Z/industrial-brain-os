@@ -23,11 +23,15 @@ import logging
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Mapping
 
-import yaml  # type: ignore[import-untyped]
 from langgraph.graph import END, StateGraph
 
+from app.application.agents.base import (
+    BaseBrainAgent,
+    StepLimitExceededError,
+    load_prompt,
+)
 from app.domain.chat.interfaces import IChatHistoryRepository, IModelGateway
 from app.domain.chat.models import ChatMessage, Citation, MessageRole
 from app.domain.lessons_brain.interfaces import (
@@ -57,15 +61,11 @@ logger = logging.getLogger(__name__)
 MAX_STEPS = 10
 
 
-class StepLimitExceededError(Exception):
-    """Raised when the agent exceeds its configured max step count."""
-
-
 class IncidentProcessingError(Exception):
     """Raised when the ingestion graph fails to produce a stored lesson."""
 
 
-class LessonsLearnedBrainAgent(ILessonsLearnedBrainAgent):
+class LessonsLearnedBrainAgent(BaseBrainAgent, ILessonsLearnedBrainAgent):
     def __init__(
         self,
         embedding_service: IEmbeddingService,
@@ -90,8 +90,8 @@ class LessonsLearnedBrainAgent(ILessonsLearnedBrainAgent):
         self._ontology_validator = ontology_validator
         self._gateway = model_gateway
         self._history = history_repo
-        self._summary_prompt = _load_prompt(generate_summary_prompt_path)
-        self._chat_prompt = _load_prompt(chat_prompt_path)
+        self._summary_prompt = load_prompt(generate_summary_prompt_path)
+        self._chat_prompt = load_prompt(chat_prompt_path)
         self._max_steps = max_steps
         self._similar_lessons_limit = similar_lessons_limit
         self._chat_top_k = chat_top_k
@@ -199,35 +199,31 @@ class LessonsLearnedBrainAgent(ILessonsLearnedBrainAgent):
         graph.set_entry_point("analyze_incident")
         graph.add_conditional_edges(
             "analyze_incident",
-            _error_or(default="extract_patterns"),
+            self._error_or(default="extract_patterns"),
             {"error": END, "extract_patterns": "extract_patterns"},
         )
         graph.add_conditional_edges(
             "extract_patterns",
-            _error_or(default="link_to_ontology"),
+            self._error_or(default="link_to_ontology"),
             {"error": END, "link_to_ontology": "link_to_ontology"},
         )
         graph.add_conditional_edges(
             "link_to_ontology",
-            _error_or(default="store_lesson"),
+            self._error_or(default="store_lesson"),
             {"error": END, "store_lesson": "store_lesson"},
         )
         graph.add_conditional_edges(
             "store_lesson",
-            _error_or(default="generate_summary"),
+            self._error_or(default="generate_summary"),
             {"error": END, "generate_summary": "generate_summary"},
         )
         graph.add_edge("generate_summary", END)
         return graph.compile()
 
-    def _check_step_limit(self, state: LessonsAgentState) -> int:
-        new_count = state["step_count"] + 1
-        if new_count > self._max_steps:
-            raise StepLimitExceededError(
-                f"STEP_LIMIT_EXCEEDED: exceeded {self._max_steps} steps "
-                f"(asset_tag={state['incident'].asset_tag})"
-            )
-        return new_count
+    def _step_limit_context(self, state: Mapping[str, Any]) -> str:
+        # The ingestion state has no session_id, so the step-limit message
+        # keys on the incident's asset_tag (byte-identical to pre-refactor).
+        return f"asset_tag={state['incident'].asset_tag}"
 
     # ------------------------------------------------------------------
     # Nodes
@@ -417,20 +413,3 @@ class LessonsLearnedBrainAgent(ILessonsLearnedBrainAgent):
             # the whole ingestion.
             logger.warning("Lessons Brain generate_summary failed: %s", exc)
             return {"step_count": step_count}
-
-
-# ---------------------------------------------------------------------------
-# Module-level helpers
-# ---------------------------------------------------------------------------
-
-
-def _error_or(default: str):
-    def _selector(state: LessonsAgentState) -> str:
-        return "error" if state["error_flag"] else default
-
-    return _selector
-
-
-def _load_prompt(path: Path) -> dict:
-    with path.open("r", encoding="utf-8") as fh:
-        return yaml.safe_load(fh) or {}

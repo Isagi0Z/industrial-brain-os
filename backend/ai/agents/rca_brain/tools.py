@@ -10,10 +10,15 @@ brains.
 from __future__ import annotations
 
 import asyncio
-import json
 import re
 from typing import Any, Dict, List, Optional
 
+from ai.agents.common.json_parse import (
+    try_bracket_extract,
+    try_brace_extract,
+    try_direct,
+    try_strip_fences,
+)
 from app.domain.chat.interfaces import IModelGateway
 from app.domain.graphrag.interfaces import IGraphRAGEngine
 from app.domain.maintenance_brain.interfaces import IFailureHistoryRepository
@@ -172,7 +177,7 @@ async def fishbone_analysis(
 def parse_report_object(text: str) -> Optional[Dict[str, Any]]:
     """Extract a single JSON OBJECT (the RCA report) from an LLM response."""
     text = text.strip()
-    raw = _try_direct(text) or _try_brace_extract(text) or _try_strip_fences(text)
+    raw = try_direct(text) or try_brace_extract(text) or try_strip_fences(text)
     if isinstance(raw, dict):
         return raw
     return None
@@ -180,48 +185,7 @@ def parse_report_object(text: str) -> Optional[Dict[str, Any]]:
 
 def _parse_string_array(text: str) -> List[str]:
     text = text.strip()
-    raw = _try_direct(text) or _try_bracket_extract(text) or _try_strip_fences(text)
+    raw = try_direct(text) or try_bracket_extract(text) or try_strip_fences(text)
     if isinstance(raw, list):
         return [str(x) for x in raw if isinstance(x, (str, int, float))]
     return []
-
-
-def _try_direct(text: str) -> Optional[Any]:
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError:
-        return None
-
-
-def _try_bracket_extract(text: str) -> Optional[Any]:
-    return _balanced_extract(text, "[", "]")
-
-
-def _try_brace_extract(text: str) -> Optional[Any]:
-    return _balanced_extract(text, "{", "}")
-
-
-def _balanced_extract(text: str, open_ch: str, close_ch: str) -> Optional[Any]:
-    start = text.find(open_ch)
-    if start == -1:
-        return None
-    depth = 0
-    for i, ch in enumerate(text[start:], start):
-        if ch == open_ch:
-            depth += 1
-        elif ch == close_ch:
-            depth -= 1
-            if depth == 0:
-                try:
-                    return json.loads(text[start : i + 1])
-                except json.JSONDecodeError:
-                    return None
-    return None
-
-
-def _try_strip_fences(text: str) -> Optional[Any]:
-    cleaned = re.sub(r"```[a-zA-Z]*\n?", "", text).strip()
-    try:
-        return json.loads(cleaned)
-    except json.JSONDecodeError:
-        return None
