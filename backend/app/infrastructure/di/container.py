@@ -115,6 +115,17 @@ from app.infrastructure.rca.incident_history_repository import (
 from app.infrastructure.rca.rca_session_repository import PostgresRCASessionRepository
 from app.infrastructure.rca.redis_rca_state_store import RedisRCAStateStore
 
+from app.application.lessons_brain.lessons_brain_agent import LessonsLearnedBrainAgent
+from app.domain.lessons_brain.interfaces import (
+    ILessonRepository,
+    ILessonsLearnedBrainAgent,
+    IProactiveWarningDetector,
+)
+from app.infrastructure.lessons.lesson_repository import Neo4jLessonRepository
+from app.infrastructure.lessons.proactive_warning_detector import (
+    ProactiveWarningDetector,
+)
+
 
 class DIContainer:
     """Manages the lifecycles of all external connections and service singletons."""
@@ -514,6 +525,7 @@ class DIContainer:
                 kg_limit=settings.GRAPHRAG_KG_TRAVERSAL_LIMIT,
                 max_tokens=settings.CHAT_MAX_TOKENS,
                 session_ttl_seconds=settings.CHAT_SESSION_TTL_SECONDS,
+                warning_detector=self.get_proactive_warning_detector(),
             )
             logging.info("KnowledgeBrainAgent initialized.")
         return self._knowledge_brain_agent
@@ -655,6 +667,57 @@ class DIContainer:
             )
             logging.info("RCABrainAgent initialized.")
         return self._rca_brain_agent
+
+    # ------------------------------------------------------------------
+    # Lessons Learned Brain agent (M13)
+    # ------------------------------------------------------------------
+
+    def get_lesson_repository(self) -> ILessonRepository:
+        if not hasattr(self, "_lesson_repository"):
+            self._lesson_repository = Neo4jLessonRepository(self.get_neo4j())
+        return self._lesson_repository
+
+    def get_proactive_warning_detector(self) -> IProactiveWarningDetector:
+        if not hasattr(self, "_proactive_warning_detector"):
+            self._proactive_warning_detector = ProactiveWarningDetector(
+                embedding_service=self.get_embedding_service(),
+                vector_repo=self.get_vector_repository(),
+                lesson_repo=self.get_lesson_repository(),
+                similarity_threshold=settings.LESSONS_WARNING_SIMILARITY_THRESHOLD,
+            )
+        return self._proactive_warning_detector
+
+    def get_lessons_brain_agent(self) -> ILessonsLearnedBrainAgent:
+        if not hasattr(self, "_lessons_brain_agent"):
+            from pathlib import Path
+
+            def _resolve(rel_path: str) -> Path:
+                # backend/ai/... — parents[3] is the `backend/` dir
+                path = Path(rel_path)
+                if not path.is_absolute():
+                    path = Path(__file__).parents[3] / rel_path
+                return path
+
+            self._lessons_brain_agent = LessonsLearnedBrainAgent(
+                embedding_service=self.get_embedding_service(),
+                vector_repo=self.get_vector_repository(),
+                lesson_repo=self.get_lesson_repository(),
+                failure_history_repo=self.get_failure_history_repository(),
+                ontology_validator=self.get_ontology_validator(),
+                model_gateway=self._build_primary_gateway(),
+                history_repo=self.get_chat_history_repository(),
+                generate_summary_prompt_path=_resolve(
+                    settings.LESSONS_GENERATE_SUMMARY_PROMPT_FILE
+                ),
+                chat_prompt_path=_resolve(settings.LESSONS_CHAT_PROMPT_FILE),
+                max_steps=settings.LESSONS_BRAIN_MAX_STEPS,
+                similar_lessons_limit=settings.LESSONS_SIMILAR_LESSONS_LIMIT,
+                chat_top_k=settings.LESSONS_BRAIN_CHAT_TOP_K,
+                max_tokens=settings.CHAT_MAX_TOKENS,
+                session_ttl_seconds=settings.CHAT_SESSION_TTL_SECONDS,
+            )
+            logging.info("LessonsLearnedBrainAgent initialized.")
+        return self._lessons_brain_agent
 
     def get_ingestion_worker(self) -> IngestionWorker:
         if not hasattr(self, "_ingestion_worker"):

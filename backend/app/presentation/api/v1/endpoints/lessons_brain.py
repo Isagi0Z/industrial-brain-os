@@ -1,9 +1,7 @@
-"""Knowledge Brain Agent API (M9) — LangGraph-orchestrated Q&A endpoint.
-
-Distinct from /api/v1/chat (M5/M8): this endpoint routes through the full
-KnowledgeBrainAgent state machine (route_query -> retrieve_context ->
-synthesize_answer -> validate_citations -> format_response) rather than the
-simpler direct GraphRAG-then-generate flow used by ChatUseCase.
+"""Lessons Learned Brain Agent API (M13) — Q&A endpoint over previously
+ingested incidents (`POST /api/v1/incidents`). Distinct from the Knowledge
+Brain: this endpoint only ever answers from the `lessons_learned` Qdrant
+collection, not the full document corpus.
 """
 
 from __future__ import annotations
@@ -15,11 +13,11 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
 from app.domain.auth.models import User
-from app.domain.knowledge_brain.interfaces import IKnowledgeBrainAgent
+from app.domain.lessons_brain.interfaces import ILessonsLearnedBrainAgent
 from app.infrastructure.di.container import container
 from app.presentation.api.dependencies.auth import get_current_user
 
-router = APIRouter(prefix="/brain/knowledge", tags=["Knowledge Brain"])
+router = APIRouter(prefix="/brain/lessons", tags=["Lessons Learned Brain"])
 logger = logging.getLogger(__name__)
 
 _DEFAULT_ROLE_SCOPE = "public"
@@ -30,7 +28,7 @@ _DEFAULT_ROLE_SCOPE = "public"
 # ------------------------------------------------------------------
 
 
-class KnowledgeBrainChatRequest(BaseModel):
+class LessonsBrainChatRequest(BaseModel):
     query: str = Field(..., min_length=1, max_length=2000)
     session_id: str = Field(..., min_length=1, max_length=128)
 
@@ -44,22 +42,12 @@ class CitationOut(BaseModel):
     storage_key: Optional[str]
 
 
-class ProactiveWarningOut(BaseModel):
-    warning_type: str
-    lesson_summary: str
-    similarity_score: float
-    incident_date: str
-    asset_tag: str
-    lesson_id: str
-
-
-class KnowledgeBrainChatResponse(BaseModel):
+class LessonsBrainChatResponse(BaseModel):
     answer: str
     citations: List[CitationOut]
     session_id: str
     error_flag: bool
     step_count: int
-    proactive_warning: Optional[ProactiveWarningOut]
 
 
 # ------------------------------------------------------------------
@@ -67,8 +55,8 @@ class KnowledgeBrainChatResponse(BaseModel):
 # ------------------------------------------------------------------
 
 
-def _get_agent() -> IKnowledgeBrainAgent:
-    return container.get_knowledge_brain_agent()
+def _get_agent() -> ILessonsLearnedBrainAgent:
+    return container.get_lessons_brain_agent()
 
 
 def _resolve_role_scope(user: User) -> str:
@@ -76,25 +64,24 @@ def _resolve_role_scope(user: User) -> str:
 
 
 # ------------------------------------------------------------------
-# POST /api/v1/brain/knowledge/chat
+# POST /api/v1/brain/lessons/chat
 # ------------------------------------------------------------------
 
 
-@router.post("/chat", response_model=KnowledgeBrainChatResponse)
-async def knowledge_brain_chat(
-    body: KnowledgeBrainChatRequest,
+@router.post("/chat", response_model=LessonsBrainChatResponse)
+async def lessons_brain_chat(
+    body: LessonsBrainChatRequest,
     current_user: User = Depends(get_current_user),
-    agent: IKnowledgeBrainAgent = Depends(_get_agent),
-) -> KnowledgeBrainChatResponse:
+    agent: ILessonsLearnedBrainAgent = Depends(_get_agent),
+) -> LessonsBrainChatResponse:
     role_scope = _resolve_role_scope(current_user)
-    state = await agent.run(
+    result = await agent.chat(
         query=body.query,
         session_id=body.session_id,
         user_role=role_scope,
     )
-    warning = state.get("proactive_warning")
-    return KnowledgeBrainChatResponse(
-        answer=state["draft_answer"],
+    return LessonsBrainChatResponse(
+        answer=result["answer"],
         citations=[
             CitationOut(
                 chunk_id=c.chunk_id,
@@ -104,21 +91,9 @@ async def knowledge_brain_chat(
                 score=c.score,
                 storage_key=c.storage_key,
             )
-            for c in state["citations"]
+            for c in result["citations"]
         ],
-        session_id=state["session_id"],
-        error_flag=state["error_flag"],
-        step_count=state["step_count"],
-        proactive_warning=(
-            ProactiveWarningOut(
-                warning_type=warning.warning_type,
-                lesson_summary=warning.lesson_summary,
-                similarity_score=warning.similarity_score,
-                incident_date=warning.incident_date,
-                asset_tag=warning.asset_tag,
-                lesson_id=warning.lesson_id,
-            )
-            if warning is not None
-            else None
-        ),
+        session_id=result["session_id"],
+        error_flag=result["error_flag"],
+        step_count=result["step_count"],
     )

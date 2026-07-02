@@ -6,9 +6,9 @@ It holds only domain types — no framework (LangGraph, FastAPI) types leak in.
 
 from __future__ import annotations
 
-from typing import List, TypedDict
+from typing import List, Optional, TypedDict
 
-from app.domain.chat.models import Citation
+from app.domain.chat.models import Citation, ProactiveWarning
 from app.domain.graphrag.models import KGPath
 from app.domain.search.models import SearchResult
 
@@ -23,3 +23,6 @@ class AgentState(TypedDict):
     citations: List[Citation]
     step_count: int
     error_flag: bool
+    # M13 — Lessons Learned Brain knowledge-cliff warning, set by
+    # _format_response when the query resembles a past incident.
+    proactive_warning: Optional[ProactiveWarning]

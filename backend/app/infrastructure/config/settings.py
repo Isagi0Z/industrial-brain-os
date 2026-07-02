@@ -103,6 +103,16 @@ class Settings(BaseSettings):
     RCA_BRAIN_TOP_K: int = 5
     RCA_INCIDENT_HISTORY_LIMIT: int = 5
 
+    # Lessons Learned Brain agent configuration (M13)
+    LESSONS_GENERATE_SUMMARY_PROMPT_FILE: str = (
+        "ai/prompts/lessons_brain/generate_summary.yaml"
+    )
+    LESSONS_CHAT_PROMPT_FILE: str = "ai/prompts/lessons_brain/chat_answer.yaml"
+    LESSONS_BRAIN_MAX_STEPS: int = 10
+    LESSONS_SIMILAR_LESSONS_LIMIT: int = 3
+    LESSONS_BRAIN_CHAT_TOP_K: int = 5
+    LESSONS_WARNING_SIMILARITY_THRESHOLD: float = 0.85
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

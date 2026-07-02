@@ -143,6 +143,19 @@ node_types:
       - feed_materials
       - output_materials
 
+  LessonLearned:
+    required_properties:
+      - lesson_id
+      - asset_tag
+      - incident_date
+      - description
+    optional_properties:
+      - root_cause
+      - corrective_actions
+      - severity
+      - summary
+      - role_scope
+
 allowed_relations:
   # Sensor → Equipment / Asset
   - source: Sensor
@@ -206,3 +219,11 @@ allowed_relations:
   - source: Process
     relation: REQUIRES
     target: Equipment
+
+  # Lessons Learned (M13) — knowledge-cliff mitigation
+  - source: LessonLearned
+    relation: RELATED_TO
+    target: Equipment
+  - source: LessonLearned
+    relation: REFERENCES
+    target: FailureMode

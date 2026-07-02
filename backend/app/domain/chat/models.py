@@ -62,3 +62,17 @@ class ChatResponse:
     citations: List[Citation]
     token_usage: TokenUsage
     session_id: str
+
+
+@dataclass
+class ProactiveWarning:
+    """Lessons Learned Brain (M13) knowledge-cliff warning, injected into
+    another sub-brain's response when the query resembles a past incident
+    above the similarity threshold (ADR-007 cross-agent tool reuse)."""
+
+    warning_type: str
+    lesson_summary: str
+    similarity_score: float
+    incident_date: str
+    asset_tag: str
+    lesson_id: str

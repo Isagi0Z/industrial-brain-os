@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 DOCUMENT_CHUNKS_COLLECTION = "document_chunks"
+LESSONS_LEARNED_COLLECTION = "lessons_learned"  # M13 — separate from document_chunks
 VECTOR_DIMENSION = 1024  # bge-large-en-v1.5
 VECTOR_DISTANCE = Distance.COSINE
 
@@ -41,6 +42,7 @@ NEO4J_CONSTRAINTS = [
     ("sensor_tag_unique", "Sensor", "tag_number"),
     ("document_source_unique", "Document", "source_id"),
     ("failure_mode_code_unique", "FailureMode", "failure_code"),
+    ("lesson_learned_id_unique", "LessonLearned", "lesson_id"),  # M13
 ]
 
 NEO4J_INDEXES = [
@@ -73,6 +75,22 @@ def init_qdrant(client: QdrantClient) -> None:
 
         # Apply payload indexes for efficient metadata filtering (RBAC + query)
         _qdrant_payload_indexes(client)
+
+        # M13 — separate collection for Lessons Learned Brain incident embeddings.
+        if LESSONS_LEARNED_COLLECTION not in existing:
+            client.create_collection(
+                collection_name=LESSONS_LEARNED_COLLECTION,
+                vectors_config=VectorParams(
+                    size=VECTOR_DIMENSION,
+                    distance=VECTOR_DISTANCE,
+                ),
+            )
+            logger.info("Qdrant: created collection '%s'.", LESSONS_LEARNED_COLLECTION)
+        else:
+            logger.info(
+                "Qdrant: collection '%s' already exists.", LESSONS_LEARNED_COLLECTION
+            )
+        _lessons_learned_payload_indexes(client)
     except Exception as exc:
         logger.error("Qdrant init failed: %s", exc)
         raise
@@ -96,6 +114,30 @@ def _qdrant_payload_indexes(client: QdrantClient) -> None:
             logger.info("Qdrant: payload index '%s' ensured.", field_name)
         except Exception as exc:
             # Index may already exist — Qdrant raises on duplicate; suppress.
+            logger.debug("Qdrant payload index '%s' skipped: %s", field_name, exc)
+
+
+def _lessons_learned_payload_indexes(client: QdrantClient) -> None:
+    """Ensure payload indexes exist on the lessons_learned collection (M13),
+    matching the RBAC filtering pattern established for document_chunks
+    (ADR-005 — role_scope on every query)."""
+    index_fields = [
+        ("role_scope", PayloadSchemaType.KEYWORD),
+        ("document_id", PayloadSchemaType.KEYWORD),  # lesson_id
+    ]
+    for field_name, schema_type in index_fields:
+        try:
+            client.create_payload_index(
+                collection_name=LESSONS_LEARNED_COLLECTION,
+                field_name=field_name,
+                field_schema=schema_type,
+            )
+            logger.info(
+                "Qdrant: payload index '%s' ensured on '%s'.",
+                field_name,
+                LESSONS_LEARNED_COLLECTION,
+            )
+        except Exception as exc:
             logger.debug("Qdrant payload index '%s' skipped: %s", field_name, exc)
 
 

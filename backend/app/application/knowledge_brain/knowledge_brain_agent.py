@@ -20,6 +20,13 @@ Step limit (Engineering Bible §21): `_check_step_limit` runs first in every
 node, incrementing `step_count`. Exceeding `max_steps` raises
 StepLimitExceededError, which aborts the graph run distinctly from a normal
 tool failure (which sets error_flag and continues to format_response).
+
+M13 addition: an optional `warning_detector` (Lessons Learned Brain) is
+checked in `_format_response` — the one node every path (including error
+paths) always reaches — and, above the similarity threshold, its warning is
+prepended to the rendered answer. This is a value-add on top of the M9
+graph, not a new branch: a detector failure is caught and logged exactly
+like every other node's tool call, and never blocks the underlying answer.
 """
 
 from __future__ import annotations
@@ -32,6 +39,7 @@ from typing import Any, Dict, List
 
 import yaml  # type: ignore[import-untyped]
 from langgraph.graph import END, StateGraph
+from starlette.concurrency import run_in_threadpool
 
 from app.domain.chat.interfaces import IChatHistoryRepository, IModelGateway
 from app.domain.chat.models import ChatMessage, Citation, MessageRole
@@ -40,6 +48,7 @@ from app.domain.graphrag.interfaces import IGraphRAGEngine, IKGTraversalService
 from app.domain.graphrag.models import HybridSearchResult, KGPath
 from app.domain.knowledge_brain.interfaces import IKnowledgeBrainAgent
 from app.domain.knowledge_brain.models import AgentState
+from app.domain.lessons_brain.interfaces import IProactiveWarningDetector
 from app.domain.search.models import SearchResult
 
 from ai.agents.knowledge_brain.tools import (
@@ -76,6 +85,7 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
         kg_limit: int = 50,
         max_tokens: int = 2048,
         session_ttl_seconds: int = 3600,
+        warning_detector: IProactiveWarningDetector | None = None,
     ) -> None:
         self._graphrag = graphrag_engine
         self._entity_extractor = entity_extractor
@@ -89,6 +99,7 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
         self._kg_limit = kg_limit
         self._max_tokens = max_tokens
         self._session_ttl = session_ttl_seconds
+        self._warning_detector = warning_detector
         self._graph = self._build_graph()
 
     # ------------------------------------------------------------------
@@ -106,6 +117,7 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
             "citations": [],
             "step_count": 0,
             "error_flag": False,
+            "proactive_warning": None,
         }
         try:
             final_state: AgentState = await self._graph.ainvoke(initial)
@@ -336,7 +348,7 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
             )
             return {"error_flag": True, "step_count": step_count}
 
-    def _format_response(self, state: AgentState) -> Dict[str, Any]:
+    async def _format_response(self, state: AgentState) -> Dict[str, Any]:
         t0 = time.monotonic()
         step_count = self._check_step_limit(state)
         try:
@@ -369,6 +381,14 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
                         "step failed while processing your request._"
                     )
 
+            warning = await self._detect_proactive_warning(state)
+            if warning is not None:
+                rendered = (
+                    f"⚠️ **Lessons Learned Warning** ({warning.incident_date}, "
+                    f"asset {warning.asset_tag}, similarity {warning.similarity_score}): "
+                    f"{warning.lesson_summary}\n\n" + rendered
+                )
+
             duration_ms = round((time.monotonic() - t0) * 1000, 1)
             logger.info(
                 "Knowledge Brain node executed",
@@ -377,9 +397,14 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
                     "step": step_count,
                     "duration_ms": duration_ms,
                     "session_id": state["session_id"],
+                    "proactive_warning": warning is not None,
                 },
             )
-            return {"draft_answer": rendered, "step_count": step_count}
+            return {
+                "draft_answer": rendered,
+                "proactive_warning": warning,
+                "step_count": step_count,
+            }
         except Exception as exc:
             logger.error(
                 "Knowledge Brain format_response failed: %s",
@@ -394,6 +419,22 @@ class KnowledgeBrainAgent(IKnowledgeBrainAgent):
                 "error_flag": True,
                 "step_count": step_count,
             }
+
+    async def _detect_proactive_warning(self, state: AgentState):
+        """M13 — never lets a detector failure affect the underlying answer."""
+        if self._warning_detector is None:
+            return None
+        try:
+            return await run_in_threadpool(
+                self._warning_detector.detect, state["query"], state["user_role"]
+            )
+        except Exception as exc:
+            logger.warning(
+                "Proactive warning detection failed: %s",
+                exc,
+                extra={"session_id": state["session_id"]},
+            )
+            return None
 
     # ------------------------------------------------------------------
     # Session persistence (Redis, shared with M5's chat history)

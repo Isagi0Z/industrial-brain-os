@@ -206,7 +206,7 @@ def test_ontology_yaml_validates_against_json_schema():
     schema = load_ontology(ontology_path)
 
     assert schema.version == "1.0"
-    assert len(schema.node_types) == 11
+    assert len(schema.node_types) == 12  # M13 adds LessonLearned
     assert len(schema.allowed_relations) >= 10
 
 
@@ -229,6 +229,7 @@ def test_ontology_yaml_has_all_required_node_types():
         "Regulation",
         "Personnel",
         "Process",
+        "LessonLearned",
     }
     assert required_types == set(schema.node_types.keys())
 
