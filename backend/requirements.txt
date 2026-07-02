@@ -49,6 +49,9 @@ langgraph>=0.2.0
 # Context compression — Stage 7 (M14)
 llmlingua>=0.2.2
 
+# Event-driven ingestion — Celery + Redis (M15)
+celery[redis]>=5.3.0
+
 # Shared Package (Installed in editable mode)
 -e ../shared/python
 

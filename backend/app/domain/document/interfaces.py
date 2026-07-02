@@ -108,6 +108,11 @@ class IJobRepository(ABC):
         pass
 
     @abstractmethod
+    def get_by_id(self, job_id: str) -> Optional[ProcessingJob]:
+        """Returns a single job by its id, or None (M15 — /jobs/{job_id})."""
+        pass
+
+    @abstractmethod
     def update_status(
         self,
         job_id: str,

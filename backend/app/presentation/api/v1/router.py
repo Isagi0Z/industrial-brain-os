@@ -12,6 +12,7 @@ from app.presentation.api.v1.endpoints import (
     rca_brain,
     incidents,
     lessons_brain,
+    jobs,
 )
 
 api_router = APIRouter()
@@ -29,6 +30,7 @@ api_router.include_router(compliance_brain.router)
 api_router.include_router(rca_brain.router)
 api_router.include_router(incidents.router)
 api_router.include_router(lessons_brain.router)
+api_router.include_router(jobs.router)
 
 
 # Placeholder routers for the five core sub-brains

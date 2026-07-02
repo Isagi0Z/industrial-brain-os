@@ -148,6 +148,17 @@ class DocumentUseCase:
             )
         return job
 
+    def get_job_by_id(self, job_id: str) -> ProcessingJob:
+        """Look up a single processing job by its id (M15 — /jobs/{job_id})."""
+        job = self.job_repo.get_by_id(job_id)
+        if not job:
+            raise DomainException(
+                ErrorCode.JOB_NOT_FOUND,
+                "Job not found.",
+                status_code=404,
+            )
+        return job
+
     def list_documents(
         self, skip: int = 0, limit: int = 50, status: Optional[str] = None
     ) -> Tuple[List[Document], int]:

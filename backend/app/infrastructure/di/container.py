@@ -270,7 +270,17 @@ class DIContainer:
 
     def get_queue_service(self) -> IQueueService:
         if not hasattr(self, "_queue_service"):
-            self._queue_service = RedisQueueService(self.get_redis)
+            if settings.INGESTION_BACKEND == "celery":
+                # M15 — dispatch the async Celery chain (ADR-015). Imported
+                # lazily so the API process only pulls in Celery when the
+                # Celery backend is selected.
+                from app.infrastructure.document.celery_queue_service import (
+                    CeleryQueueService,
+                )
+
+                self._queue_service: IQueueService = CeleryQueueService()
+            else:
+                self._queue_service = RedisQueueService(self.get_redis)
         return self._queue_service
 
     def get_document_use_case(self) -> DocumentUseCase:

@@ -104,6 +104,20 @@ class PostgresJobRepository(IJobRepository):
             row = cur.fetchone()
         return self._row_to_job(row) if row else None
 
+    def get_by_id(self, job_id: str) -> Optional[ProcessingJob]:
+        conn = self.get_connection_fn()
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT id, document_id, status, error_details, created_at, updated_at
+                FROM jobs
+                WHERE id = %s
+                """,
+                (job_id,),
+            )
+            row = cur.fetchone()
+        return self._row_to_job(row) if row else None
+
     def update_status(
         self,
         job_id: str,

@@ -121,6 +121,26 @@ class Settings(BaseSettings):
     LESSONS_BRAIN_CHAT_TOP_K: int = 5
     LESSONS_WARNING_SIMILARITY_THRESHOLD: float = 0.85
 
+    # Event-driven ingestion (M15 — Celery + Redis)
+    INGESTION_BACKEND: str = "celery"  # "celery" | "redis-queue" (legacy)
+    CELERY_BROKER_DB: int = 1  # Redis logical DB for the broker
+    CELERY_RESULT_DB: int = 2  # Redis logical DB for the result backend
+    CELERY_WORKER_CONCURRENCY: int = 2
+
+    @property
+    def celery_broker_url(self) -> str:
+        return (
+            f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:"
+            f"{self.REDIS_PORT}/{self.CELERY_BROKER_DB}"
+        )
+
+    @property
+    def celery_result_backend(self) -> str:
+        return (
+            f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:"
+            f"{self.REDIS_PORT}/{self.CELERY_RESULT_DB}"
+        )
+
     # Load from env file
     model_config = SettingsConfigDict(
         env_file=os.path.join(

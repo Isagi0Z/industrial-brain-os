@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 
 from app.infrastructure.logging.logger import setup_logging
+from app.infrastructure.config.settings import settings
 from app.infrastructure.di.container import container
 from app.infrastructure.database.infra_init import run_all as init_infrastructure
 from app.presentation.middleware.logging_middleware import (
@@ -46,15 +47,20 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logging.error(f"Infrastructure init failed: {e}")
 
-    # 3. Start background ingestion worker (M3)
-    worker = container.get_ingestion_worker()
-    worker.start()
+    # 3. Ingestion worker. Under the Celery backend (M15, ADR-015) ingestion
+    #    runs in a separate `celery -A app.worker worker` process, so the API
+    #    does not start the legacy in-process daemon.
+    worker = None
+    if settings.INGESTION_BACKEND != "celery":
+        worker = container.get_ingestion_worker()
+        worker.start()
 
     yield
 
     # Shutdown actions
     logging.info("Shutting down Industrial Brain OS API...")
-    worker.stop()
+    if worker is not None:
+        worker.stop()
     container.close_all()
 
 

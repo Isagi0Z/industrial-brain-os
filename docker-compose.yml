@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. PostgreSQL - Core relational metadata
   postgres:
@@ -93,6 +91,54 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  # 6. Backend API (M15 — image shared with the Celery worker)
+  ib_backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: industrial-brain-backend:latest
+    container_name: ib_backend
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    env_file: .env
+    # In-network service hostnames override the host-oriented .env values.
+    environment:
+      POSTGRES_HOST: postgres
+      NEO4J_HOST: neo4j
+      QDRANT_HOST: qdrant
+      REDIS_HOST: redis
+      MINIO_HOST: minio
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    depends_on:
+      - postgres
+      - redis
+      - neo4j
+      - qdrant
+      - minio
+
+  # 7. Celery ingestion worker (M15, ADR-015) — same image as the backend,
+  #    running the async ingestion task chain (parse → embed → kg).
+  ib_worker:
+    image: industrial-brain-backend:latest
+    container_name: ib_worker
+    restart: unless-stopped
+    command: celery -A app.worker worker --loglevel=info --concurrency=${CELERY_WORKER_CONCURRENCY:-2}
+    env_file: .env
+    environment:
+      POSTGRES_HOST: postgres
+      NEO4J_HOST: neo4j
+      QDRANT_HOST: qdrant
+      REDIS_HOST: redis
+      MINIO_HOST: minio
+    depends_on:
+      - ib_backend
+      - postgres
+      - redis
+      - neo4j
+      - qdrant
+      - minio
 
 volumes:
   pg_data:
