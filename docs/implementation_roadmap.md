@@ -544,17 +544,19 @@ Captures post-incident logs and patterns, surfaces relevant historical warnings 
 - `/api/v1/brain/lessons/chat` endpoint
 
 ### Checklist
-- [ ] `LessonLearned` Neo4j node type added to ontology YAML (M6 schema extended)
-- [ ] `(LessonLearned)-[:RELATED_TO]->(Equipment)` and `(LessonLearned)-[:REFERENCES]->(FailureMode)` relationships defined
-- [ ] `POST /api/v1/incidents` ingests: `{asset_tag, incident_date, description, root_cause, corrective_actions[], severity}`
-- [ ] Incident description embedded and upserted to Qdrant collection `lessons_learned` (separate collection)
-- [ ] `POST /api/v1/incidents` creates `LessonLearned` node in Neo4j with RELATED_TO and REFERENCES edges
-- [ ] `proactive_warning_detector` service: on every `/chat` query, checks `lessons_learned` Qdrant collection for similarity > 0.85
-- [ ] If warning detected: structured `{warning_type: "LESSONS_LEARNED", lesson_summary, similarity_score, incident_date}` prepended to response
-- [ ] LangGraph nodes: `analyze_incident → extract_patterns → link_to_ontology → store_lesson → generate_summary`
-- [ ] Prompt templates in `ai/prompts/lessons_brain/*.yaml`
-- [ ] Unit tests: incident ingestion, similarity detection, warning injection logic
-- [ ] Demo test: ingest a bearing failure incident, then query about pump P-102A — verify warning appears
+- [x] `LessonLearned` Neo4j node type added to ontology YAML (M6 schema extended) — `required_properties: [lesson_id, asset_tag, incident_date, description]`
+- [x] `(LessonLearned)-[:RELATED_TO]->(Equipment)` and `(LessonLearned)-[:REFERENCES]->(FailureMode)` relationships defined and enforced via `IOntologyValidator` (M6) in the `link_to_ontology` node
+- [x] `POST /api/v1/incidents` ingests: `{asset_tag, incident_date, description, root_cause, corrective_actions[], severity}`
+- [x] Incident description embedded and upserted to Qdrant collection `lessons_learned` (separate collection, created idempotently at startup via `infra_init.py`, reusing M4's `IVectorRepository`)
+- [x] `POST /api/v1/incidents` creates `LessonLearned` node in Neo4j with RELATED_TO and REFERENCES edges — edges are `MATCH`-only against already-existing Equipment/FailureMode nodes, with the actual link outcome reported back (`equipment_linked`, `failure_modes_linked`) via the Neo4j write summary's `relationships_created` counters, not assumed
+- [x] `proactive_warning_detector` service: on every Knowledge Brain `/chat` query, checks `lessons_learned` Qdrant collection for similarity > 0.85 — wired into M9's `KnowledgeBrainAgent` as an additive optional dependency inside the existing `_format_response` node (no new graph branch; see M13 walkthrough for the reasoning)
+- [x] If warning detected: structured `{warning_type: "LESSONS_LEARNED", lesson_summary, similarity_score, incident_date}` (+ `asset_tag`, `lesson_id`) prepended to response — verified live: fires at `similarity_score: 1.0` on a matching query, correctly withheld on a loosely paraphrased query below threshold
+- [x] LangGraph nodes: `analyze_incident → extract_patterns → link_to_ontology → store_lesson → generate_summary` — `analyze_incident` reuses M10's `IFailureHistoryRepository.search_by_asset_tag` verbatim (no duplicate Neo4j query)
+- [x] Prompt templates in `ai/prompts/lessons_brain/*.yaml` (`generate_summary.yaml`, `chat_answer.yaml`)
+- [x] Unit tests: incident ingestion, similarity detection, warning injection logic (21 tests in `test_lessons_brain.py`, covering domain models, tool registry, the full ingestion graph, `chat()`, and the `ProactiveWarningDetector` in isolation)
+- [x] Demo test: ingest a bearing failure incident, then query about pump P-102A — verify warning appears — passed both as an automated mocked test (`TestDemoScenario`) and live against real Docker services + Ollama (`mistral:latest`)
+
+**Commit**: TBD
 
 ---
 
