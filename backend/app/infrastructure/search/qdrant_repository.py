@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Callable, List
 
 from qdrant_client import QdrantClient
@@ -11,6 +12,7 @@ from qdrant_client.http import models as qdrant_models
 from app.domain.document.constants import ChunkType
 from app.domain.search.interfaces import IVectorRepository
 from app.domain.search.models import SearchResult
+from app.infrastructure.observability.tracing import set_span_attributes, span
 
 logger = logging.getLogger(__name__)
 
@@ -81,13 +83,24 @@ class QdrantVectorRepository(IVectorRepository):
                 )
             ]
         )
-        hits = client.search(
-            collection_name=collection_name,
-            query_vector=vector,
-            query_filter=scope_filter,
-            limit=limit,
-            with_payload=True,
-        )
+        t0 = time.monotonic()
+        with span(
+            "vector_db.search",
+            **{"vector_db.collection": collection_name, "vector_db.top_k": limit},
+        ):
+            hits = client.search(
+                collection_name=collection_name,
+                query_vector=vector,
+                query_filter=scope_filter,
+                limit=limit,
+                with_payload=True,
+            )
+            set_span_attributes(
+                {
+                    "vector_db.result_count": len(hits),
+                    "vector_db.latency_ms": round((time.monotonic() - t0) * 1000, 1),
+                }
+            )
         results: List[SearchResult] = []
         for hit in hits:
             p = hit.payload or {}

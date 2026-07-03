@@ -77,6 +77,7 @@ class Settings(BaseSettings):
     LLMLINGUA_MODEL: str = (
         "microsoft/llmlingua-2-bert-base-multilingual-cased-meetingbank"
     )
+    LLMLINGUA_DEVICE: str = "cpu"  # "cpu" | "cuda" — pin device for model load
 
     # Knowledge Brain agent configuration (M9)
     KNOWLEDGE_BRAIN_PROMPT_FILE: str = (
@@ -140,6 +141,11 @@ class Settings(BaseSettings):
             f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:"
             f"{self.REDIS_PORT}/{self.CELERY_RESULT_DB}"
         )
+
+    # Observability (M17 — OpenTelemetry, ADR-016)
+    OTEL_ENABLED: bool = False  # compose enables for ib_backend/ib_worker
+    OTEL_SERVICE_NAME: str = "industrial-brain-api"
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = "http://localhost:4318"
 
     # Evaluation Layer (M16)
     EVAL_FAITHFULNESS_PROMPT_FILE: str = "ai/prompts/evaluation/faithfulness.yaml"

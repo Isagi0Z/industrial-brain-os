@@ -11,6 +11,9 @@ from app.infrastructure.database.infra_init import run_all as init_infrastructur
 from app.presentation.middleware.logging_middleware import (
     LoggingAndCorrelationMiddleware,
 )
+from app.presentation.middleware.metrics_middleware import (
+    PrometheusMetricsMiddleware,
+)
 from app.presentation.middleware.error_handler import (
     DomainException,
     domain_exception_handler,
@@ -91,6 +94,9 @@ app.add_middleware(
 # 4. Add Custom Logging & Correlation ID Middleware
 app.add_middleware(LoggingAndCorrelationMiddleware)
 
+# 4b. Prometheus HTTP metrics (M17, ADR-017) — request rate / latency / errors.
+app.add_middleware(PrometheusMetricsMiddleware)
+
 # 5. Register Exception Handlers
 app.add_exception_handler(DomainException, domain_exception_handler)
 app.add_exception_handler(RequestValidationError, validation_exception_handler)
@@ -98,6 +104,17 @@ app.add_exception_handler(Exception, generic_exception_handler)
 
 # 6. Include API Routers
 app.include_router(api_router, prefix="/api/v1")
+
+# 6b. OpenTelemetry tracing (M17, ADR-016) — no-op unless OTEL_ENABLED.
+from app.infrastructure.observability.tracing import init_tracing  # noqa: E402
+
+init_tracing(app)
+
+# 6c. Application Prometheus metrics (M17, ADR-017) — create the HTTP / LLM /
+#     Celery / WebSocket collectors so /metrics exposes them from boot.
+from app.infrastructure.observability.metrics import init_app_metrics  # noqa: E402
+
+init_app_metrics()
 
 # 7. Prometheus metrics endpoint (M16, ADR-017). Guarded so a missing
 #    prometheus_client degrades gracefully rather than blocking startup.

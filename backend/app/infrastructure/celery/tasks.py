@@ -31,14 +31,32 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import Any, Dict
+from contextlib import contextmanager
+from typing import Any, Dict, Iterator
 
 from app.domain.document.constants import JobStatus
 from app.infrastructure.celery.celery_app import celery_app
 from app.infrastructure.di.container import container
 from app.infrastructure.logging.logger import correlation_id_ctx
+from app.infrastructure.observability.metrics import record_celery_task
+from app.infrastructure.observability.tracing import span
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def _task_span(task_name: str, document_id: str, job_id: str) -> Iterator[None]:
+    """Open an OTel span for a Celery task and count its start. The span joins
+    the upload request's trace via the restored Correlation-ID (Engineering
+    Bible §16); success/failure counters are recorded by the task body and
+    ``_handle_failure`` respectively."""
+    record_celery_task(task_name, "started")
+    with span(
+        f"celery.{task_name}",
+        **{"celery.task": task_name, "job_id": job_id, "document_id": document_id},
+    ):
+        yield
+
 
 _MAX_RETRIES = 3
 _BACKOFF_BASE_SEC = 60  # 60 → 120 → 240
@@ -70,6 +88,7 @@ def _handle_failure(task, task_name: str, job_id: str, exc: Exception) -> None:
         "Ingestion task exhausted retries — marking job FAILED",
         extra={"task": task_name, "job_id": job_id, "error": str(exc)},
     )
+    record_celery_task(task_name, "failed")
     container.get_job_repository().update_status(
         job_id, JobStatus.FAILED, error_message=f"[{task_name}] {exc}"
     )
@@ -81,13 +100,21 @@ def parse_task(self, payload: Dict[str, Any]) -> Dict[str, Any]:
     _restore_correlation(payload)
     document_id, job_id = payload["document_id"], payload["job_id"]
     try:
-        container.get_job_repository().update_status(job_id, JobStatus.EXTRACTING)
-        logger.info(
-            "parse_task started",
-            extra={"task": "parse_task", "document_id": document_id, "job_id": job_id},
-        )
-        chunks = container.get_parsing_use_case().parse_document(document_id, job_id)
-        payload["chunk_count"] = len(chunks) if chunks else 0
+        with _task_span("parse_task", document_id, job_id):
+            container.get_job_repository().update_status(job_id, JobStatus.EXTRACTING)
+            logger.info(
+                "parse_task started",
+                extra={
+                    "task": "parse_task",
+                    "document_id": document_id,
+                    "job_id": job_id,
+                },
+            )
+            chunks = container.get_parsing_use_case().parse_document(
+                document_id, job_id
+            )
+            payload["chunk_count"] = len(chunks) if chunks else 0
+        record_celery_task("parse_task", "succeeded")
         return payload
     except Exception as exc:  # noqa: BLE001 — retried/handled by _handle_failure
         _handle_failure(self, "parse_task", job_id, exc)
@@ -105,8 +132,10 @@ def embed_task(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         )
         return payload
     try:
-        container.get_job_repository().update_status(job_id, JobStatus.EMBEDDING)
-        container.get_embedding_use_case().embed_document(document_id, job_id)
+        with _task_span("embed_task", document_id, job_id):
+            container.get_job_repository().update_status(job_id, JobStatus.EMBEDDING)
+            container.get_embedding_use_case().embed_document(document_id, job_id)
+        record_celery_task("embed_task", "succeeded")
         return payload
     except Exception as exc:  # noqa: BLE001
         _handle_failure(self, "embed_task", job_id, exc)
@@ -120,10 +149,16 @@ def kg_task(self, payload: Dict[str, Any]) -> Dict[str, Any]:
     if not payload.get("chunk_count"):
         return payload
     try:
-        container.get_job_repository().update_status(job_id, JobStatus.KG_EXTRACTING)
-        asyncio.run(
-            container.get_extraction_use_case().run_for_document(document_id, job_id)
-        )
+        with _task_span("kg_task", document_id, job_id):
+            container.get_job_repository().update_status(
+                job_id, JobStatus.KG_EXTRACTING
+            )
+            asyncio.run(
+                container.get_extraction_use_case().run_for_document(
+                    document_id, job_id
+                )
+            )
+        record_celery_task("kg_task", "succeeded")
         return payload
     except Exception as exc:  # noqa: BLE001
         _handle_failure(self, "kg_task", job_id, exc)

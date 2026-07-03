@@ -13,6 +13,16 @@ class CorrelationIdJsonFormatter(jsonlogger.JsonFormatter):
     def add_fields(self, log_record, record, message_dict):
         super().add_fields(log_record, record, message_dict)
         log_record["correlation_id"] = correlation_id_ctx.get()
+        # M17 (ADR-016): stamp the active OTel trace id so structured logs and
+        # Jaeger traces join on the same id. No-op (None) when tracing is off.
+        try:
+            from app.infrastructure.observability.tracing import current_trace_id
+
+            trace_id = current_trace_id()
+            if trace_id:
+                log_record["trace_id"] = trace_id
+        except Exception:
+            pass
         if not log_record.get("level"):
             log_record["level"] = record.levelname
         if not log_record.get("timestamp"):

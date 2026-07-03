@@ -109,6 +109,10 @@ services:
       QDRANT_HOST: qdrant
       REDIS_HOST: redis
       MINIO_HOST: minio
+      # Observability (M17, ADR-016): export traces to the in-network Jaeger.
+      OTEL_ENABLED: "true"
+      OTEL_SERVICE_NAME: industrial-brain-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     depends_on:
@@ -117,6 +121,7 @@ services:
       - neo4j
       - qdrant
       - minio
+      - jaeger
 
   # 7. Celery ingestion worker (M15, ADR-015) — same image as the backend,
   #    running the async ingestion task chain (parse → embed → kg).
@@ -132,6 +137,10 @@ services:
       QDRANT_HOST: qdrant
       REDIS_HOST: redis
       MINIO_HOST: minio
+      # Ingestion task spans join the same Jaeger backend (M17, ADR-016).
+      OTEL_ENABLED: "true"
+      OTEL_SERVICE_NAME: industrial-brain-worker
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4318
     depends_on:
       - ib_backend
       - postgres
@@ -139,6 +148,54 @@ services:
       - neo4j
       - qdrant
       - minio
+      - jaeger
+
+  # 8. Jaeger — distributed tracing backend (M17, ADR-016). Receives OTLP from
+  #    the API + worker and renders end-to-end traces at the UI on 16686.
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    container_name: ib_jaeger
+    restart: unless-stopped
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"   # Jaeger UI
+      - "${JAEGER_OTLP_GRPC_PORT:-4317}:4317"  # OTLP gRPC
+      - "${JAEGER_OTLP_HTTP_PORT:-4318}:4318"  # OTLP HTTP
+
+  # 9. Prometheus — metrics collection (M17, ADR-017). Scrapes the API
+  #    /metrics endpoint (HTTP, LLM tokens, Celery, evaluation gauges).
+  prometheus:
+    image: prom/prometheus:v2.52.0
+    container_name: ib_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      - ib_backend
+
+  # 10. Grafana — dashboards (M17, ADR-017). Pre-provisioned Prometheus +
+  #     Jaeger datasources and the API / RAG dashboards; no manual setup.
+  grafana:
+    image: grafana/grafana:11.0.0
+    container_name: ib_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+      - jaeger
 
 volumes:
   pg_data:
@@ -148,3 +205,5 @@ volumes:
   qdrant_data:
   redis_data:
   minio_data:
+  prometheus_data:
+  grafana_data:

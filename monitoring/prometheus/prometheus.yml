@@ -1,0 +1,22 @@
+# Prometheus scrape configuration (M17, ADR-017).
+#
+# Scrapes the Industrial Brain API /metrics endpoint, which exposes both the
+# M16 evaluation gauges (ib_hallucination_rate, ib_faithfulness_score,
+# ib_retrieval_recall) and the M17 runtime metrics (ib_http_requests_total,
+# ib_http_request_duration_seconds, ib_llm_tokens_total, ib_celery_tasks_total,
+# ib_active_ws_connections). Hostnames resolve on the compose network.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  - job_name: industrial-brain-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["ib_backend:8000"]
+        labels:
+          service: industrial-brain-api

@@ -9,12 +9,14 @@ a performance risk).
 from __future__ import annotations
 
 import logging
+import time
 from typing import List, Set, Tuple
 
 from neo4j import Driver
 
 from app.domain.graphrag.interfaces import IKGTraversalService
 from app.domain.graphrag.models import KGPath
+from app.infrastructure.observability.tracing import set_span_attributes, span
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +42,15 @@ class Neo4jKGTraversalService(IKGTraversalService):
         paths: List[KGPath] = []
         seen: Set[Tuple[str, str, str]] = set()
 
-        with self._driver.session() as session:
+        t0 = time.monotonic()
+        with span(
+            "graph_db.traverse",
+            **{
+                "graph_db.query_type": "apoc.path.subgraphAll",
+                "graph_db.depth": max_depth,
+                "graph_db.tag_count": len(tags),
+            },
+        ), self._driver.session() as session:
             for tag in tags:
                 try:
                     records = session.run(
@@ -69,4 +79,10 @@ class Neo4jKGTraversalService(IKGTraversalService):
                     logger.warning(
                         "KG traversal failed for tag=%s: %s — skipping.", tag, exc
                     )
+            set_span_attributes(
+                {
+                    "graph_db.result_count": len(paths),
+                    "graph_db.latency_ms": round((time.monotonic() - t0) * 1000, 1),
+                }
+            )
         return paths

@@ -12,6 +12,10 @@ from pydantic import BaseModel, Field
 from app.application.chat.chat_use_case import ChatUseCase
 from app.domain.chat.models import ChatRequest
 from app.infrastructure.di.container import container
+from app.infrastructure.observability.metrics import (
+    ws_connection_closed,
+    ws_connection_opened,
+)
 
 router = APIRouter(prefix="/chat", tags=["Chat Copilot"])
 logger = logging.getLogger(__name__)
@@ -181,6 +185,7 @@ async def chat_stream(
         return
 
     await websocket.accept()
+    ws_connection_opened()
     use_case = _get_use_case()
 
     try:
@@ -191,6 +196,7 @@ async def chat_stream(
             json.dumps({"type": "error", "message": "Invalid request JSON"})
         )
         await websocket.close()
+        ws_connection_closed()
         return
 
     request = ChatRequest(
@@ -205,6 +211,7 @@ async def chat_stream(
             json.dumps({"type": "error", "message": "query must not be empty"})
         )
         await websocket.close()
+        ws_connection_closed()
         return
 
     t0 = time.monotonic()
@@ -266,3 +273,4 @@ async def chat_stream(
         )
     finally:
         await websocket.close()
+        ws_connection_closed()

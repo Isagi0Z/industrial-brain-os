@@ -2,11 +2,14 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from typing import AsyncGenerator, List, Tuple
 
 import httpx
 
 from app.domain.chat.interfaces import IModelGateway
+from app.infrastructure.observability.metrics import record_llm_tokens
+from app.infrastructure.observability.tracing import set_span_attributes, span
 
 logger = logging.getLogger(__name__)
 
@@ -57,13 +60,25 @@ class OllamaGateway(IModelGateway):
             "stream": False,
             "options": {"num_predict": max_tokens},
         }
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(f"{self._base_url}/api/chat", json=payload)
-            response.raise_for_status()
-            data = response.json()
-        full_text: str = data.get("message", {}).get("content", "")
-        prompt_tokens: int = data.get("prompt_eval_count", 0)
-        completion_tokens: int = data.get("eval_count", 0)
+        t0 = time.monotonic()
+        with span("llm.generate", **{"llm.model": self.model_name}):
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{self._base_url}/api/chat", json=payload
+                )
+                response.raise_for_status()
+                data = response.json()
+            full_text: str = data.get("message", {}).get("content", "")
+            prompt_tokens: int = data.get("prompt_eval_count", 0)
+            completion_tokens: int = data.get("eval_count", 0)
+            set_span_attributes(
+                {
+                    "llm.prompt_tokens": prompt_tokens,
+                    "llm.completion_tokens": completion_tokens,
+                    "llm.latency_ms": round((time.monotonic() - t0) * 1000, 1),
+                }
+            )
+        record_llm_tokens(self.model_name, prompt_tokens, completion_tokens)
         logger.info(
             "Ollama generate complete",
             extra={

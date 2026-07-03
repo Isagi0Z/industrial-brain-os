@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import AsyncGenerator, List, Optional, Tuple
 
 from starlette.concurrency import run_in_threadpool
 
 from app.domain.chat.interfaces import IModelGateway
+from app.infrastructure.observability.metrics import record_llm_tokens
+from app.infrastructure.observability.tracing import set_span_attributes, span
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +72,17 @@ class GeminiGateway(IModelGateway):
             ct = getattr(usage, "candidates_token_count", 0) or 0
             return response.text, pt, ct
 
-        text, pt, ct = await run_in_threadpool(_call)
+        t0 = time.monotonic()
+        with span("llm.generate", **{"llm.model": self.model_name}):
+            text, pt, ct = await run_in_threadpool(_call)
+            set_span_attributes(
+                {
+                    "llm.prompt_tokens": pt,
+                    "llm.completion_tokens": ct,
+                    "llm.latency_ms": round((time.monotonic() - t0) * 1000, 1),
+                }
+            )
+        record_llm_tokens(self.model_name, pt, ct)
         logger.info(
             "Gemini generate complete",
             extra={
