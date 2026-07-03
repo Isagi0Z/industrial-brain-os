@@ -750,6 +750,8 @@ Audit all agent and system prompts across all five brains. Ensure every prompt i
 
 > Note: the canonical render field is `system` (not `system_template`) to preserve backward compatibility with every existing consumer; standardized metadata is layered on top. Documented in the M18 verification/walkthrough.
 
+**Commit**: 90b2e6b
+
 ---
 
 ## M19 — UI Polish, Knowledge Graph Visualizer & Demo Dataset
