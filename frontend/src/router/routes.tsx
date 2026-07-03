@@ -4,6 +4,7 @@ import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { DocumentHub } from '../components/documents/DocumentHub';
 import { DocumentDetails } from '../components/documents/DocumentDetails';
 import { ChatInterface } from '../components/chat/ChatInterface';
+import { KnowledgeGraphView } from '../components/graph/KnowledgeGraphView';
 import {
   Wrench,
   ShieldAlert,
@@ -137,6 +138,10 @@ export const router = createBrowserRouter([
       {
         path: 'chat',
         element: <ChatInterface />,
+      },
+      {
+        path: 'knowledge-graph',
+        element: <KnowledgeGraphView />,
       },
       {
         path: 'maintenance',

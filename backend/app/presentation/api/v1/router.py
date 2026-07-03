@@ -6,6 +6,7 @@ from app.presentation.api.v1.endpoints import (
     search,
     chat,
     ontology,
+    graph,
     knowledge_brain,
     maintenance_brain,
     compliance_brain,
@@ -25,6 +26,7 @@ api_router.include_router(document.router)
 api_router.include_router(search.router)
 api_router.include_router(chat.router)
 api_router.include_router(ontology.router)
+api_router.include_router(graph.router)
 api_router.include_router(knowledge_brain.router)
 api_router.include_router(maintenance_brain.router)
 api_router.include_router(compliance_brain.router)

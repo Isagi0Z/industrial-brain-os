@@ -13,13 +13,17 @@
   "dependencies": {
     "@industrial-brain/shared": "file:../shared/ts",
     "clsx": "^2.1.0",
+    "cytoscape": "^3.34.0",
     "lucide-react": "^0.344.0",
+    "pdfjs-dist": "5.4.296",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-pdf": "^10.4.1",
     "react-router-dom": "^6.22.2",
     "tailwind-merge": "^2.2.1"
   },
   "devDependencies": {
+    "@types/cytoscape": "^3.31.0",
     "@types/react": "^18.2.56",
     "@types/react-dom": "^18.2.19",
     "@typescript-eslint/eslint-plugin": "^7.0.2",

@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { 
-  BookOpen, 
-  Wrench, 
-  ShieldAlert, 
-  GitFork, 
-  Lightbulb, 
-  Sun, 
-  Moon, 
+import {
+  BookOpen,
+  Wrench,
+  ShieldAlert,
+  GitFork,
+  Lightbulb,
+  Sun,
+  Moon,
   Terminal,
   Activity,
   Layers,
   ChevronRight,
-  FileText
+  FileText,
+  Network,
+  Menu,
+  X
 } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -26,6 +29,7 @@ interface DBStatus {
 
 export const DashboardLayout: React.FC = () => {
   const { theme, setTheme } = useTheme();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dbStatus, setDbStatus] = useState<DBStatus>({
     postgres: 'checking',
     neo4j: 'checking',
@@ -63,6 +67,7 @@ export const DashboardLayout: React.FC = () => {
   const navItems = [
     { name: 'Document Hub', path: '/documents', icon: FileText, desc: 'Central document management and storage' },
     { name: 'Knowledge Copilot', path: '/knowledge', icon: BookOpen, desc: 'Chat with indexed documents — cited answers' },
+    { name: 'Knowledge Graph', path: '/knowledge-graph', icon: Network, desc: 'Interactive Neo4j subgraph explorer' },
     { name: 'Maintenance Brain', path: '/maintenance', icon: Wrench, desc: 'CMMS loop, Work Orders & anomalies' },
     { name: 'Compliance Brain', path: '/compliance', icon: ShieldAlert, desc: 'OSHA/EPA compliance & safety validation' },
     { name: 'RCA Brain', path: '/rca', icon: GitFork, desc: '5-Whys, Fishbone diagrams & fault trees' },
@@ -75,8 +80,20 @@ export const DashboardLayout: React.FC = () => {
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-900/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-violet-900/10 blur-[120px] pointer-events-none" />
 
-      {/* SIDEBAR */}
-      <aside className="w-80 border-r border-slate-900 bg-slate-950/80 backdrop-blur-md flex flex-col z-10">
+      {/* MOBILE BACKDROP */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/60 z-20 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* SIDEBAR — static on md+, slide-over drawer on mobile */}
+      <aside
+        className={`w-80 border-r border-slate-900 bg-slate-950/95 md:bg-slate-950/80 backdrop-blur-md flex flex-col z-30 fixed inset-y-0 left-0 transform transition-transform duration-200 md:static md:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
         {/* Header Logo */}
         <div className="h-16 px-6 border-b border-slate-900 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -115,6 +132,7 @@ export const DashboardLayout: React.FC = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
                   `flex items-start space-x-3 px-3.5 py-3 rounded-xl transition-all duration-200 group border ${
                     isActive
@@ -166,10 +184,18 @@ export const DashboardLayout: React.FC = () => {
       {/* MAIN CONTAINER */}
       <div className="flex-1 flex flex-col min-w-0 z-10">
         {/* HEADER */}
-        <header className="h-16 border-b border-slate-900 px-8 flex items-center justify-between bg-slate-950/40 backdrop-blur-md">
+        <header className="h-16 border-b border-slate-900 px-4 md:px-8 flex items-center justify-between bg-slate-950/40 backdrop-blur-md">
           {/* Header Title */}
           <div className="flex items-center space-x-3">
-            <span className="text-slate-500 font-medium text-xs">Environment:</span>
+            <button
+              onClick={() => setSidebarOpen((o) => !o)}
+              className="md:hidden p-2 rounded-lg border border-slate-900 bg-slate-950/60 text-slate-300 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              aria-label={sidebarOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={sidebarOpen}
+            >
+              {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+            </button>
+            <span className="text-slate-500 font-medium text-xs hidden sm:inline">Environment:</span>
             <span className="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono text-[10px]">
               DEVELOPMENT
             </span>
@@ -187,7 +213,7 @@ export const DashboardLayout: React.FC = () => {
             </button>
             
             {/* Terminal indicator */}
-            <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-900 bg-slate-950/60 text-slate-400 text-xs">
+            <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-xl border border-slate-900 bg-slate-950/60 text-slate-400 text-xs">
               <Terminal className="w-3.5 h-3.5 text-indigo-400" />
               <span className="font-mono text-[10px]">d:\industrial-brain</span>
             </div>
@@ -195,7 +221,7 @@ export const DashboardLayout: React.FC = () => {
         </header>
 
         {/* WORKSPACE CONTENT */}
-        <main className="flex-1 p-8 overflow-y-auto bg-slate-950/20">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-950/20">
           <Outlet />
         </main>
       </div>

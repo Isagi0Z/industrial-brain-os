@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ArrowLeft, Save, Trash2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Save, Trash2, RefreshCw, FileText } from 'lucide-react';
+import { DocumentViewer } from './DocumentViewer';
 
 interface DocumentVersion {
   id: string;
@@ -182,6 +183,19 @@ export const DocumentDetails: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {doc.mime_type === 'application/pdf' && !doc.is_deleted && (
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-gray-500" />
+            Document Preview
+          </h2>
+          <DocumentViewer
+            fileUrl={`/api/v1/documents/${id}/download`}
+            authToken={token}
+          />
+        </div>
+      )}
 
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <h2 className="text-lg font-semibold mb-4 text-gray-800">Version History</h2>
