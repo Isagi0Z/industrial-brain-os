@@ -50,6 +50,22 @@ def _edge(path: KGPath) -> dict:
     }
 
 
+def _collect_node_types(paths: List[KGPath], seed_tag: str) -> Dict[str, str]:
+    """Map each tag appearing in the paths to its ontology type. The seed tag is
+    always present; a non-empty type from any path wins over ``Unknown``."""
+    node_types: Dict[str, str] = {seed_tag: "Unknown"}
+    for p in paths:
+        for tag, ntype in (
+            (p.source_tag, p.source_type),
+            (p.target_tag, p.target_type),
+        ):
+            if not tag:
+                continue
+            if tag not in node_types or ntype:
+                node_types[tag] = ntype or node_types.get(tag, "Unknown")
+    return node_types
+
+
 @router.get("/subgraph")
 async def get_subgraph(
     entity_tag: str = Query(..., min_length=1, description="Seed entity tag number"),
@@ -68,18 +84,8 @@ async def get_subgraph(
     traversal = container.get_kg_traversal_service()
     paths: List[KGPath] = traversal.traverse([entity_tag], depth, limit)
 
-    # Deduplicate nodes by tag; the first type seen for a tag wins. The seed
-    # tag is always present as a node even when it has no edges.
-    node_types: Dict[str, str] = {entity_tag: "Unknown"}
-    for p in paths:
-        if p.source_tag:
-            node_types.setdefault(p.source_tag, p.source_type or "Unknown")
-            if p.source_type:
-                node_types[p.source_tag] = p.source_type
-        if p.target_tag:
-            node_types.setdefault(p.target_tag, p.target_type or "Unknown")
-            if p.target_type:
-                node_types[p.target_tag] = p.target_type
+    # Deduplicate nodes by tag (seed always present, even with no edges).
+    node_types = _collect_node_types(paths, entity_tag)
 
     nodes = [
         _node(tag, ntype, is_seed=(tag == entity_tag))

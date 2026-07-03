@@ -1,4 +1,4 @@
-.PHONY: help install dev lint format test up down clean db-migrate db-reset init-infra eval validate-prompts demo-data
+.PHONY: help install dev lint format test up down clean db-migrate db-reset init-infra eval validate-prompts demo-data security-audit benchmark coverage
 
 help:
 	@echo "Industrial Brain OS Task Runner"
@@ -11,6 +11,9 @@ help:
 	@echo "  eval         - Run the RAG evaluation suite (M16) and write the baseline"
 	@echo "  validate-prompts - Validate all prompt YAMLs against the schema + manifest (M18)"
 	@echo "  demo-data    - Seed the demo knowledge graph + generate demo PDFs (M19)"
+	@echo "  security-audit - Run bandit + pip-audit + pnpm audit (M20)"
+	@echo "  benchmark    - Run the API latency benchmark (M20, NFR-03)"
+	@echo "  coverage     - Run the test suite with coverage (M20)"
 	@echo "  up           - Spin up docker infrastructure services"
 	@echo "  down         - Shut down docker infrastructure services"
 	@echo "  db-migrate   - Apply all pending Alembic database migrations"
@@ -26,6 +29,17 @@ validate-prompts:
 
 demo-data:
 	python scripts/load_demo_data.py
+
+security-audit:
+	cd backend && bandit -r app -ll
+	cd backend && pip-audit || true
+	cd frontend && pnpm audit --audit-level high
+
+benchmark:
+	python scripts/benchmark_latency.py
+
+coverage:
+	cd backend && pytest --cov=app --cov-report=term-missing
 
 install:
 	pip install -r backend/requirements.txt

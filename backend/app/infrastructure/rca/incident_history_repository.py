@@ -31,19 +31,20 @@ class PostgresIncidentHistoryRepository(IIncidentHistoryRepository):
         params: List[object] = [f"%{k}%" for k in cleaned]
         params.append(limit)
 
+        # `clauses` is a fixed literal ("description ILIKE %s") repeated once per
+        # keyword and OR-joined — no user input is interpolated into the SQL text;
+        # every value (keywords, limit) is a bound parameter. Safe by construction.
+        query = (
+            "SELECT wo_id, asset_tag, description, status, priority, "
+            "scheduled_date, completed_date "
+            "FROM work_orders "
+            f"WHERE {clauses} "  # nosec B608 - fixed literal clauses; values bound
+            "ORDER BY completed_date DESC NULLS LAST "
+            "LIMIT %s"
+        )
         conn = self._get_conn()
         with conn.cursor() as cur:
-            cur.execute(
-                f"""
-                SELECT wo_id, asset_tag, description, status, priority,
-                       scheduled_date, completed_date
-                FROM work_orders
-                WHERE {clauses}
-                ORDER BY completed_date DESC NULLS LAST
-                LIMIT %s
-                """,
-                params,
-            )
+            cur.execute(query, params)
             rows = cur.fetchall()
 
         return [
