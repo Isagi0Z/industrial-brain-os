@@ -790,6 +790,8 @@ Polish the React frontend for judging. Add a Knowledge Graph visualizer. Load th
 - [x] Manual UI walkthrough: navigate → KG explore → node render → mobile drawer — verified live in-browser
 - [x] **Enabling fix**: added the missing `tailwind.config.js` + `postcss.config.js` (Tailwind was never compiled — CSS 1.4 kB → 35 kB); all UI styling + responsiveness now render as authored
 
+**Commit**: affefed
+
 ---
 
 ## M20 — Performance Hardening, Security Audit & Final Validation
