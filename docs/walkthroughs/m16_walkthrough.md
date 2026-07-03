@@ -107,13 +107,15 @@ expected_entity_mentions, category}`.
 ## Environment notes
 
 `prometheus-client>=0.20.0` added to `requirements.txt`. Migration 007 creates
-`evaluation_runs`. A **live full evaluation run requires the cross-encoder
-reranker model** (`bge-reranker-large`, ~2.2 GB) which cannot be downloaded in
-this disk-limited offline sandbox (~370 MB free) — the same class of
-model-availability limit as LLMLingua/PaddleOCR. The committed
-`docs/eval_baseline.json` therefore reflects the honest empty-corpus/offline
-condition (recall 0, precision 0, faithfulness 1.0 — the "no information"
-answer is faithful — hallucination 0), produced via the real `aggregate()`
-over all 22 items. The runner, judge, metrics, repository, and endpoints are
-fully unit-tested and verified live (report + gauges); a model-backed CI run
-against an indexed corpus overwrites the baseline with grounded figures.
+`evaluation_runs`. A **live full 22-item run has been executed** with the
+cross-encoder reranker (`bge-reranker-large`) and the `llama3.2` judge restored
+locally. The committed `docs/eval_baseline.json` reflects the honest
+**empty-corpus** condition (recall 0, precision 0 — golden documents not
+ingested), with a **model-backed faithfulness of 0.2727**: with no retrieved
+context the LLM answers from parametric knowledge and the judge flags most as
+ungrounded, while Stage 8 citation validation reports **0 hallucinations** (no
+phantom citations to validate). Produced via the real `aggregate()` over all 22
+items (`run_id 550c49be`); the runner, judge, metrics, repository, and endpoints
+are fully unit-tested and verified live (report + gauges). A model-backed CI run
+against an indexed corpus overwrites the recall/precision figures with grounded
+values.

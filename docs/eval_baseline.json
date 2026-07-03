@@ -1,10 +1,9 @@
 {
-  "run_id": "00000000-0000-0000-0000-000000000000",
-  "run_date": "2026-07-02T00:00:00+00:00",
+  "run_id": "550c49be-5db8-4ab3-be5f-4fedea877d14",
+  "run_date": "2026-07-03T12:42:26.355407+00:00",
   "total_items": 22,
   "retrieval_recall": 0.0,
   "context_precision": 0.0,
-  "faithfulness": 1.0,
-  "hallucination_rate": 0.0,
-  "_note": "Empty-corpus / offline baseline: reranker + LLM models unavailable in the sandbox (disk-limited). Recall/precision are 0 because no documents are indexed; hallucination_rate is 0 (no phantom citations); faithfulness is 1.0 (the 'no information available' answer is faithful to an empty context). A model-backed CI run with an indexed corpus overwrites these figures."
+  "faithfulness": 0.2727,
+  "hallucination_rate": 0.0
 }

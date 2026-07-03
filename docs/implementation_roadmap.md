@@ -668,7 +668,7 @@ Implement the Dedicated Evaluation Layer from the architecture (§5): automated 
 - [x] `make eval` runs the suite and prints the report (`scripts/run_eval.py`)
 - [x] CI step: `ci/evaluation.yml` (see ci/README.md — pending move to .github/workflows/ due to token workflow scope) runs eval on PR/merge to `main` and fails if `hallucination_rate > 0.15` (the script itself exits non-zero above the threshold)
 - [x] Unit tests: metric calculation functions with known inputs/outputs (13 tests in `test_evaluation.py`; 350 total pass)
-- [x] Baseline committed to `docs/eval_baseline.json` (honest empty-corpus/offline baseline — a live full run needs the reranker model unavailable in the disk-limited sandbox; documented in verification)
+- [x] Baseline committed to `docs/eval_baseline.json` (honest empty-corpus baseline from a live full 22-item model-backed run — reranker + `llama3.2` judge restored locally; `run_id 550c49be`, faithfulness 0.2727, hallucination_rate 0.0 → CI gate passes; documented in verification)
 
 **Commit**: 2132db5
 

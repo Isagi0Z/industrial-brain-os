@@ -88,14 +88,19 @@ standard Starlette mount behaviour that Prometheus scrapers follow.)
 
 ## Notes / limitations (documented, not code defects)
 
-- A **live full 22-item run is blocked by the cross-encoder reranker model
-  download** (`bge-reranker-large` ~2.2 GB; the sandbox has ~370 MB free) —
-  the same disk/offline model-availability limit as LLMLingua and PaddleOCR.
-  The committed `docs/eval_baseline.json` is the honest empty-corpus/offline
-  baseline (recall 0, precision 0, faithfulness 1.0, hallucination 0),
-  produced via the real `aggregate()` over all 22 items. The runner/judge/
-  metrics/repository logic is fully unit-tested (13 tests) and the endpoints
-  + gauges verified live. The CI workflow (with model + corpus access)
-  produces the grounded baseline.
+- **Live full 22-item model-backed run executed** (2026-07-03, after the
+  `bge-reranker-large` reranker and `llama3.2` were restored locally). The
+  committed `docs/eval_baseline.json` is the honest **empty-corpus** baseline
+  produced via the real `aggregate()` over all 22 items with the reranker +
+  `llama3.2` judge live (`run_id 550c49be-5db8-4ab3-be5f-4fedea877d14`):
+  recall 0, precision 0, **faithfulness 0.2727**, hallucination 0. Recall and
+  precision are 0 because the golden documents are not ingested (no corpus
+  fixture); faithfulness is model-backed — with no retrieved context the LLM
+  answers from parametric knowledge and the judge flags most as ungrounded,
+  while Stage 8 citation validation reports **0 hallucinations** (no phantom
+  citations), so the CI merge gate (`hallucination_rate 0.0 ≤ 0.15`) passes.
+  The runner/judge/metrics/repository logic is fully unit-tested (13 tests)
+  and the endpoints + gauges verified live. A CI run with an indexed corpus
+  overwrites the recall/precision figures.
 - Pre-existing, unchanged: `worker.py` mypy/black notes, qdrant/minio
-  healthcheck labels, broken dev seeder, `llama3.2` not pulled.
+  healthcheck labels, broken dev seeder.
