@@ -3,7 +3,13 @@
 # Runs once per Ishikawa (6M) category. Each category branch is executed
 # concurrently (asyncio.gather) with its own retrieved document context, and
 # the LLM lists candidate causes for that single category.
+prompt_id: rca_brain.fishbone
 version: "1.0"
+description: >-
+  List candidate causes for one Ishikawa (6M) category as a JSON array of
+  short cause strings, grounded in retrieved evidence.
+owning_brain: rca_brain
+output_format: json
 
 system: |
   You are a reliability engineer performing Fishbone (Ishikawa) cause

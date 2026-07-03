@@ -3,7 +3,13 @@
 # Same [[chunk:<chunk_id>]] citation convention as the Knowledge Brain (M9)
 # so format_response can programmatically verify every citation against a
 # real retrieved OEM-manual chunk and strip hallucinated ones.
+prompt_id: maintenance_brain.synthesize_guidance
 version: "1.0"
+description: >-
+  Answer maintenance questions from work orders, failure history, and OEM
+  manual context, citing manual claims with [[chunk:<id>]] markers.
+owning_brain: maintenance_brain
+output_format: markdown
 
 system: |
   You are the Maintenance Brain — an assistant for maintenance technicians

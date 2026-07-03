@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://industrial-brain/ai/prompts/prompt_schema.json",
+  "title": "Industrial Brain Prompt",
+  "description": "Canonical schema for every version-controlled prompt (ADR-020 PromptOps). Metadata fields are mandatory; the rendering body is the `system` instruction plus one or more `*_template` fields (`user_template`, `context_template`, `extraction_template`, `uncertain_template`, ...) whose names stay backward-compatible with the existing per-brain consumers.",
+  "type": "object",
+  "required": [
+    "prompt_id",
+    "version",
+    "description",
+    "owning_brain",
+    "output_format",
+    "system"
+  ],
+  "properties": {
+    "prompt_id": {
+      "type": "string",
+      "description": "Unique dotted identifier, e.g. knowledge_brain.synthesize_answer",
+      "pattern": "^[a-z0-9]+(_[a-z0-9]+)*(\\.[a-z0-9]+(_[a-z0-9]+)*)+$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version; bump on any prompt change.",
+      "pattern": "^[0-9]+\\.[0-9]+(\\.[0-9]+)?$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 8
+    },
+    "owning_brain": {
+      "type": "string",
+      "enum": [
+        "knowledge_brain",
+        "maintenance_brain",
+        "compliance_brain",
+        "rca_brain",
+        "lessons_brain",
+        "evaluation",
+        "extraction",
+        "chat"
+      ]
+    },
+    "output_format": {
+      "type": "string",
+      "enum": ["markdown", "json", "yes_no", "text"]
+    },
+    "system": {
+      "type": "string",
+      "minLength": 1
+    },
+    "user_template": { "type": "string" },
+    "context_template": { "type": "string" },
+    "extraction_template": { "type": "string" },
+    "uncertain_template": { "type": "string" },
+    "no_context_template": { "type": "string" }
+  },
+  "additionalProperties": true
+}

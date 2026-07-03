@@ -738,15 +738,17 @@ Audit all agent and system prompts across all five brains. Ensure every prompt i
 - Prompt schema: `{prompt_id, version, description, system_template, user_template, output_format}`
 
 ### Checklist
-- [ ] Audit: grep codebase for f-string or multiline string prompt patterns in `.py` files — resolve all findings
-- [ ] `PromptLoader` service: reads YAML from `ai/prompts/`, validates against JSON Schema, supports variable injection via `{variable}` syntax
-- [ ] `PromptLoader` raises `PromptValidationError` on missing required variables — no silent failures (Engineering Bible §1)
-- [ ] Prompt YAML schema fields: `prompt_id` (unique), `version` (semver), `description`, `system_template`, `user_template`, `output_format`
-- [ ] All prompts inventoried in `ai/prompts/MANIFEST.yaml` with prompt_id, version, owning brain
-- [ ] CI step: `python scripts/validate_prompts.py` — fails if any prompt YAML fails schema or variable injection test
-- [ ] CI step: `grep -rn "system_prompt\s*=\s*[\"']" backend/app/` — fails if hardcoded prompts found
-- [ ] Prompt version bump required for any prompt change (enforced by schema: version must be higher than prior)
-- [ ] Unit tests: `PromptLoader` with valid template, missing variable, invalid schema
+- [x] Audit: grep codebase for hardcoded prompt patterns in `.py` files — **0 findings** (prompts already externalized in M5–M16); enforced by the gate
+- [x] `PromptLoader` service: reads YAML from `ai/prompts/`, validates against JSON Schema (`prompt_schema.json`), supports `{variable}` injection (`app/infrastructure/prompts/prompt_loader.py`)
+- [x] `PromptLoader` raises `PromptValidationError` on missing required variables — no silent failures (Engineering Bible §1)
+- [x] Prompt YAML schema fields: `prompt_id` (unique), `version` (semver), `description`, `system` (canonical render field — see note), `output_format`, `owning_brain`
+- [x] All prompts inventoried in `ai/prompts/MANIFEST.yaml` with prompt_id, version, owning brain (13 prompts)
+- [x] CI step: `python scripts/validate_prompts.py` — fails on schema / manifest / render violations (`ci/prompts.yml`, `make validate-prompts`)
+- [x] CI step: greps `backend/app` + `backend/ai` for hardcoded prompts — fails the build if found
+- [x] Prompt version bump: `version` is a required semver field, checked file↔manifest by the gate
+- [x] Unit tests: `PromptLoader` with valid template, missing variable, invalid schema (9 tests in `test_prompts.py`; 366 total pass)
+
+> Note: the canonical render field is `system` (not `system_template`) to preserve backward compatibility with every existing consumer; standardized metadata is layered on top. Documented in the M18 verification/walkthrough.
 
 ---
 

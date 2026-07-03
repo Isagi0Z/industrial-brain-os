@@ -3,7 +3,13 @@
 # Suggests the next "why?" in a 5-Whys chain, grounded in the incident, the
 # whys answered so far, and evidence retrieved from Neo4j failure patterns
 # and historical work orders.
+prompt_id: rca_brain.suggest_why
 version: "1.0"
+description: >-
+  Suggest the single next "why?" question in a 5-Whys investigation,
+  grounded in failure modes and historical incident evidence.
+owning_brain: rca_brain
+output_format: text
 
 system: |
   You are a reliability engineer facilitating a structured 5-Whys Root

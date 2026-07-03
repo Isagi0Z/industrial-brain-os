@@ -1,0 +1,38 @@
+name: PromptOps Gate
+
+# M18 — validate every version-controlled prompt on each PR/merge to main
+# (ADR-020). Fails the build if any prompt YAML violates the schema, the
+# MANIFEST disagrees with the files on disk, a template is malformed, or a
+# hardcoded prompt string is found in the Python sources.
+#
+# Lives in ci/ (not .github/workflows/) for the same token-scope reason as
+# evaluation.yml — see ci/README.md.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  prompts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+          pip install -e shared/python
+      - name: Validate prompts (schema + manifest + render + no-hardcoded)
+        run: python scripts/validate_prompts.py
+      - name: Guard against hardcoded prompt assignments
+        # Redundant belt-and-braces grep in addition to the script's own scan.
+        run: |
+          if grep -rnE '^\s*(system_prompt|system)\s*=\s*["'"'"'](You |Answer |Respond )' backend/app backend/ai --include='*.py'; then
+            echo "Hardcoded prompt string found — move it into ai/prompts/*.yaml (ADR-020)."
+            exit 1
+          fi
+          echo "No hardcoded prompts."

@@ -1,3 +1,12 @@
+# Evaluation — context_precision judge prompt (ADR-020: version-controlled PromptOps)
+prompt_id: evaluation.context_precision
+version: "1.0"
+description: >-
+  LLM-as-a-judge: decide whether a retrieved chunk is relevant to the
+  expected answer (YES/NO on the first line).
+owning_brain: evaluation
+output_format: yes_no
+
 system: |
   You are a strict RAG evaluation judge scoring retrieval quality. Decide
   whether a retrieved document CHUNK is relevant to answering the question,

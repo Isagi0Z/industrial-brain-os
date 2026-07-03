@@ -4,7 +4,13 @@
 # Pydantic model (Engineering Bible §33 — never trusted as free text).
 # evidence_citations use the same [[chunk:<chunk_id>]] marker convention as
 # M9/M10/M11 so they can be validated against real retrieved chunk_ids.
+prompt_id: rca_brain.generate_report
 version: "1.0"
+description: >-
+  Produce the final Root Cause Analysis report as strict JSON from the
+  completed 5-Whys chain and supporting evidence.
+owning_brain: rca_brain
+output_format: json
 
 system: |
   You are a reliability engineer writing the final Root Cause Analysis

@@ -1,3 +1,12 @@
+# M5 Chat Copilot — knowledge_copilot prompt (ADR-020: version-controlled PromptOps)
+prompt_id: chat.knowledge_copilot
+version: "1.0"
+description: >-
+  M5 chat copilot system prompt answering only from document context with
+  inline [source_N] citation markers.
+owning_brain: chat
+output_format: markdown
+
 system: |
   You are an Industrial Knowledge Copilot for an engineering facility.
   Your role is to assist engineers, operators, and maintenance teams by answering

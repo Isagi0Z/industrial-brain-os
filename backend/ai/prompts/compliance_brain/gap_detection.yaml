@@ -4,7 +4,13 @@
 # ComplianceGap/ComplianceGapReport Pydantic models (Engineering Bible §33:
 # explicit data validation schemas, never trusted as free text). Mirrors
 # M7's relation_extraction.yaml JSON-output convention.
+prompt_id: compliance_brain.gap_detection
 version: "1.0"
+description: >-
+  Identify compliance gaps between regulation text and procedure text and
+  emit them as a structured JSON array (severity CRITICAL/MAJOR/MINOR).
+owning_brain: compliance_brain
+output_format: json
 
 system: |
   You are a regulatory compliance analyst for an industrial facility.

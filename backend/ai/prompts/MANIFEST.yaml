@@ -1,0 +1,73 @@
+# Prompt inventory (M18, ADR-020 — PromptOps finalization).
+#
+# The single source of truth for every version-controlled prompt in the
+# platform. `scripts/validate_prompts.py` checks that this manifest and the
+# YAML files on disk agree (every file listed, every listed file present, and
+# each prompt_id / version matching the file). Bump the version here *and* in
+# the prompt file together when a prompt changes.
+version: 1
+prompts:
+  - prompt_id: knowledge_brain.synthesize_answer
+    version: "1.0"
+    owning_brain: knowledge_brain
+    path: knowledge_brain/synthesize_answer.yaml
+
+  - prompt_id: maintenance_brain.synthesize_guidance
+    version: "1.0"
+    owning_brain: maintenance_brain
+    path: maintenance_brain/synthesize_guidance.yaml
+
+  - prompt_id: compliance_brain.gap_detection
+    version: "1.0"
+    owning_brain: compliance_brain
+    path: compliance_brain/gap_detection.yaml
+
+  - prompt_id: compliance_brain.generate_evidence
+    version: "1.0"
+    owning_brain: compliance_brain
+    path: compliance_brain/generate_evidence.yaml
+
+  - prompt_id: rca_brain.suggest_why
+    version: "1.0"
+    owning_brain: rca_brain
+    path: rca_brain/suggest_why.yaml
+
+  - prompt_id: rca_brain.fishbone
+    version: "1.0"
+    owning_brain: rca_brain
+    path: rca_brain/fishbone.yaml
+
+  - prompt_id: rca_brain.generate_report
+    version: "1.0"
+    owning_brain: rca_brain
+    path: rca_brain/generate_report.yaml
+
+  - prompt_id: lessons_brain.chat_answer
+    version: "1.0"
+    owning_brain: lessons_brain
+    path: lessons_brain/chat_answer.yaml
+
+  - prompt_id: lessons_brain.generate_summary
+    version: "1.0"
+    owning_brain: lessons_brain
+    path: lessons_brain/generate_summary.yaml
+
+  - prompt_id: evaluation.faithfulness
+    version: "1.0"
+    owning_brain: evaluation
+    path: evaluation/faithfulness.yaml
+
+  - prompt_id: evaluation.context_precision
+    version: "1.0"
+    owning_brain: evaluation
+    path: evaluation/context_precision.yaml
+
+  - prompt_id: extraction.relation_extraction
+    version: "2.0"
+    owning_brain: extraction
+    path: relation_extraction.yaml
+
+  - prompt_id: chat.knowledge_copilot
+    version: "1.0"
+    owning_brain: chat
+    path: knowledge_copilot.yaml

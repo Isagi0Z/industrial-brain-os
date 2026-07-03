@@ -39,6 +39,9 @@ tf-keras>=2.16.0
 google-generativeai>=0.8.0
 pyyaml>=6.0.0
 
+# PromptOps — schema-validated prompt files (M18, ADR-020)
+jsonschema>=4.0.0
+
 # Entity & Relation Extraction (M7)
 spacy>=3.7.0
 rapidfuzz>=3.9.0

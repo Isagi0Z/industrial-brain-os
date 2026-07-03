@@ -1,4 +1,4 @@
-.PHONY: help install dev lint format test up down clean db-migrate db-reset init-infra eval
+.PHONY: help install dev lint format test up down clean db-migrate db-reset init-infra eval validate-prompts
 
 help:
 	@echo "Industrial Brain OS Task Runner"
@@ -9,6 +9,7 @@ help:
 	@echo "  format       - Format the codebase (Python and TypeScript)"
 	@echo "  test         - Run backend unit tests"
 	@echo "  eval         - Run the RAG evaluation suite (M16) and write the baseline"
+	@echo "  validate-prompts - Validate all prompt YAMLs against the schema + manifest (M18)"
 	@echo "  up           - Spin up docker infrastructure services"
 	@echo "  down         - Shut down docker infrastructure services"
 	@echo "  db-migrate   - Apply all pending Alembic database migrations"
@@ -18,6 +19,9 @@ help:
 
 eval:
 	python scripts/run_eval.py
+
+validate-prompts:
+	python scripts/validate_prompts.py
 
 install:
 	pip install -r backend/requirements.txt

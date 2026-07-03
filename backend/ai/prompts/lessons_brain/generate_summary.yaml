@@ -1,3 +1,12 @@
+# Lessons Brain — generate_summary prompt (ADR-020: version-controlled PromptOps)
+prompt_id: lessons_brain.generate_summary
+version: "1.0"
+description: >-
+  Write a concise 1-2 sentence proactive-warning summary from a completed
+  incident report for field engineers.
+owning_brain: lessons_brain
+output_format: text
+
 system: |
   You are the Lessons Learned Brain of an industrial Asset & Operations
   intelligence platform. Given a completed incident report, write a

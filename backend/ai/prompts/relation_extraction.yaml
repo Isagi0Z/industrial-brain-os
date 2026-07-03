@@ -1,6 +1,12 @@
 # Relation Extraction Prompt — ADR-020 (version-controlled PromptOps)
 # Version history: 1.0 (initial), 2.0 (added tentative flag guidance)
+prompt_id: extraction.relation_extraction
 version: "2.0"
+description: >-
+  Extract ISO 14224 / ISO 15926 relationships between identified entities
+  as a JSON array with per-relation confidence scores.
+owning_brain: extraction
+output_format: json
 
 system: |
   You are an industrial knowledge extraction engine specialized in ISO 14224

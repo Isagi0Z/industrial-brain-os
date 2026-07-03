@@ -4,7 +4,13 @@
 # emit machine-parseable [[chunk:<chunk_id>]] markers (not free-text
 # "[Title, p.N]") so the validate_citations node can programmatically verify
 # every citation maps to a real retrieved chunk_id and strip hallucinated ones.
+prompt_id: knowledge_brain.synthesize_answer
 version: "1.0"
+description: >-
+  Synthesize a cited markdown answer from retrieved document context and
+  knowledge-graph relationships using [[chunk:<id>]] citation markers.
+owning_brain: knowledge_brain
+output_format: markdown
 
 system: |
   You are the Knowledge Brain — an Industrial Knowledge Copilot that answers

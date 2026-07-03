@@ -1,3 +1,12 @@
+# Evaluation — faithfulness judge prompt (ADR-020: version-controlled PromptOps)
+prompt_id: evaluation.faithfulness
+version: "1.0"
+description: >-
+  LLM-as-a-judge: decide whether an answer is fully grounded in the provided
+  context (YES/NO on the first line).
+owning_brain: evaluation
+output_format: yes_no
+
 system: |
   You are a strict RAG evaluation judge. Decide whether an ANSWER is fully
   grounded in the provided CONTEXT — i.e. every factual claim in the answer

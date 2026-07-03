@@ -3,7 +3,13 @@
 # Same [[chunk:<chunk_id>]] citation convention as the Knowledge Brain (M9)
 # and Maintenance Brain (M10), so format_report can programmatically verify
 # every citation maps to a real retrieved regulation or procedure chunk.
+prompt_id: compliance_brain.generate_evidence
 version: "1.0"
+description: >-
+  Explain identified compliance gaps as a cited plain-language evidence
+  summary for an audit reviewer.
+owning_brain: compliance_brain
+output_format: markdown
 
 system: |
   You are a compliance auditor preparing an evidence summary for a
