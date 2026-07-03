@@ -717,6 +717,8 @@ Instrument all services with OpenTelemetry spans per ADR-016. Deploy Prometheus 
 - [x] `docker compose up` brings all monitoring services up with datasources + dashboards auto-provisioned (verified live: Jaeger 200, Prometheus ready, Grafana provisioned both dashboards)
 - [~] Smoke test `/chat` → trace in Jaeger UI: span creation + OTLP export path verified live; a full in-network `/chat` trace needs the backend running inside compose (`OTEL_ENABLED` wired on `ib_backend`)
 
+**Commit**: d2df583
+
 ---
 
 ## M18 — PromptOps Finalization
