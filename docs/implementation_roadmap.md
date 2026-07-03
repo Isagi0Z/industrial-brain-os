@@ -828,6 +828,8 @@ Final pre-submission hardening pass: latency targets verified against NFRs, secu
 - [x] README `Quick Start` verified: clone → `docker compose up` → backend/frontend setup documented
 - [x] Engineering Bible compliance self-assessment committed to `docs/bible_compliance.md`
 
+**Commit**: 9d751dc
+
 ---
 
 ---
