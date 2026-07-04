@@ -1,0 +1,19 @@
+{
+  "name": "industrial-brain-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Autonomous end-to-end browser validation suite for Industrial Brain OS (Playwright + Google Chrome).",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "E2E_HEADED=1 playwright test",
+    "report:build": "node scripts/build-report.mjs",
+    "report:open": "playwright show-report ../reports/e2e/html-report",
+    "install-chrome": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "1.61.1",
+    "@types/node": "^22.10.0"
+  }
+}
