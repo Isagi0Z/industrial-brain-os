@@ -208,11 +208,41 @@ broke.
 
 ## Ingestion Pipeline
 
+### An uploaded document is stuck in `QUEUED` / `READY_FOR_PROCESSING` and never starts processing
+
+This is the most common local-setup issue. The upload succeeds (HTTP 201) and
+the API dispatches the ingestion chain onto the Redis `ingestion` queue — but
+**nothing consumes that queue unless a worker is running.** With the default
+`INGESTION_BACKEND=celery`, the API does *not* process documents itself; a
+separate Celery worker must be running.
+
+Fix — start the worker in its own terminal (leave it running alongside the
+backend and frontend):
+
+```bash
+python scripts/run_worker.py          # make-free launcher (recommended)
+# or:  make worker
+# or:  cd backend && celery -A app.worker worker -Q ingestion --pool=solo
+```
+
+On Windows the `--pool=solo` flag is required (Celery's default prefork pool
+cannot `fork`). Once the worker is up it drains the backlog automatically; watch
+its log for `Task ingestion.parse … succeeded`. Large PDFs (hundreds of chunks)
+embed slowly on CPU and can hold the single-process worker for several minutes —
+that is throughput, not an error. To confirm work is flowing, check the queue
+depth (`redis-cli -n 1 LLEN ingestion`) is falling and Qdrant's
+`document_chunks` point count is rising.
+
+Alternatively, for a single-node demo you can skip the separate worker entirely
+by running ingestion in-process: set `INGESTION_BACKEND=redis-queue` and restart
+the backend — the API then starts an in-process worker thread automatically (see
+`ADR-015`; Celery remains the default for scaled/production deployments).
+
 ### A document is stuck in `PROCESSING` / never finishes
 
 1. Check the Celery worker is actually running:
-   `docker compose logs ib_worker` (or your local `celery -A app.worker
-   worker` terminal).
+   `docker compose logs ib_worker` (or your local `python scripts/run_worker.py`
+   / `celery -A app.worker worker` terminal).
 2. Check `GET /api/v1/documents/{id}/status` for an `error_message`.
 3. Check Jaeger for the `celery.parse_task`/`embed_task`/`kg_task` spans for
    that document's correlation id to see exactly which stage is stuck or

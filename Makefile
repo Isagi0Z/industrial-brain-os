@@ -1,10 +1,11 @@
-.PHONY: help install dev lint format test up down clean db-migrate db-reset init-infra eval validate-prompts demo-data security-audit benchmark coverage
+.PHONY: help install dev worker lint format test up down clean db-migrate db-reset init-infra eval validate-prompts demo-data security-audit benchmark coverage
 
 help:
 	@echo "Industrial Brain OS Task Runner"
 	@echo "Available commands:"
 	@echo "  install      - Install backend, frontend, and shared dependencies"
 	@echo "  dev          - Start backend and frontend in development mode"
+	@echo "  worker       - Start the Celery ingestion worker (required to process uploads)"
 	@echo "  lint         - Lint the codebase (Python and TypeScript)"
 	@echo "  format       - Format the codebase (Python and TypeScript)"
 	@echo "  test         - Run backend unit tests"
@@ -48,7 +49,18 @@ install:
 
 dev:
 	@echo "Starting development environment..."
-	@echo "Please start the backend (cd backend && uvicorn app.main:app --reload) and frontend (cd frontend && pnpm run dev) separately."
+	@echo "Run these THREE processes in separate terminals:"
+	@echo "  1. Backend:  cd backend && uvicorn app.main:app --reload"
+	@echo "  2. Worker:   make worker    (REQUIRED — without it, uploaded documents stay QUEUED and are never indexed)"
+	@echo "  3. Frontend: cd frontend && pnpm run dev"
+
+# Celery ingestion worker (M15, ADR-015). Consumes the `ingestion` queue and runs
+# the parse -> embed -> kg pipeline for each uploaded document. Without a running
+# worker the API accepts uploads but they remain QUEUED forever. `--pool=solo`
+# keeps it single-process so it works identically on Windows and POSIX; scale out
+# in production via the `ib_worker` container (docker compose).
+worker:
+	cd backend && celery -A app.worker worker --loglevel=info -Q ingestion --pool=solo --concurrency=1
 
 lint:
 	cd backend && black --check app tests
