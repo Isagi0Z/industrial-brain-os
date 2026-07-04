@@ -1,101 +1,170 @@
 # Industrial Brain OS
 
-Industrial Brain OS is an AI-powered Unified Asset & Operations Brain designed for Industrial Knowledge Intelligence.
+**Industrial Brain OS** is a production-grade, AI-powered **Unified Asset &
+Operations Brain** for industrial facilities. It ingests heterogeneous
+engineering documents — P&IDs, SOPs, manuals, maintenance records, inspection
+reports, regulations — and turns them into a queryable enterprise knowledge
+platform: a hybrid GraphRAG retrieval engine, an interactive Knowledge Graph,
+and five specialized intelligence "brains" (Knowledge, Maintenance,
+Compliance, Root Cause Analysis, Lessons Learned).
 
-## Documentation Index
-- [Architecture Blueprint (Version 1)](docs/industrial_brain_architecture.md)
-- [Architecture Blueprint (Version 2)](docs/industrial_brain_architecture_v2.md)
-- [Engineering Bible v1.0](docs/engineering_bible.md)
-- [Architecture Decision Records (ADRs)](docs/architecture_decision_records.md)
+Status: **M1–M20 complete** — see
+[`docs/implementation_roadmap.md`](docs/implementation_roadmap.md) for the
+full milestone-by-milestone build log, and
+[`docs/manual/`](docs/manual/) for the complete engineering handbook.
+
+```mermaid
+flowchart LR
+    UI[React Console] -->|REST + WebSocket| API[FastAPI Backend<br/>Clean Architecture]
+    API --> PG[(PostgreSQL)]
+    API --> NEO[(Neo4j<br/>Knowledge Graph)]
+    API --> QD[(Qdrant<br/>Vector Search)]
+    API --> RD[(Redis)]
+    API --> MO[(MinIO)]
+    API --> OL[Ollama<br/>llama3.2]
+    W[Celery Worker] -->|parse → embed → KG| PG & NEO & QD & MO
+    API -.OTel.-> JG[Jaeger / Prometheus / Grafana]
+```
+
+---
+
+## 📚 Documentation
+
+**Start here:** [`docs/manual/`](docs/manual/) is the complete, verified
+engineering handbook — installation, architecture, developer/admin/user
+guides, API reference, deployment, and troubleshooting.
+
+| Document | For |
+|---|---|
+| [**INSTALLATION.md**](docs/manual/INSTALLATION.md) | Getting a full local environment running (Windows/Linux/macOS) |
+| [**ARCHITECTURE.md**](docs/manual/ARCHITECTURE.md) | How the system is built — layers, brains, KG, pipelines, PromptOps, security |
+| [**DEVELOPER_GUIDE.md**](docs/manual/DEVELOPER_GUIDE.md) | Day-to-day dev tasks: add a document/brain/ontology entity, testing, resets |
+| [**WORKFLOW.md**](docs/manual/WORKFLOW.md) | Branching, commits, PR checklist, CI, release process |
+| [**API_REFERENCE.md**](docs/manual/API_REFERENCE.md) | Every endpoint, verified against the router source |
+| [**ADMIN_GUIDE.md**](docs/manual/ADMIN_GUIDE.md) | User management, monitoring, performance tuning, security ops |
+| [**USER_GUIDE.md**](docs/manual/USER_GUIDE.md) | Using the web console (non-technical) |
+| [**DEPLOYMENT.md**](docs/manual/DEPLOYMENT.md) | Production deployment, checklist, backup/restore |
+| [**TROUBLESHOOTING.md**](docs/manual/TROUBLESHOOTING.md) | Real issues hit during development, with verified fixes |
+| [**FAQ.md**](docs/manual/FAQ.md) | Quick answers to common questions |
+
+Source-of-truth architecture & governance documents:
+
+- [Architecture Blueprint v2](docs/industrial_brain_architecture_v2.md)
+- [Engineering Bible](docs/engineering_bible.md)
+- [Architecture Decision Records (20 ADRs)](docs/architecture_decision_records.md)
+- [Engineering Bible Compliance Self-Assessment](docs/bible_compliance.md)
+
+---
+
+## Quick Start
+
+```bash
+git clone <repo-url> industrial-brain && cd industrial-brain
+cp .env.example .env
+
+# Infrastructure (Postgres, Neo4j, Qdrant, Redis, MinIO, Jaeger, Prometheus, Grafana)
+docker compose up -d
+
+# Ollama (separate install — see docs/manual/INSTALLATION.md §9)
+ollama pull llama3.2
+
+# Backend
+cd backend
+python -m venv venv && venv\Scripts\Activate.ps1   # or: source venv/bin/activate
+pip install -r requirements.txt
+pip install -e ../shared/python
+alembic upgrade head
+python ../scripts/init_infra.py
+uvicorn app.main:app --reload
+
+# Celery worker (separate terminal, from backend/)
+celery -A app.worker worker --loglevel=info
+
+# Frontend (separate terminal)
+cd frontend
+pnpm install
+pnpm run dev
+```
+
+Then open:
+- Console: **http://localhost:3000**
+- API docs: **http://localhost:8000/docs**
+- Health check: **http://localhost:8000/api/v1/health**
+
+Full, platform-specific instructions (including required AI models and
+optional developer tooling like RepoWise/Claude Code) are in
+[`docs/manual/INSTALLATION.md`](docs/manual/INSTALLATION.md).
 
 ---
 
 ## Project Structure
 
-This project is set up as a monorepo containing:
-- **`backend/`**: FastAPI-based Clean Architecture backend service.
-- **`frontend/`**: React + Vite + TypeScript dashboard interface.
-- **`shared/`**: Common assets, constants, configurations, and utilities shared between services.
-  - `shared/python/`: Shared Python module (`industrial-brain-shared`).
-  - `shared/ts/`: Shared npm package (`@industrial-brain/shared`).
-- **`docker-compose.yml`**: Configures PostgreSQL, Neo4j, Qdrant, Redis, and MinIO database environments.
+```
+industrial-brain/
+├── backend/     FastAPI service — Clean Architecture (domain/application/infrastructure/presentation)
+├── frontend/    React 18 + Vite 6 + TypeScript console
+├── shared/      Cross-service constants (Python + TypeScript packages)
+├── ontology/    Industrial ontology schema (ISO 14224/15926 aligned)
+├── datasets/    Golden QA dataset for the evaluation layer
+├── monitoring/  Prometheus + Grafana provisioning
+├── ci/          CI workflows (evaluation gate, PromptOps gate)
+├── scripts/     Operational scripts (eval, prompt validation, demo data, benchmarks)
+└── docs/        Architecture, ADRs, Engineering Bible, and the full manual (docs/manual/)
+```
+
+See [`docs/manual/ARCHITECTURE.md`](docs/manual/ARCHITECTURE.md#2-folder-structure)
+for the full annotated tree.
 
 ---
 
-## Local Development Setup
+## Key Capabilities
 
-### Prerequisites
-- **Node.js** (>= v18.0) & **pnpm** (>= 8.0)
-- **Python** (>= 3.9) & **pip**
-- **Docker & Docker Compose**
-
-### 1. Database Infrastructure Setup
-To spin up all databases and external cache/storage services:
-```bash
-# Using docker compose
-docker compose up -d
-```
-This launches:
-- **PostgreSQL** (Port `5432`): Core transactional databases and metadata.
-- **Neo4j Community** (Port `7474` / `7687`): Ontological Knowledge Graph.
-- **Qdrant** (Port `6333`): Vector database for dense/sparse embedding search.
-- **Redis** (Port `6379`): Cache, short-term history, and pub-sub broker.
-- **MinIO** (Port `9000` / Console on `9001`): Object storage for documents.
-
-### 2. Backend Setup
-1. Create and activate a Python virtual environment:
-   ```bash
-   cd backend
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\Activate.ps1
-   # On macOS/Linux:
-   source venv/bin/activate
-   ```
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. Run the FastAPI development server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-4. Verify by opening the Swagger documentation: `http://localhost:8000/docs`.
-
-### 3. Frontend Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   pnpm install
-   ```
-2. Run the Vite development server:
-   ```bash
-   pnpm run dev
-   ```
-3. Open `http://localhost:3000` to view the dashboard shell.
+- **Hybrid GraphRAG retrieval** — BM25 + dense vector search + bounded
+  Knowledge Graph traversal, cross-encoder reranked, context-compressed
+  (LLMLingua), with citation-validated generation.
+- **Five intelligence brains** — Knowledge, Maintenance, Compliance, Root
+  Cause Analysis, and Lessons Learned, each a LangGraph agent with a
+  step-limit guard and hallucination-resistant citation validation.
+- **Async ingestion pipeline** — Celery task chain (parse → embed → KG
+  extract) with automatic retry/backoff.
+- **Evaluation layer** — a 22-item golden QA dataset scored for recall,
+  precision, faithfulness, and hallucination rate, gating CI merges.
+- **Full observability** — OpenTelemetry tracing (Jaeger), Prometheus
+  metrics, two Grafana dashboards.
+- **PromptOps** — every LLM prompt is a schema-validated, version-controlled
+  YAML file; a CI gate rejects hardcoded prompts.
+- **Premium web console** — React 18 + Vite + Tailwind design system with an
+  interactive Cytoscape Knowledge Graph visualizer and a PDF citation viewer.
 
 ---
 
 ## Development Workflow
 
-### Tasks and Utilities
-Helper scripts and runners are provided for convenience:
-- **Windows (PowerShell)**: `./run.ps1`
-  - `./run.ps1 up` - start docker infrastructure
-  - `./run.ps1 install` - install all package dependencies
-  - `./run.ps1 lint` - run python (black, ruff) and typescript checkers
-  - `./run.ps1 format` - auto-format python and typescript code
-  - `./run.ps1 test` - execute backend tests
-- **Unix/Linux (Make)**: `Makefile`
-  - `make up` - start docker compose services
-  - `make install` - install all dependencies
-  - `make lint` - run code linting
-  - `make format` - auto-format files
-  - `make test` - execute pytest unit tests
+```bash
+make lint      # black, ruff, eslint
+make format    # auto-format backend + frontend
+make test      # backend pytest suite
+make coverage  # pytest with coverage report
+make eval      # RAG evaluation suite (writes docs/eval_baseline.json)
+make validate-prompts   # PromptOps schema/manifest gate
+make security-audit     # bandit + pip-audit + pnpm audit
+make benchmark           # API latency benchmark
+```
 
-### Branching and Commits
-- **Branch Naming**: Keep branches short-lived and prefixed: `feature/<name>`, `bugfix/<name>`.
-- **Commit Messages**: Follow [Conventional Commits](https://www.conventionalcommits.org/):
-  - `feat(<scope>): <description>`
-  - `fix(<scope>): <description>`
-  - `docs(<scope>): <description>`
+Windows users without `make` can run the underlying commands directly, or use
+`./run.ps1` for the reduced command set it exposes (`install`, `dev`, `lint`,
+`format`, `test`, `up`, `down`, `clean`).
+
+**Branching**: `feature/<name>`, `bugfix/<name>`, `hotfix/<name>`,
+`docs/<name>` — short-lived, off `main`.
+**Commits**: [Conventional Commits](https://www.conventionalcommits.org/) —
+`feat(<scope>): <description>`, `fix(<scope>): <description>`, etc.
+
+Full workflow, PR checklist, and release process:
+[`docs/manual/WORKFLOW.md`](docs/manual/WORKFLOW.md).
+
+---
+
+## License
+
+See [`LICENSE`](LICENSE).
