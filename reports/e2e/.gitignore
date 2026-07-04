@@ -1,0 +1,4 @@
+# Bulky, regenerable Playwright artifacts — kept out of git.
+# Regenerate with:  cd e2e && pnpm test && pnpm run report:build
+artifacts/
+html-report/

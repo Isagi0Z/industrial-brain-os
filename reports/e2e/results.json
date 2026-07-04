@@ -1,0 +1,2811 @@
+{
+  "config": {
+    "argv": [
+      "C:\\Program Files\\nodejs\\node.exe",
+      "D:\\industrial-brain\\e2e\\node_modules\\@playwright\\test\\cli.js",
+      "test"
+    ],
+    "configFile": "D:\\industrial-brain\\e2e\\playwright.config.ts",
+    "rootDir": "D:/industrial-brain/e2e/tests",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": "D:\\industrial-brain\\e2e\\global-setup.ts",
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "D:/industrial-brain/reports/e2e/artifacts",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "setup",
+        "name": "setup",
+        "testDir": "D:/industrial-brain/e2e/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/auth\\.setup\\.ts/"
+        ],
+        "timeout": 90000
+      },
+      {
+        "outputDir": "D:/industrial-brain/reports/e2e/artifacts",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "guest",
+        "name": "guest",
+        "testDir": "D:/industrial-brain/e2e/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/01-auth\\.spec\\.ts/"
+        ],
+        "timeout": 90000
+      },
+      {
+        "outputDir": "D:/industrial-brain/reports/e2e/artifacts",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "app",
+        "name": "app",
+        "testDir": "D:/industrial-brain/e2e/tests",
+        "testIgnore": [
+          "/01-auth\\.spec\\.ts/"
+        ],
+        "testMatch": [
+          "/\\.spec\\.ts$/"
+        ],
+        "timeout": 90000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "D:\\industrial-brain\\reports\\e2e\\html-report",
+          "open": "never"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "D:\\industrial-brain\\reports\\e2e\\results.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.61.1",
+    "workers": 1,
+    "webServer": {
+      "command": "pnpm exec vite --port 5199 --strictPort --host 127.0.0.1",
+      "cwd": "D:\\industrial-brain\\frontend",
+      "url": "http://127.0.0.1:5199",
+      "reuseExistingServer": true,
+      "timeout": 180000,
+      "stdout": "pipe",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.setup.ts",
+      "file": "auth.setup.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [
+        {
+          "title": "authenticate through the login UI",
+          "ok": true,
+          "tags": [],
+          "tests": [
+            {
+              "timeout": 90000,
+              "annotations": [],
+              "expectedStatus": "passed",
+              "projectId": "setup",
+              "projectName": "setup",
+              "results": [
+                {
+                  "workerIndex": 0,
+                  "parallelIndex": 0,
+                  "status": "passed",
+                  "duration": 14823,
+                  "errors": [],
+                  "stdout": [],
+                  "stderr": [],
+                  "retry": 0,
+                  "startTime": "2026-07-04T12:16:36.188Z",
+                  "annotations": [],
+                  "attachments": [
+                    {
+                      "name": "browser-signals",
+                      "contentType": "text/plain",
+                      "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                    },
+                    {
+                      "name": "screenshot",
+                      "contentType": "image/png",
+                      "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\auth.setup.ts-authenticate-through-the-login-UI-setup\\test-finished-1.png"
+                    },
+                    {
+                      "name": "video",
+                      "contentType": "video/webm",
+                      "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\auth.setup.ts-authenticate-through-the-login-UI-setup\\video.webm"
+                    },
+                    {
+                      "name": "trace",
+                      "contentType": "application/zip",
+                      "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\auth.setup.ts-authenticate-through-the-login-UI-setup\\trace.zip"
+                    }
+                  ]
+                }
+              ],
+              "status": "expected"
+            }
+          ],
+          "id": "17e3fe6f4d9d8bd79c6b-b7d83c1c40a41d90894d",
+          "file": "auth.setup.ts",
+          "line": 14,
+          "column": 1
+        }
+      ]
+    },
+    {
+      "title": "01-auth.spec.ts",
+      "file": "01-auth.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication & Authorization",
+          "file": "01-auth.spec.ts",
+          "line": 14,
+          "column": 6,
+          "specs": [
+            {
+              "title": "landing page renders with primary calls-to-action",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "note",
+                      "description": "a11y[landing]: 0 total violation(s), 0 serious+"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Landing page + CTAs"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "guest",
+                  "projectName": "guest",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6141,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:16:55.048Z",
+                      "annotations": [
+                        {
+                          "type": "note",
+                          "description": "a11y[landing]: 0 total violation(s), 0 serious+"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Landing page + CTAs"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "a11y-landing",
+                          "contentType": "text/plain",
+                          "body": "KG5vIHZpb2xhdGlvbnMp"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-c927c-ith-primary-calls-to-action-guest\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-c927c-ith-primary-calls-to-action-guest\\video-1.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-c927c-ith-primary-calls-to-action-guest\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-c927c-ith-primary-calls-to-action-guest\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-6b80dd15dbe9c4716d74",
+              "file": "01-auth.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "unauthenticated deep-link is redirected to login (route guard)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Route guard (RequireAuth)"
+                    },
+                    {
+                      "type": "note",
+                      "description": "Protected /documents correctly bounced an anonymous visitor to /login"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "guest",
+                  "projectName": "guest",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1876,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:17:02.718Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Route guard (RequireAuth)"
+                        },
+                        {
+                          "type": "note",
+                          "description": "Protected /documents correctly bounced an anonymous visitor to /login"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-83034-ected-to-login-route-guard--guest\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-83034-ected-to-login-route-guard--guest\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-83034-ected-to-login-route-guard--guest\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-a57dbf326fb8d0161f0c",
+              "file": "01-auth.spec.ts",
+              "line": 26,
+              "column": 3
+            },
+            {
+              "title": "invalid credentials are rejected with a friendly error",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "perf",
+                      "description": "login-reject-ms=5444"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Login rejects bad credentials"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "guest",
+                  "projectName": "guest",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 7648,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:17:04.697Z",
+                      "annotations": [
+                        {
+                          "type": "perf",
+                          "description": "login-reject-ms=5444"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Login rejects bad credentials"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-64a7e-ected-with-a-friendly-error-guest\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDEpOgpGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA0MDEgKFVuYXV0aG9yaXplZCkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-64a7e-ected-with-a-friendly-error-guest\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-64a7e-ected-with-a-friendly-error-guest\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-a7d9caa4e1d19a83f4ec",
+              "file": "01-auth.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "signup surfaces duplicate-email conflict (409)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Signup duplicate-email handling"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "guest",
+                  "projectName": "guest",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3106,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:17:12.948Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Signup duplicate-email handling"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-2eb43-plicate-email-conflict-409--guest\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDEpOgpGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogdGhlIHNlcnZlciByZXNwb25kZWQgd2l0aCBhIHN0YXR1cyBvZiA0MDkgKENvbmZsaWN0KQoKUEFHRSBFUlJPUlMgKDApOgoobm9uZSkKCkZBSUxFRCBSRVFVRVNUUyAoMCk6Cihub25lKQoKNXh4IFJFU1BPTlNFUyAoMCk6Cihub25lKQo="
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-2eb43-plicate-email-conflict-409--guest\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-2eb43-plicate-email-conflict-409--guest\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-0d68a576fad2b8a5d89e",
+              "file": "01-auth.spec.ts",
+              "line": 49,
+              "column": 3
+            },
+            {
+              "title": "signup enforces the 8-character minimum password (client validation)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Signup password min-length validation"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "guest",
+                  "projectName": "guest",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2965,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:17:16.312Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Signup password min-length validation"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-7bf14-password-client-validation--guest\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-7bf14-password-client-validation--guest\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-7bf14-password-client-validation--guest\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-6b1102d30f3ccf392859",
+              "file": "01-auth.spec.ts",
+              "line": 61,
+              "column": 3
+            },
+            {
+              "title": "successful login, then session-end returns to the guard",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "perf",
+                      "description": "login-success-ms=6757"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Login happy-path (UI)"
+                    },
+                    {
+                      "type": "suggestion",
+                      "description": "No logout / sign-out control exists in the authenticated UI — users cannot end a session without clearing storage. Add a logout action (e.g. in the header avatar or Settings)."
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Session-end re-guards protected routes"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "guest",
+                  "projectName": "guest",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 9830,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:17:19.524Z",
+                      "annotations": [
+                        {
+                          "type": "perf",
+                          "description": "login-success-ms=6757"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Login happy-path (UI)"
+                        },
+                        {
+                          "type": "suggestion",
+                          "description": "No logout / sign-out control exists in the authenticated UI — users cannot end a session without clearing storage. Add a logout action (e.g. in the header avatar or Settings)."
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Session-end re-guards protected routes"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-dc45d-on-end-returns-to-the-guard-guest\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-dc45d-on-end-returns-to-the-guard-guest\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\01-auth-Authentication-Aut-dc45d-on-end-returns-to-the-guard-guest\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "791b3c4e0869e77b2651-1e5a93c48a1597e8c342",
+              "file": "01-auth.spec.ts",
+              "line": 78,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "02-navigation.spec.ts",
+      "file": "02-navigation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Navigation & App Shell",
+          "file": "02-navigation.spec.ts",
+          "line": 17,
+          "column": 6,
+          "specs": [
+            {
+              "title": "every sidebar route loads its page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "perf",
+                      "description": "nav:Document Hub-ms=1021"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Document Hub"
+                    },
+                    {
+                      "type": "perf",
+                      "description": "nav:Knowledge Copilot-ms=897"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Knowledge Copilot"
+                    },
+                    {
+                      "type": "perf",
+                      "description": "nav:Knowledge Graph-ms=713"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Knowledge Graph"
+                    },
+                    {
+                      "type": "perf",
+                      "description": "nav:Maintenance-ms=650"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Maintenance"
+                    },
+                    {
+                      "type": "perf",
+                      "description": "nav:Compliance-ms=874"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Compliance"
+                    },
+                    {
+                      "type": "perf",
+                      "description": "nav:Root Cause-ms=699"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Root Cause"
+                    },
+                    {
+                      "type": "perf",
+                      "description": "nav:Lessons Learned-ms=679"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Lessons Learned"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Navigate: Settings"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 24479,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:17:31.715Z",
+                      "annotations": [
+                        {
+                          "type": "perf",
+                          "description": "nav:Document Hub-ms=1021"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Document Hub"
+                        },
+                        {
+                          "type": "perf",
+                          "description": "nav:Knowledge Copilot-ms=897"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Knowledge Copilot"
+                        },
+                        {
+                          "type": "perf",
+                          "description": "nav:Knowledge Graph-ms=713"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Knowledge Graph"
+                        },
+                        {
+                          "type": "perf",
+                          "description": "nav:Maintenance-ms=650"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Maintenance"
+                        },
+                        {
+                          "type": "perf",
+                          "description": "nav:Compliance-ms=874"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Compliance"
+                        },
+                        {
+                          "type": "perf",
+                          "description": "nav:Root Cause-ms=699"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Root Cause"
+                        },
+                        {
+                          "type": "perf",
+                          "description": "nav:Lessons Learned-ms=679"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Lessons Learned"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Navigate: Settings"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\02-navigation-Navigation-A-bf3b0-idebar-route-loads-its-page-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\02-navigation-Navigation-A-bf3b0-idebar-route-loads-its-page-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\02-navigation-Navigation-A-bf3b0-idebar-route-loads-its-page-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-5857ae217897fb7b7a11",
+              "file": "02-navigation.spec.ts",
+              "line": 18,
+              "column": 3
+            },
+            {
+              "title": "infra health widget reports all five datastores",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "note",
+                      "description": "infra postgres: postgres: healthy"
+                    },
+                    {
+                      "type": "note",
+                      "description": "infra neo4j: neo4j: healthy"
+                    },
+                    {
+                      "type": "note",
+                      "description": "infra qdrant: qdrant: healthy"
+                    },
+                    {
+                      "type": "note",
+                      "description": "infra redis: redis: healthy"
+                    },
+                    {
+                      "type": "note",
+                      "description": "infra minio: minio: healthy"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Infra health widget (5 datastores)"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1902,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:17:58.877Z",
+                      "annotations": [
+                        {
+                          "type": "note",
+                          "description": "infra postgres: postgres: healthy"
+                        },
+                        {
+                          "type": "note",
+                          "description": "infra neo4j: neo4j: healthy"
+                        },
+                        {
+                          "type": "note",
+                          "description": "infra qdrant: qdrant: healthy"
+                        },
+                        {
+                          "type": "note",
+                          "description": "infra redis: redis: healthy"
+                        },
+                        {
+                          "type": "note",
+                          "description": "infra minio: minio: healthy"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Infra health widget (5 datastores)"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\02-navigation-Navigation-A-a00ef-reports-all-five-datastores-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\02-navigation-Navigation-A-a00ef-reports-all-five-datastores-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\02-navigation-Navigation-A-a00ef-reports-all-five-datastores-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-6d1249aa1d6062599cfc",
+              "file": "02-navigation.spec.ts",
+              "line": 42,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "03-documents.spec.ts",
+      "file": "03-documents.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Document Hub",
+          "file": "03-documents.spec.ts",
+          "line": 10,
+          "column": 6,
+          "specs": [
+            {
+              "title": "library search and status filter behave deterministically",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Document library: search + status filter + empty state"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3458,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:18:00.967Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Document library: search + status filter + empty state"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--9a387-er-behave-deterministically-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--9a387-er-behave-deterministically-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--9a387-er-behave-deterministically-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7e29679d1914fc60ae42-bd9b70fb344294f8ae49",
+              "file": "03-documents.spec.ts",
+              "line": 11,
+              "column": 3
+            },
+            {
+              "title": "uploads a real industrial PDF through the browser and cleans up",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "perf",
+                      "description": "upload-roundtrip-ms=1277"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Document upload (multipart, through UI)"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Uploaded document appears in library"
+                    },
+                    {
+                      "type": "note",
+                      "description": "ingestion terminal status observed: UNKNOWN"
+                    },
+                    {
+                      "type": "warning",
+                      "description": "Ingestion did not reach PROCESSED within 60s (last: UNKNOWN). The Celery worker (ib_worker) is likely not running, so uploads queue but are not indexed."
+                    },
+                    {
+                      "type": "suggestion",
+                      "description": "Start the ingestion worker (`celery -A app.worker worker`) or the ib_worker container so uploaded documents are actually indexed and become searchable."
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Document delete (with confirm dialog)"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 70283,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:18:04.653Z",
+                      "annotations": [
+                        {
+                          "type": "perf",
+                          "description": "upload-roundtrip-ms=1277"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Document upload (multipart, through UI)"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Uploaded document appears in library"
+                        },
+                        {
+                          "type": "note",
+                          "description": "ingestion terminal status observed: UNKNOWN"
+                        },
+                        {
+                          "type": "warning",
+                          "description": "Ingestion did not reach PROCESSED within 60s (last: UNKNOWN). The Celery worker (ib_worker) is likely not running, so uploads queue but are not indexed."
+                        },
+                        {
+                          "type": "suggestion",
+                          "description": "Start the ingestion worker (`celery -A app.worker worker`) or the ib_worker container so uploaded documents are actually indexed and become searchable."
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Document delete (with confirm dialog)"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--e98ae-h-the-browser-and-cleans-up-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--e98ae-h-the-browser-and-cleans-up-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--e98ae-h-the-browser-and-cleans-up-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7e29679d1914fc60ae42-22ca9c617a562553ffb2",
+              "file": "03-documents.spec.ts",
+              "line": 31,
+              "column": 3
+            },
+            {
+              "title": "document details opens from the library",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "note",
+                      "description": "Opened details for \"Enhancing autonomous navigation systems through reinforcement learning (1).pdf\""
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Document details view"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2364,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:19:16.776Z",
+                      "annotations": [
+                        {
+                          "type": "note",
+                          "description": "Opened details for \"Enhancing autonomous navigation systems through reinforcement learning (1).pdf\""
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Document details view"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--81a62-ails-opens-from-the-library-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--81a62-ails-opens-from-the-library-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\03-documents-Document-Hub--81a62-ails-opens-from-the-library-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "7e29679d1914fc60ae42-e20526ccf3eb03e63f1b",
+              "file": "03-documents.spec.ts",
+              "line": 88,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "04-chat.spec.ts",
+      "file": "04-chat.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Knowledge Copilot (Chat)",
+          "file": "04-chat.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "connects over WebSocket and answers a grounded question",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Chat WebSocket connects (authenticated)"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Chat suggestion populates composer"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Chat sends a query and renders both turns"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Chat completed a streamed answer"
+                    },
+                    {
+                      "type": "note",
+                      "description": "chat model=ollama/llama3.2 latency_ms=53093 citations=1"
+                    },
+                    {
+                      "type": "perf",
+                      "description": "chat-answer-latency-ms=53093"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Chat answer carried citations on the wire"
+                    },
+                    {
+                      "type": "warning",
+                      "description": "Copilot 'done' frame carried 1 citation(s) but no citation card rendered in the UI. The answer used \"[source_1]\"-style inline references rather than the backend's expected [[chunk:<id>]] markers — investigate the citation display / prompt marker format."
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 71141,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:19:19.348Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Chat WebSocket connects (authenticated)"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Chat suggestion populates composer"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Chat sends a query and renders both turns"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Chat completed a streamed answer"
+                        },
+                        {
+                          "type": "note",
+                          "description": "chat model=ollama/llama3.2 latency_ms=53093 citations=1"
+                        },
+                        {
+                          "type": "perf",
+                          "description": "chat-answer-latency-ms=53093"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Chat answer carried citations on the wire"
+                        },
+                        {
+                          "type": "warning",
+                          "description": "Copilot 'done' frame carried 1 citation(s) but no citation card rendered in the UI. The answer used \"[source_1]\"-style inline references rather than the backend's expected [[chunk:<id>]] markers — investigate the citation display / prompt marker format."
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\04-chat-Knowledge-Copilot--873e9-answers-a-grounded-question-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\04-chat-Knowledge-Copilot--873e9-answers-a-grounded-question-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\04-chat-Knowledge-Copilot--873e9-answers-a-grounded-question-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bafb0ad56b58bff91c9c-b02639b3d67d24aa2d09",
+              "file": "04-chat.spec.ts",
+              "line": 9,
+              "column": 3
+            },
+            {
+              "title": "send is guarded on empty input and New conversation resets the thread",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Chat send disabled while composer is empty"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Chat \"New conversation\" resets to the empty state"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2838,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:20:35.527Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Chat send disabled while composer is empty"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Chat \"New conversation\" resets to the empty state"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\04-chat-Knowledge-Copilot--14229-versation-resets-the-thread-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\04-chat-Knowledge-Copilot--14229-versation-resets-the-thread-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\04-chat-Knowledge-Copilot--14229-versation-resets-the-thread-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "bafb0ad56b58bff91c9c-c29fa7ecbc6ed9013c0a",
+              "file": "04-chat.spec.ts",
+              "line": 88,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "05-knowledge-graph.spec.ts",
+      "file": "05-knowledge-graph.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Knowledge Graph",
+          "file": "05-knowledge-graph.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "renders the seeded P-102A subgraph",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "perf",
+                      "description": "kg-load-ms=10522"
+                    },
+                    {
+                      "type": "note",
+                      "description": "KG P-102A depth1: 8 nodes, 8 edges"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "KG renders seeded subgraph"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 12074,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:20:38.675Z",
+                      "annotations": [
+                        {
+                          "type": "perf",
+                          "description": "kg-load-ms=10522"
+                        },
+                        {
+                          "type": "note",
+                          "description": "KG P-102A depth1: 8 nodes, 8 edges"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "KG renders seeded subgraph"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-b35c9--the-seeded-P-102A-subgraph-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-b35c9--the-seeded-P-102A-subgraph-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-b35c9--the-seeded-P-102A-subgraph-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "40f48642a599943b03b9-6d5ccbd64e5c9a7733be",
+              "file": "05-knowledge-graph.spec.ts",
+              "line": 8,
+              "column": 3
+            },
+            {
+              "title": "depth expansion returns an equal-or-larger neighbourhood",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "note",
+                      "description": "depth1=8 nodes, depth3=14 nodes"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "KG depth control expands traversal"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4057,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:20:51.065Z",
+                      "annotations": [
+                        {
+                          "type": "note",
+                          "description": "depth1=8 nodes, depth3=14 nodes"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "KG depth control expands traversal"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-c28d9-ual-or-larger-neighbourhood-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-c28d9-ual-or-larger-neighbourhood-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-c28d9-ual-or-larger-neighbourhood-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "40f48642a599943b03b9-34771d37fdc6dba59c25",
+              "file": "05-knowledge-graph.spec.ts",
+              "line": 22,
+              "column": 3
+            },
+            {
+              "title": "clicking the canvas surfaces entity details (best-effort)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "KG node selection → entity details panel"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4513,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:20:55.419Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "KG node selection → entity details panel"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-5cfed-entity-details-best-effort--app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-5cfed-entity-details-best-effort--app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-5cfed-entity-details-best-effort--app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "40f48642a599943b03b9-f56b0c080da4bc4cee5a",
+              "file": "05-knowledge-graph.spec.ts",
+              "line": 36,
+              "column": 3
+            },
+            {
+              "title": "unknown tag is handled gracefully (no crash)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "KG handles unknown tag gracefully"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3667,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:00.264Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "KG handles unknown tag gracefully"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-94d25-andled-gracefully-no-crash--app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-94d25-andled-gracefully-no-crash--app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\05-knowledge-graph-Knowled-94d25-andled-gracefully-no-crash--app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "40f48642a599943b03b9-5e74e185e6489a10b204",
+              "file": "05-knowledge-graph.spec.ts",
+              "line": 54,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "06-brains.spec.ts",
+      "file": "06-brains.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Intelligence Brains",
+          "file": "06-brains.spec.ts",
+          "line": 13,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Maintenance brain panel reports live service health",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Brain panel online: Maintenance"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2917,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:04.130Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Brain panel online: Maintenance"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-36397-reports-live-service-health-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-36397-reports-live-service-health-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-36397-reports-live-service-health-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "94c40b89f66584cc8276-7a480e101eaebedf8cb6",
+              "file": "06-brains.spec.ts",
+              "line": 15,
+              "column": 5
+            },
+            {
+              "title": "Compliance brain panel reports live service health",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Brain panel online: Compliance"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2637,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:07.222Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Brain panel online: Compliance"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-be6e9-reports-live-service-health-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-be6e9-reports-live-service-health-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-be6e9-reports-live-service-health-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "94c40b89f66584cc8276-0df8fbf8eb7367ad2159",
+              "file": "06-brains.spec.ts",
+              "line": 15,
+              "column": 5
+            },
+            {
+              "title": "Root Cause brain panel reports live service health",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Brain panel online: Root Cause"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2421,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:10.037Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Brain panel online: Root Cause"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-e5906-reports-live-service-health-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-e5906-reports-live-service-health-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-e5906-reports-live-service-health-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "94c40b89f66584cc8276-41b25df7649ff568d71e",
+              "file": "06-brains.spec.ts",
+              "line": 15,
+              "column": 5
+            },
+            {
+              "title": "Lessons Learned brain panel reports live service health",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Brain panel online: Lessons Learned"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2775,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:12.614Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Brain panel online: Lessons Learned"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-eed6e-reports-live-service-health-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-eed6e-reports-live-service-health-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-eed6e-reports-live-service-health-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "94c40b89f66584cc8276-a1469de431cef2709b3c",
+              "file": "06-brains.spec.ts",
+              "line": 15,
+              "column": 5
+            },
+            {
+              "title": "brains are status scaffolds — interactive workflows not yet built",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "note",
+                      "description": "All four intelligence brains expose a live status endpoint and render an Online panel, but they are scaffolds: there is no interactive work-order generation, compliance analysis, RCA, or lessons-learned workflow UI behind them."
+                    },
+                    {
+                      "type": "suggestion",
+                      "description": "Several requested validations (generate work orders, run compliance/RCA/maintenance/lessons analyses through the browser) cannot be exercised because those flows are status scaffolds only. Wiring at least one brain to a real interactive endpoint would make the vertical demonstrable end-to-end."
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Brains capability-gap documented"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 570,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:15.573Z",
+                      "annotations": [
+                        {
+                          "type": "note",
+                          "description": "All four intelligence brains expose a live status endpoint and render an Online panel, but they are scaffolds: there is no interactive work-order generation, compliance analysis, RCA, or lessons-learned workflow UI behind them."
+                        },
+                        {
+                          "type": "suggestion",
+                          "description": "Several requested validations (generate work orders, run compliance/RCA/maintenance/lessons analyses through the browser) cannot be exercised because those flows are status scaffolds only. Wiring at least one brain to a real interactive endpoint would make the vertical demonstrable end-to-end."
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Brains capability-gap documented"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-92b34-ive-workflows-not-yet-built-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-92b34-ive-workflows-not-yet-built-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\06-brains-Intelligence-Bra-92b34-ive-workflows-not-yet-built-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "94c40b89f66584cc8276-395cf86c2ecb91a2f687",
+              "file": "06-brains.spec.ts",
+              "line": 28,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "07-settings-theme.spec.ts",
+      "file": "07-settings-theme.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Settings & Theming",
+          "file": "07-settings-theme.spec.ts",
+          "line": 6,
+          "column": 6,
+          "specs": [
+            {
+              "title": "settings page renders appearance, account, and notifications",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Settings page renders all cards"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1698,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:16.217Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Settings page renders all cards"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\07-settings-theme-Settings-8a429-e-account-and-notifications-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\07-settings-theme-Settings-8a429-e-account-and-notifications-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\07-settings-theme-Settings-8a429-e-account-and-notifications-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5cfb2089e91e0b455064-9eaa26d80e410c46eae3",
+              "file": "07-settings-theme.spec.ts",
+              "line": 7,
+              "column": 3
+            },
+            {
+              "title": "dark mode toggles, applies to <html>, and persists across reload",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Dark mode applies to <html>"
+                    },
+                    {
+                      "type": "note",
+                      "description": "persisted theme = dark"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Theme persists across reload"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Theme switch via Settings controls"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4567,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:18.016Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Dark mode applies to <html>"
+                        },
+                        {
+                          "type": "note",
+                          "description": "persisted theme = dark"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Theme persists across reload"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Theme switch via Settings controls"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\07-settings-theme-Settings-9d6b3--and-persists-across-reload-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\07-settings-theme-Settings-9d6b3--and-persists-across-reload-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\07-settings-theme-Settings-9d6b3--and-persists-across-reload-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "5cfb2089e91e0b455064-d53aa4a7d2edfd7ef549",
+              "file": "07-settings-theme.spec.ts",
+              "line": 16,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "08-responsive-a11y.spec.ts",
+      "file": "08-responsive-a11y.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Responsiveness & Accessibility",
+          "file": "08-responsive-a11y.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "mobile layout hides the sidebar behind a menu button",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Responsive: mobile off-canvas sidebar"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2831,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:22.897Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Responsive: mobile off-canvas sidebar"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-6345b-idebar-behind-a-menu-button-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-6345b-idebar-behind-a-menu-button-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-6345b-idebar-behind-a-menu-button-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "218258ddc3a00f90aa12-3d53a60715ef2382e073",
+              "file": "08-responsive-a11y.spec.ts",
+              "line": 8,
+              "column": 3
+            },
+            {
+              "title": "tablet layout renders without meaningful horizontal overflow",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "note",
+                      "description": "tablet horizontal overflow: 0px"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Responsive: tablet layout"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1715,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:25.858Z",
+                      "annotations": [
+                        {
+                          "type": "note",
+                          "description": "tablet horizontal overflow: 0px"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Responsive: tablet layout"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-5908b-ningful-horizontal-overflow-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-5908b-ningful-horizontal-overflow-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-5908b-ningful-horizontal-overflow-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "218258ddc3a00f90aa12-59c538a2ef0df174bc8a",
+              "file": "08-responsive-a11y.spec.ts",
+              "line": 30,
+              "column": 3
+            },
+            {
+              "title": "accessibility scan (axe-core) of core authenticated pages",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "warning",
+                      "description": "a11y[documents]: 1 serious/critical violation(s) — color-contrast"
+                    },
+                    {
+                      "type": "note",
+                      "description": "a11y[documents]: 1 total violation(s), 1 serious+"
+                    },
+                    {
+                      "type": "warning",
+                      "description": "a11y[knowledge]: 1 serious/critical violation(s) — color-contrast"
+                    },
+                    {
+                      "type": "note",
+                      "description": "a11y[knowledge]: 1 total violation(s), 1 serious+"
+                    },
+                    {
+                      "type": "warning",
+                      "description": "a11y[knowledge-graph]: 1 serious/critical violation(s) — color-contrast"
+                    },
+                    {
+                      "type": "note",
+                      "description": "a11y[knowledge-graph]: 1 total violation(s), 1 serious+"
+                    },
+                    {
+                      "type": "warning",
+                      "description": "a11y[settings]: 1 serious/critical violation(s) — color-contrast"
+                    },
+                    {
+                      "type": "note",
+                      "description": "a11y[settings]: 1 total violation(s), 1 serious+"
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Accessibility scan of core pages"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 11576,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:27.658Z",
+                      "annotations": [
+                        {
+                          "type": "warning",
+                          "description": "a11y[documents]: 1 serious/critical violation(s) — color-contrast"
+                        },
+                        {
+                          "type": "note",
+                          "description": "a11y[documents]: 1 total violation(s), 1 serious+"
+                        },
+                        {
+                          "type": "warning",
+                          "description": "a11y[knowledge]: 1 serious/critical violation(s) — color-contrast"
+                        },
+                        {
+                          "type": "note",
+                          "description": "a11y[knowledge]: 1 total violation(s), 1 serious+"
+                        },
+                        {
+                          "type": "warning",
+                          "description": "a11y[knowledge-graph]: 1 serious/critical violation(s) — color-contrast"
+                        },
+                        {
+                          "type": "note",
+                          "description": "a11y[knowledge-graph]: 1 total violation(s), 1 serious+"
+                        },
+                        {
+                          "type": "warning",
+                          "description": "a11y[settings]: 1 serious/critical violation(s) — color-contrast"
+                        },
+                        {
+                          "type": "note",
+                          "description": "a11y[settings]: 1 total violation(s), 1 serious+"
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Accessibility scan of core pages"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "a11y-documents",
+                          "contentType": "text/plain",
+                          "body": "W3NlcmlvdXNdIGNvbG9yLWNvbnRyYXN0OiBFbGVtZW50cyBtdXN0IG1lZXQgbWluaW11bSBjb2xvciBjb250cmFzdCByYXRpbyB0aHJlc2hvbGRzICg0IG5vZGUocykp"
+                        },
+                        {
+                          "name": "a11y-knowledge",
+                          "contentType": "text/plain",
+                          "body": "W3NlcmlvdXNdIGNvbG9yLWNvbnRyYXN0OiBFbGVtZW50cyBtdXN0IG1lZXQgbWluaW11bSBjb2xvciBjb250cmFzdCByYXRpbyB0aHJlc2hvbGRzICg0IG5vZGUocykp"
+                        },
+                        {
+                          "name": "a11y-knowledge-graph",
+                          "contentType": "text/plain",
+                          "body": "W3NlcmlvdXNdIGNvbG9yLWNvbnRyYXN0OiBFbGVtZW50cyBtdXN0IG1lZXQgbWluaW11bSBjb2xvciBjb250cmFzdCByYXRpbyB0aHJlc2hvbGRzICgzIG5vZGUocykp"
+                        },
+                        {
+                          "name": "a11y-settings",
+                          "contentType": "text/plain",
+                          "body": "W3NlcmlvdXNdIGNvbG9yLWNvbnRyYXN0OiBFbGVtZW50cyBtdXN0IG1lZXQgbWluaW11bSBjb2xvciBjb250cmFzdCByYXRpbyB0aHJlc2hvbGRzICg0IG5vZGUocykp"
+                        },
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-3fede-of-core-authenticated-pages-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-3fede-of-core-authenticated-pages-app\\video-1.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-3fede-of-core-authenticated-pages-app\\video.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-3fede-of-core-authenticated-pages-app\\video-2.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-3fede-of-core-authenticated-pages-app\\video-3.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-3fede-of-core-authenticated-pages-app\\video-4.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\08-responsive-a11y-Respons-3fede-of-core-authenticated-pages-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "218258ddc3a00f90aa12-be962250a10677a96e97",
+              "file": "08-responsive-a11y.spec.ts",
+              "line": 43,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "09-resilience.spec.ts",
+      "file": "09-resilience.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Resilience & Edge Cases",
+          "file": "09-resilience.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "unknown route renders the 404 page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "404 / NotFound route"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1710,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:41.126Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "404 / NotFound route"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-895ce--route-renders-the-404-page-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-895ce--route-renders-the-404-page-app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-895ce--route-renders-the-404-page-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fbb45473c91ac63868e5-1c4fccec1bb32d3604b1",
+              "file": "09-resilience.spec.ts",
+              "line": 6,
+              "column": 3
+            },
+            {
+              "title": "API failure degrades gracefully (no white screen)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "note",
+                      "description": "Document list handled an aborted API call without a crash."
+                    },
+                    {
+                      "type": "coverage",
+                      "description": "Graceful API / network-failure handling"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1879,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:42.927Z",
+                      "annotations": [
+                        {
+                          "type": "note",
+                          "description": "Document list handled an aborted API call without a crash."
+                        },
+                        {
+                          "type": "coverage",
+                          "description": "Graceful API / network-failure handling"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-36a84-gracefully-no-white-screen--app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDQpOgpGYWlsZWQgdG8gbG9hZCByZXNvdXJjZTogbmV0OjpFUlJfRkFJTEVECkZhaWxlZCB0byBmZXRjaCBkb2N1bWVudHMgVHlwZUVycm9yOiBGYWlsZWQgdG8gZmV0Y2gKICAgIGF0IGh0dHA6Ly8xMjcuMC4wLjE6NTE5OS9zcmMvY29tcG9uZW50cy9kb2N1bWVudHMvRG9jdW1lbnRMaXN0LnRzeDo1NDoyNQogICAgYXQgaHR0cDovLzEyNy4wLjAuMTo1MTk5L3NyYy9jb21wb25lbnRzL2RvY3VtZW50cy9Eb2N1bWVudExpc3QudHN4OjY4OjUKICAgIGF0IGNvbW1pdEhvb2tFZmZlY3RMaXN0TW91bnQgKGh0dHA6Ly8xMjcuMC4wLjE6NTE5OS9ub2RlX21vZHVsZXMvLnZpdGUvZGVwcy9jaHVuay1SS01HRTVJSC5qcz92PTk0MTRhYjk4OjE2OTYzOjM0KQogICAgYXQgY29tbWl0UGFzc2l2ZU1vdW50T25GaWJlciAoaHR0cDovLzEyNy4wLjAuMTo1MTk5L25vZGVfbW9kdWxlcy8udml0ZS9kZXBzL2NodW5rLVJLTUdFNUlILmpzP3Y9OTQxNGFiOTg6MTgyMDY6MTkpCiAgICBhdCBjb21taXRQYXNzaXZlTW91bnRFZmZlY3RzX2NvbXBsZXRlIChodHRwOi8vMTI3LjAuMC4xOjUxOTkvbm9kZV9tb2R1bGVzLy52aXRlL2RlcHMvY2h1bmstUktNR0U1SUguanM/dj05NDE0YWI5ODoxODE3OToxNykKICAgIGF0IGNvbW1pdFBhc3NpdmVNb3VudEVmZmVjdHNfYmVnaW4gKGh0dHA6Ly8xMjcuMC4wLjE6NTE5OS9ub2RlX21vZHVsZXMvLnZpdGUvZGVwcy9jaHVuay1SS01HRTVJSC5qcz92PTk0MTRhYjk4OjE4MTY5OjE1KQogICAgYXQgY29tbWl0UGFzc2l2ZU1vdW50RWZmZWN0cyAoaHR0cDovLzEyNy4wLjAuMTo1MTk5L25vZGVfbW9kdWxlcy8udml0ZS9kZXBzL2NodW5rLVJLTUdFNUlILmpzP3Y9OTQxNGFiOTg6MTgxNTk6MTEpCiAgICBhdCBmbHVzaFBhc3NpdmVFZmZlY3RzSW1wbCAoaHR0cDovLzEyNy4wLjAuMTo1MTk5L25vZGVfbW9kdWxlcy8udml0ZS9kZXBzL2NodW5rLVJLTUdFNUlILmpzP3Y9OTQxNGFiOTg6MTk1NDM6MTEpCiAgICBhdCBmbHVzaFBhc3NpdmVFZmZlY3RzIChodHRwOi8vMTI3LjAuMC4xOjUxOTkvbm9kZV9tb2R1bGVzLy52aXRlL2RlcHMvY2h1bmstUktNR0U1SUguanM/dj05NDE0YWI5ODoxOTUwMDoyMikKICAgIGF0IGh0dHA6Ly8xMjcuMC4wLjE6NTE5OS9ub2RlX21vZHVsZXMvLnZpdGUvZGVwcy9jaHVuay1SS01HRTVJSC5qcz92PTk0MTRhYjk4OjE5MzgxOjE3CkZhaWxlZCB0byBsb2FkIHJlc291cmNlOiBuZXQ6OkVSUl9GQUlMRUQKRmFpbGVkIHRvIGZldGNoIGRvY3VtZW50cyBUeXBlRXJyb3I6IEZhaWxlZCB0byBmZXRjaAogICAgYXQgaHR0cDovLzEyNy4wLjAuMTo1MTk5L3NyYy9jb21wb25lbnRzL2RvY3VtZW50cy9Eb2N1bWVudExpc3QudHN4OjU0OjI1CiAgICBhdCBodHRwOi8vMTI3LjAuMC4xOjUxOTkvc3JjL2NvbXBvbmVudHMvZG9jdW1lbnRzL0RvY3VtZW50TGlzdC50c3g6Njg6NQogICAgYXQgY29tbWl0SG9va0VmZmVjdExpc3RNb3VudCAoaHR0cDovLzEyNy4wLjAuMTo1MTk5L25vZGVfbW9kdWxlcy8udml0ZS9kZXBzL2NodW5rLVJLTUdFNUlILmpzP3Y9OTQxNGFiOTg6MTY5NjM6MzQpCiAgICBhdCBpbnZva2VQYXNzaXZlRWZmZWN0TW91bnRJbkRFViAoaHR0cDovLzEyNy4wLjAuMTo1MTk5L25vZGVfbW9kdWxlcy8udml0ZS9kZXBzL2NodW5rLVJLTUdFNUlILmpzP3Y9OTQxNGFiOTg6MTgzNzQ6MTkpCiAgICBhdCBpbnZva2VFZmZlY3RzSW5EZXYgKGh0dHA6Ly8xMjcuMC4wLjE6NTE5OS9ub2RlX21vZHVsZXMvLnZpdGUvZGVwcy9jaHVuay1SS01HRTVJSC5qcz92PTk0MTRhYjk4OjE5NzU0OjE5KQogICAgYXQgY29tbWl0RG91YmxlSW52b2tlRWZmZWN0c0luREVWIChodHRwOi8vMTI3LjAuMC4xOjUxOTkvbm9kZV9tb2R1bGVzLy52aXRlL2RlcHMvY2h1bmstUktNR0U1SUguanM/dj05NDE0YWI5ODoxOTczOToxNSkKICAgIGF0IGZsdXNoUGFzc2l2ZUVmZmVjdHNJbXBsIChodHRwOi8vMTI3LjAuMC4xOjUxOTkvbm9kZV9tb2R1bGVzLy52aXRlL2RlcHMvY2h1bmstUktNR0U1SUguanM/dj05NDE0YWI5ODoxOTU1NjoxMykKICAgIGF0IGZsdXNoUGFzc2l2ZUVmZmVjdHMgKGh0dHA6Ly8xMjcuMC4wLjE6NTE5OS9ub2RlX21vZHVsZXMvLnZpdGUvZGVwcy9jaHVuay1SS01HRTVJSC5qcz92PTk0MTRhYjk4OjE5NTAwOjIyKQogICAgYXQgaHR0cDovLzEyNy4wLjAuMTo1MTk5L25vZGVfbW9kdWxlcy8udml0ZS9kZXBzL2NodW5rLVJLTUdFNUlILmpzP3Y9OTQxNGFiOTg6MTkzODE6MTcKICAgIGF0IHdvcmtMb29wIChodHRwOi8vMTI3LjAuMC4xOjUxOTkvbm9kZV9tb2R1bGVzLy52aXRlL2RlcHMvY2h1bmstUktNR0U1SUguanM/dj05NDE0YWI5ODoxOTc6NDIpCgpQQUdFIEVSUk9SUyAoMCk6Cihub25lKQoKRkFJTEVEIFJFUVVFU1RTICgyKToKR0VUIGh0dHA6Ly8xMjcuMC4wLjE6NTE5OS9hcGkvdjEvZG9jdW1lbnRzLz9saW1pdD01MCDigJQgbmV0OjpFUlJfRkFJTEVECkdFVCBodHRwOi8vMTI3LjAuMC4xOjUxOTkvYXBpL3YxL2RvY3VtZW50cy8/bGltaXQ9NTAg4oCUIG5ldDo6RVJSX0ZBSUxFRAoKNXh4IFJFU1BPTlNFUyAoMCk6Cihub25lKQo="
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-36a84-gracefully-no-white-screen--app\\video.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-36a84-gracefully-no-white-screen--app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fbb45473c91ac63868e5-e5ba1b94d4ca2bb36d2f",
+              "file": "09-resilience.spec.ts",
+              "line": 15,
+              "column": 3
+            },
+            {
+              "title": "multi-tab: copilot and knowledge graph run in parallel tabs",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 90000,
+                  "annotations": [
+                    {
+                      "type": "coverage",
+                      "description": "Multi-tab parallel authenticated sessions"
+                    }
+                  ],
+                  "expectedStatus": "passed",
+                  "projectId": "app",
+                  "projectName": "app",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5368,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-07-04T12:21:44.886Z",
+                      "annotations": [
+                        {
+                          "type": "coverage",
+                          "description": "Multi-tab parallel authenticated sessions"
+                        }
+                      ],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-4a094--graph-run-in-parallel-tabs-app\\test-finished-1.png"
+                        },
+                        {
+                          "name": "browser-signals",
+                          "contentType": "text/plain",
+                          "body": "Q09OU09MRSBFUlJPUlMgKDApOgoobm9uZSkKClBBR0UgRVJST1JTICgwKToKKG5vbmUpCgpGQUlMRUQgUkVRVUVTVFMgKDApOgoobm9uZSkKCjV4eCBSRVNQT05TRVMgKDApOgoobm9uZSkK"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-4a094--graph-run-in-parallel-tabs-app\\video.webm"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-4a094--graph-run-in-parallel-tabs-app\\video-1.webm"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "D:\\industrial-brain\\reports\\e2e\\artifacts\\09-resilience-Resilience-E-4a094--graph-run-in-parallel-tabs-app\\trace.zip"
+                        }
+                      ]
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "fbb45473c91ac63868e5-5d300c8f6e3a4a3e3fbf",
+              "file": "09-resilience.spec.ts",
+              "line": 29,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-07-04T12:16:30.777Z",
+    "duration": 325071.354,
+    "expected": 31,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
