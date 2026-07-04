@@ -1,5 +1,6 @@
 import logging
 import datetime
+import uuid
 from typing import Optional, Dict
 from app.domain.auth.interfaces import IUserRepository, ITokenService, IPasswordHasher
 from app.domain.auth.models import User
@@ -14,6 +15,10 @@ class AuthException(Exception):
 
 
 class AuthenticationError(AuthException):
+    pass
+
+
+class UserAlreadyExistsError(AuthException):
     pass
 
 
@@ -80,6 +85,55 @@ class AuthUseCase:
 
         log_audit_event(
             AuditEvent.LOGIN_SUCCESS,
+            "Success",
+            user_id=user.id,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            correlation_id=correlation_id,
+        )
+
+        return {"access_token": access_token, "refresh_token": refresh_token}
+
+    def register(
+        self,
+        email: str,
+        password: str,
+        full_name: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+    ) -> Dict[str, str]:
+        """
+        Creates a new user account and returns access and refresh tokens
+        (registration auto-signs the user in, mirroring authenticate_user).
+        """
+        correlation_id = correlation_id_ctx.get()
+
+        if self.user_repo.get_by_email(email):
+            log_audit_event(
+                AuditEvent.USER_REGISTERED,
+                "Failure: Email already registered",
+                ip_address=ip_address,
+                user_agent=user_agent,
+                correlation_id=correlation_id,
+                details={"email": email},
+            )
+            raise UserAlreadyExistsError("An account with this email already exists")
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email=email,
+            hashed_password=self.password_hasher.get_password_hash(password),
+            full_name=full_name,
+            is_active=True,
+        )
+        self.user_repo.create(user)
+
+        data = {"sub": user.id, "email": user.email}
+        access_token = self.token_service.create_access_token(data=data)
+        refresh_token = self.token_service.create_refresh_token(data=data)
+
+        log_audit_event(
+            AuditEvent.USER_REGISTERED,
             "Success",
             user_id=user.id,
             ip_address=ip_address,

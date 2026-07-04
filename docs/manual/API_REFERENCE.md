@@ -16,12 +16,36 @@ models.
 
 ## Authentication
 
-All endpoints except `POST /auth/login`, `POST /auth/refresh`, and
-`GET /health` require a Bearer JWT:
+All endpoints except `POST /auth/login`, `POST /auth/register`,
+`POST /auth/refresh`, and `GET /health` require a Bearer JWT:
 
 ```
 Authorization: Bearer <access_token>
 ```
+
+### `POST /auth/register`
+
+JSON (not form-encoded, unlike `/login`):
+
+```bash
+curl -X POST http://localhost:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"at-least-8-chars","full_name":"Optional Name"}'
+```
+
+Creates the account and signs the user in immediately — the response is the
+same token pair shape as `/login`:
+
+```json
+{ "access_token": "...", "refresh_token": "...", "token_type": "bearer" }
+```
+
+Returns `409 Conflict` (`{"detail": "An account with this email already exists"}`)
+if the email is already registered. `password` must be ≥8 characters
+(enforced by the request schema); there is no additional complexity
+requirement. This endpoint has no rate limiting or email verification —
+treat it as a convenience for trusted/internal deployments, not a
+public-internet-facing signup flow, until those are added.
 
 ### `POST /auth/login`
 
@@ -59,9 +83,10 @@ supplied). Never raises even if the token is already expired.
 
 Returns the current user: `{ id, email, full_name, is_active }`.
 
-There is currently no self-service `POST /auth/register` endpoint — users are
-provisioned directly in the `users` table (see
-[`ADMIN_GUIDE.md`](ADMIN_GUIDE.md#1-user-management)).
+There is no admin UI for user management yet (deactivating a user, assigning
+roles, etc. still requires a direct database update — see
+[`ADMIN_GUIDE.md`](ADMIN_GUIDE.md#1-user-management)); account *creation* is
+now self-service via `POST /auth/register` above.
 
 ---
 

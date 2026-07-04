@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
-from app.application.auth.services import AuthUseCase, AuthenticationError
+from app.application.auth.services import (
+    AuthUseCase,
+    AuthenticationError,
+    UserAlreadyExistsError,
+)
 from app.presentation.api.dependencies.auth import (
     get_auth_use_case,
     get_current_user,
@@ -20,6 +24,12 @@ class TokenResponse(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
+
+
+class RegisterRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=255)
+    password: str = Field(..., min_length=8, max_length=128)
+    full_name: Optional[str] = None
 
 
 class RefreshRequest(BaseModel):
@@ -61,6 +71,33 @@ def login_for_access_token(
             detail=str(e),
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+@router.post(
+    "/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+)
+def register_user(
+    request: Request,
+    body: RegisterRequest,
+    auth_use_case: AuthUseCase = Depends(get_auth_use_case),
+):
+    """Creates a new account and signs the user in immediately (same token
+    pair shape as /login)."""
+    try:
+        tokens = auth_use_case.register(
+            email=body.email,
+            password=body.password,
+            full_name=body.full_name,
+            ip_address=request.client.host if request.client else None,
+            user_agent=request.headers.get("user-agent"),
+        )
+        return {
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens["refresh_token"],
+            "token_type": "bearer",
+        }
+    except UserAlreadyExistsError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
 
 
 @router.post("/refresh", response_model=TokenResponse)

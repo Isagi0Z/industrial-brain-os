@@ -12,10 +12,18 @@ locally this is `http://localhost:3000`). You'll land on the **home page**,
 which introduces the platform. Click **Launch Console** or **Sign in** to go
 to the login screen.
 
-Enter the email and password your administrator gave you and click **Sign
-in**. If your credentials are rejected, double-check them with your
-administrator — there is currently no self-service "forgot password" flow
-(see [`ADMIN_GUIDE.md`](ADMIN_GUIDE.md) if you *are* the administrator).
+Enter your email and password and click **Sign in**. If your credentials are
+rejected, double-check them, or contact your administrator — there is
+currently no self-service "forgot password" flow (see
+[`ADMIN_GUIDE.md`](ADMIN_GUIDE.md) if you *are* the administrator).
+
+### Creating an account
+
+If you don't have an account yet, click **Sign up** on the sign-in page (or
+go directly to the console's `/signup` route). Enter your name, a valid
+email, and a password (at least 8 characters), then click **Sign up** — you
+are signed in immediately, no email confirmation required. If the email is
+already registered, sign in instead.
 
 ---
 

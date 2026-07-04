@@ -9,9 +9,16 @@ and security administration. For first-time deployment, see
 
 ## 1. User Management
 
-There is currently **no self-service registration or admin UI for user
-management** — users are provisioned directly against the PostgreSQL `users`
-table.
+Self-service account creation is available at `POST /auth/register` (see
+[`API_REFERENCE.md`](API_REFERENCE.md#post-authregister)) and via the
+console's **Sign up** page — anyone who can reach the login screen can create
+an account. There is **no admin UI** yet for managing existing users
+(deactivating, assigning roles, resetting a password) — those still require a
+direct PostgreSQL `users` table update, and there is no email verification or
+rate limiting on registration. If you need to lock down account creation for
+a shared/production deployment before those controls exist, put the
+`/auth/register` route behind your reverse proxy's auth or remove it from the
+router.
 
 ### Default development admin
 
@@ -29,6 +36,11 @@ password: ChangeMe123!
 > direct database update (there is no "force password change" flow yet).
 
 ### Creating a new user
+
+The normal path is self-service: `POST /auth/register` or the console's
+**Sign up** page (see `API_REFERENCE.md`). Provision a user directly in
+PostgreSQL only when you need to bypass that flow — e.g. scripting a batch of
+accounts, or `/auth/register` has been disabled per §1 above:
 
 ```bash
 cd backend

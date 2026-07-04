@@ -12,7 +12,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.application.auth.services import AuthenticationError, AuthUseCase
+from app.application.auth.services import (
+    AuthenticationError,
+    AuthUseCase,
+    UserAlreadyExistsError,
+)
 
 
 def _user(active=True):
@@ -25,12 +29,17 @@ class _Repo:
     def __init__(self, by_email=None, by_id=None):
         self._by_email = by_email
         self._by_id = by_id
+        self.created = []
 
     def get_by_email(self, email):
         return self._by_email
 
     def get_by_id(self, uid):
         return self._by_id
+
+    def create(self, user):
+        self.created.append(user)
+        return user
 
 
 class _Tokens:
@@ -57,6 +66,9 @@ class _Hasher:
 
     def verify_password(self, raw, hashed):
         return self._ok
+
+    def get_password_hash(self, raw):
+        return f"hashed:{raw}"
 
 
 def _future_exp():
@@ -88,6 +100,31 @@ def test_authenticate_bad_password_raises():
     uc = AuthUseCase(_Repo(by_email=_user()), _Tokens(), _Hasher(ok=False))
     with pytest.raises(AuthenticationError, match="Invalid email or password"):
         uc.authenticate_user("a@b.local", "wrong")
+
+
+# --- register -----------------------------------------------------------------
+
+
+def test_register_creates_user_and_returns_tokens():
+    repo = _Repo(by_email=None)
+    uc = AuthUseCase(repo, _Tokens(), _Hasher())
+    out = uc.register("new@b.local", "pw123456", full_name="New User")
+    assert out == {"access_token": "access-token", "refresh_token": "refresh-token"}
+    assert len(repo.created) == 1
+    created = repo.created[0]
+    assert created.email == "new@b.local"
+    assert created.full_name == "New User"
+    assert created.hashed_password == "hashed:pw123456"
+    assert created.is_active is True
+    assert created.id  # a uuid was generated
+
+
+def test_register_duplicate_email_raises():
+    repo = _Repo(by_email=_user())
+    uc = AuthUseCase(repo, _Tokens(), _Hasher())
+    with pytest.raises(UserAlreadyExistsError, match="already exists"):
+        uc.register("a@b.local", "pw123456")
+    assert repo.created == []  # never called create() on the duplicate path
 
 
 # --- verify_access_token ------------------------------------------------------

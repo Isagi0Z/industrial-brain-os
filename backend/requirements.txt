@@ -12,6 +12,12 @@ structlog>=24.1.0
 # Authentication & Security
 PyJWT>=2.8.0
 passlib[bcrypt]>=1.7.4
+# passlib 1.7.4 introspects bcrypt.__about__.__version__, which bcrypt>=4.1
+# removed — passlib silently mis-handles the 72-byte truncation check and
+# get_password_hash() raises "password cannot be longer than 72 bytes" even
+# for short passwords. Pin to the last compatible bcrypt major until passlib
+# ships a fix (https://github.com/pyca/bcrypt/issues/684).
+bcrypt<4.1.0
 
 # Database & Storage Drivers (scaffold for downstream DB clients)
 alembic>=1.13.0
