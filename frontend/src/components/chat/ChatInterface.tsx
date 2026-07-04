@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Send, Loader2, MessageSquare, RefreshCw } from 'lucide-react';
+import { Send, Loader2, Sparkles, RefreshCw, Bot } from 'lucide-react';
 import { MessageBubble, Message } from './MessageBubble';
 import { Citation } from './CitationCard';
 import { useAuth } from '../../context/AuthContext';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { cn } from '../../lib/utils';
 
 const WS_BASE = `ws://${window.location.hostname}:8000`;
 
@@ -159,52 +162,65 @@ export const ChatInterface: React.FC = () => {
     setTimeout(connect, 200);
   };
 
+  const suggestions = [
+    'What is the rated discharge pressure of pump P-102A?',
+    'How do I isolate pump P-102A before maintenance?',
+    'What failure modes does P-102A exhibit?',
+  ];
+
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-6rem)] max-w-4xl mx-auto">
+    <div className="mx-auto flex h-full max-h-[calc(100vh-8rem)] max-w-4xl flex-col overflow-hidden rounded-2xl border border-border bg-card/40">
       {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900">
+      <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-            <MessageSquare className="w-5 h-5 text-indigo-400" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-500 shadow-glow">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-slate-100">
-              Knowledge Copilot
-            </h1>
-            <p className="text-xs text-slate-500">
-              {isConnected ? (
-                <span className="text-emerald-400">Connected</span>
-              ) : (
-                <span className="text-red-400">Disconnected</span>
-              )}
-              {lastModel && (
-                <span className="ml-2 text-slate-600 font-mono">
-                  {lastModel}
-                </span>
-              )}
-            </p>
+            <h1 className="text-sm font-semibold">Knowledge Copilot</h1>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span
+                  className={cn(
+                    'h-1.5 w-1.5 rounded-full',
+                    isConnected ? 'bg-success' : 'bg-destructive'
+                  )}
+                />
+                {isConnected ? 'Connected' : 'Disconnected'}
+              </span>
+              {lastModel && <span className="font-mono text-muted-foreground/70">{lastModel}</span>}
+            </div>
           </div>
         </div>
-        <button
-          onClick={resetSession}
-          className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-900 transition-colors"
-          title="New conversation"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
+        <Button variant="ghost" size="icon" onClick={resetSession} title="New conversation">
+          <RefreshCw className="h-4 w-4" />
+        </Button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4 min-h-0">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-5">
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-3 py-12">
-            <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10">
-              <MessageSquare className="w-8 h-8 text-indigo-500/50" />
+          <div className="flex h-full flex-col items-center justify-center gap-5 py-10 text-center">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/20">
+              <Bot className="h-8 w-8 text-primary" />
             </div>
-            <p className="text-slate-500 text-sm max-w-sm">
-              Ask a question about your indexed industrial documents. Answers
-              are grounded in your document library with citations.
-            </p>
+            <div>
+              <h2 className="text-base font-semibold">Ask your document library</h2>
+              <p className="mx-auto mt-1.5 max-w-sm text-sm text-muted-foreground">
+                Answers are grounded in your indexed industrial documents, with inline citations.
+              </p>
+            </div>
+            <div className="flex w-full max-w-lg flex-col gap-2">
+              {suggestions.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setInput(s)}
+                  className="rounded-lg border border-border bg-card/60 px-4 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         {messages.map((msg) => (
@@ -214,32 +230,32 @@ export const ChatInterface: React.FC = () => {
       </div>
 
       {/* Input */}
-      <div className="px-6 py-4 border-t border-slate-900">
-        <div className="flex gap-3 items-end rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-3 focus-within:border-indigo-500/40 transition-colors">
+      <div className="border-t border-border px-5 py-4">
+        <div className="flex items-end gap-3 rounded-xl border border-input bg-background/60 px-4 py-2.5 transition-colors focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask about a document, equipment, procedure…"
             rows={1}
-            className="flex-1 bg-transparent text-sm text-slate-100 placeholder-slate-600 resize-none focus:outline-none leading-relaxed max-h-40"
+            aria-label="Message"
+            className="max-h-40 flex-1 resize-none bg-transparent text-sm leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none"
             style={{ fieldSizing: 'content' } as React.CSSProperties}
           />
-          <button
+          <Button
+            variant="gradient"
+            size="icon"
             onClick={sendMessage}
             disabled={!input.trim() || isWaiting || !isConnected}
-            className="flex-shrink-0 p-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white transition-colors"
+            aria-label="Send message"
           >
-            {isWaiting ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-          </button>
+            {isWaiting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </Button>
         </div>
-        <p className="text-[10px] text-slate-700 mt-2 text-center">
-          Enter to send · Shift+Enter for new line · Answers grounded in
-          indexed documents only
+        <p className="mt-2 flex items-center justify-center gap-2 text-center text-[10px] text-muted-foreground/70">
+          <Badge variant="outline" className="px-1.5 py-0 text-[9px]">Enter</Badge> to send ·
+          <Badge variant="outline" className="px-1.5 py-0 text-[9px]">Shift+Enter</Badge> new line ·
+          grounded in indexed documents only
         </p>
       </div>
     </div>

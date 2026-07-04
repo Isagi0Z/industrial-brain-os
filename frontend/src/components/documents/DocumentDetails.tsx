@@ -3,6 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft, Save, Trash2, RefreshCw, FileText } from 'lucide-react';
 import { DocumentViewer } from './DocumentViewer';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
+import { Badge } from '../ui/badge';
+import { Textarea } from '../ui/input';
+import { LoadingState } from '../ui/spinner';
+import { FadeIn } from '../ui/motion';
 
 interface DocumentVersion {
   id: string;
@@ -107,114 +113,126 @@ export const DocumentDetails: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="p-6 text-center text-gray-500">Loading document details...</div>;
-  if (!doc) return <div className="p-6 text-center text-red-500">{error}</div>;
+  if (loading) return <LoadingState label="Loading document…" />;
+  if (!doc)
+    return (
+      <div className="py-16 text-center text-sm text-destructive">{error || 'Not found'}</div>
+    );
+
+  const details = [
+    ['Status', doc.status],
+    ['MIME type', doc.mime_type],
+    ['Size', `${(doc.size_bytes / 1024 / 1024).toFixed(2)} MB`],
+    ['Uploaded', new Date(doc.created_at).toLocaleString()],
+    ['SHA-256', doc.sha256_hash],
+  ] as const;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex items-center space-x-4">
-        <button onClick={() => navigate('/dashboard/documents')} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-          <ArrowLeft className="w-5 h-5 text-gray-600" />
-        </button>
-        <h1 className="text-2xl font-bold text-gray-900">{doc.original_filename}</h1>
-        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${doc.is_deleted ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-          {doc.is_deleted ? 'DELETED' : 'ACTIVE'}
-        </span>
+    <FadeIn className="mx-auto max-w-4xl space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" onClick={() => navigate('/documents')} aria-label="Back">
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="min-w-0 flex-1 truncate text-xl font-semibold tracking-tight" title={doc.original_filename}>
+          {doc.original_filename}
+        </h1>
+        <Badge variant={doc.is_deleted ? 'destructive' : 'success'}>
+          {doc.is_deleted ? 'Deleted' : 'Active'}
+        </Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-semibold mb-4 text-gray-800">Details</h2>
-          <div className="space-y-3 text-sm">
-            <div className="grid grid-cols-3 gap-2">
-              <span className="text-gray-500 font-medium">Status:</span>
-              <span className="col-span-2 text-gray-900">{doc.status}</span>
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            {details.map(([label, value]) => (
+              <div key={label} className="grid grid-cols-3 gap-2">
+                <span className="font-medium text-muted-foreground">{label}</span>
+                <span className="col-span-2 truncate text-foreground" title={String(value)}>
+                  {value}
+                </span>
+              </div>
+            ))}
+            <div className="pt-3">
+              {!doc.is_deleted ? (
+                <Button variant="destructive" size="sm" onClick={handleDelete}>
+                  <Trash2 className="h-4 w-4" /> Soft delete
+                </Button>
+              ) : (
+                <Button variant="secondary" size="sm" onClick={handleRestore}>
+                  <RefreshCw className="h-4 w-4" /> Restore
+                </Button>
+              )}
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="text-gray-500 font-medium">MIME Type:</span>
-              <span className="col-span-2 text-gray-900">{doc.mime_type}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="text-gray-500 font-medium">Size:</span>
-              <span className="col-span-2 text-gray-900">{(doc.size_bytes / 1024 / 1024).toFixed(2)} MB</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="text-gray-500 font-medium">Uploaded:</span>
-              <span className="col-span-2 text-gray-900">{new Date(doc.created_at).toLocaleString()}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <span className="text-gray-500 font-medium">SHA-256:</span>
-              <span className="col-span-2 text-gray-900 truncate" title={doc.sha256_hash}>{doc.sha256_hash}</span>
-            </div>
-          </div>
-          
-          <div className="mt-6 flex space-x-3">
-            {!doc.is_deleted ? (
-              <button onClick={handleDelete} className="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-600 rounded-md hover:bg-red-100 transition-colors">
-                <Trash2 className="w-4 h-4" />
-                <span>Soft Delete</span>
-              </button>
-            ) : (
-              <button onClick={handleRestore} className="flex items-center space-x-2 px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 transition-colors">
-                <RefreshCw className="w-4 h-4" />
-                <span>Restore</span>
-              </button>
-            )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col">
-          <h2 className="text-lg font-semibold mb-4 text-gray-800">Metadata Editor (JSON)</h2>
-          <textarea
-            className="flex-1 w-full p-3 border border-gray-300 rounded-md font-mono text-sm focus:ring-blue-500 focus:border-blue-500 resize-none h-48"
-            value={metadataStr}
-            onChange={(e) => setMetadataStr(e.target.value)}
-          />
-          {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
-          <div className="mt-4 flex justify-end">
-            <button 
-              onClick={handleSaveMetadata}
-              disabled={saving}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-blue-400"
-            >
-              <Save className="w-4 h-4" />
-              <span>{saving ? 'Saving...' : 'Save Metadata'}</span>
-            </button>
-          </div>
-        </div>
+        <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle>Metadata (JSON)</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-1 flex-col">
+            <Textarea
+              className="min-h-[12rem] flex-1 font-mono text-xs"
+              value={metadataStr}
+              onChange={(e) => setMetadataStr(e.target.value)}
+              aria-label="Metadata JSON"
+            />
+            {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+            <div className="mt-4 flex justify-end">
+              <Button onClick={handleSaveMetadata} disabled={saving}>
+                <Save className="h-4 w-4" />
+                {saving ? 'Saving…' : 'Save metadata'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {doc.mime_type === 'application/pdf' && !doc.is_deleted && (
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-          <h2 className="text-lg font-semibold mb-4 text-gray-800 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-gray-500" />
-            Document Preview
-          </h2>
-          <DocumentViewer
-            fileUrl={`/api/v1/documents/${id}/download`}
-            authToken={token}
-          />
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" /> Document preview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DocumentViewer fileUrl={`/api/v1/documents/${id}/download`} authToken={token} />
+          </CardContent>
+        </Card>
       )}
 
-      <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h2 className="text-lg font-semibold mb-4 text-gray-800">Version History</h2>
-        {doc.versions && doc.versions.length > 0 ? (
-          <div className="space-y-3">
-            {doc.versions.map((v: DocumentVersion) => (
-              <div key={v.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div>
-                  <span className="font-semibold text-gray-800">v{v.version_number}</span>
-                  <p className="text-xs text-gray-500 mt-1">Uploaded {new Date(v.created_at).toLocaleString()}</p>
+      <Card>
+        <CardHeader>
+          <CardTitle>Version history</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {doc.versions && doc.versions.length > 0 ? (
+            <div className="space-y-2">
+              {doc.versions.map((v: DocumentVersion) => (
+                <div
+                  key={v.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 px-4 py-2.5"
+                >
+                  <div>
+                    <span className="text-sm font-semibold">v{v.version_number}</span>
+                    <p className="text-xs text-muted-foreground">
+                      Uploaded {new Date(v.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {(v.size_bytes / 1024 / 1024).toFixed(2)} MB
+                  </span>
                 </div>
-                <span className="text-sm text-gray-600">{(v.size_bytes / 1024 / 1024).toFixed(2)} MB</span>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm">No versions found.</p>
-        )}
-      </div>
-    </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No versions found.</p>
+          )}
+        </CardContent>
+      </Card>
+    </FadeIn>
   );
 };

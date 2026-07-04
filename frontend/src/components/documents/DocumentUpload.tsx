@@ -1,6 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { UploadCloud, File as FileIcon, X, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { Card } from '../ui/card';
+import { Button } from '../ui/button';
+import { cn } from '../../lib/utils';
 
 const ACCEPTED_EXTENSIONS = '.pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg';
 const ACCEPTED_MIME_TYPES = [
@@ -140,21 +143,34 @@ export const DocumentUpload: React.FC<Props> = ({ onUploadComplete }) => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-sm border border-gray-200">
-      <h2 className="text-xl font-semibold mb-1 text-gray-800">Upload Document</h2>
-      <p className="text-xs text-gray-500 mb-4">PDF · DOCX · XLSX · PNG · JPEG — max 100 MB</p>
+    <Card className="mx-auto max-w-2xl p-6">
+      <h2 className="text-base font-semibold">Upload Document</h2>
+      <p className="mb-4 mt-1 text-xs text-muted-foreground">
+        PDF · DOCX · XLSX · PNG · JPEG — max 100 MB
+      </p>
 
       <div
-        className={`relative flex flex-col items-center justify-center p-10 border-2 border-dashed rounded-xl transition-colors
-          ${dragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'}`}
+        className={cn(
+          'relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-10 transition-colors',
+          dragActive
+            ? 'border-primary bg-primary/5'
+            : 'border-border bg-secondary/30 hover:bg-secondary/50'
+        )}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
       >
-        <UploadCloud className={`w-12 h-12 mb-4 ${dragActive ? 'text-blue-500' : 'text-gray-400'}`} />
-        <p className="text-gray-600 mb-2">Drag and drop your file here</p>
-        <p className="text-sm text-gray-500 mb-4">or</p>
+        <div
+          className={cn(
+            'mb-4 flex h-14 w-14 items-center justify-center rounded-2xl transition-colors',
+            dragActive ? 'bg-primary/15' : 'bg-secondary'
+          )}
+        >
+          <UploadCloud className={cn('h-7 w-7', dragActive ? 'text-primary' : 'text-muted-foreground')} />
+        </div>
+        <p className="text-sm text-foreground">Drag and drop your file here</p>
+        <p className="mb-4 mt-1 text-xs text-muted-foreground">or</p>
         <input
           ref={inputRef}
           type="file"
@@ -162,86 +178,87 @@ export const DocumentUpload: React.FC<Props> = ({ onUploadComplete }) => {
           onChange={handleChange}
           accept={ACCEPTED_EXTENSIONS}
         />
-        <button
-          onClick={() => inputRef.current?.click()}
-          className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none"
-        >
-          Browse Files
-        </button>
+        <Button variant="secondary" size="sm" onClick={() => inputRef.current?.click()}>
+          Browse files
+        </Button>
       </div>
 
       {files.length > 0 && (
         <div className="mt-6 space-y-4">
-          <h3 className="text-sm font-medium text-gray-700">Selected File</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Selected file
+          </h3>
 
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <FileIcon className="w-5 h-5 text-gray-400 flex-shrink-0" />
+          <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 p-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-muted-foreground">
+                <FileIcon className="h-4 w-4" />
+              </div>
               <div>
-                <p className="text-sm font-medium text-gray-700 truncate max-w-[300px]">{files[0].name}</p>
-                <p className="text-xs text-gray-500">{(files[0].size / (1024 * 1024)).toFixed(2)} MB</p>
+                <p className="max-w-[300px] truncate text-sm font-medium text-foreground">{files[0].name}</p>
+                <p className="text-xs text-muted-foreground">{(files[0].size / (1024 * 1024)).toFixed(2)} MB</p>
               </div>
             </div>
             {uploadStatus === 'idle' && (
-              <button onClick={removeFile} className="text-gray-400 hover:text-red-500">
-                <X className="w-5 h-5" />
-              </button>
+              <Button variant="ghost" size="icon" onClick={removeFile} className="h-8 w-8" aria-label="Remove file">
+                <X className="h-4 w-4" />
+              </Button>
             )}
           </div>
 
           {uploadStatus === 'uploading' && (
             <div className="space-y-1">
-              <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
                 <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  className="h-2 rounded-full bg-gradient-to-r from-primary to-violet-500 transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
-              <p className="text-xs text-gray-500 text-right">{uploadProgress}%</p>
+              <p className="text-right text-xs text-muted-foreground">{uploadProgress}%</p>
             </div>
           )}
 
           {uploadStatus === 'error' && (
-            <div className="flex items-start space-x-2 text-red-600 text-sm mt-2">
-              <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
           )}
 
           {uploadStatus === 'success' && uploadedDoc && (
-            <div className="flex items-center space-x-2 text-green-600 text-sm mt-2">
-              <CheckCircle className="w-4 h-4 flex-shrink-0" />
+            <div className="flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-sm text-success">
+              <CheckCircle className="h-4 w-4 shrink-0" />
               <span>
                 <strong>{uploadedDoc.original_filename}</strong> uploaded and queued for processing.
               </span>
             </div>
           )}
 
-          <div className="flex justify-between items-center pt-4">
+          <div className="flex items-center justify-between pt-2">
             {uploadStatus === 'error' && (
-              <button
-                onClick={() => { setUploadStatus('idle'); setErrorMessage(''); }}
-                className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-800"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setUploadStatus('idle');
+                  setErrorMessage('');
+                }}
               >
-                <RefreshCw className="w-4 h-4" />
-                <span>Clear</span>
-              </button>
+                <RefreshCw className="h-4 w-4" /> Clear
+              </Button>
             )}
             <div className="ml-auto">
-              <button
+              <Button
+                variant="gradient"
                 onClick={uploadFiles}
                 disabled={uploadStatus === 'uploading' || uploadStatus === 'success'}
-                className={`px-6 py-2 rounded-md text-white font-medium
-                  ${uploadStatus === 'uploading' || uploadStatus === 'success'
-                    ? 'bg-blue-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'}`}
               >
                 {uploadStatus === 'uploading' ? 'Uploading…' : 'Upload'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
