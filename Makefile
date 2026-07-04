@@ -59,8 +59,14 @@ dev:
 # worker the API accepts uploads but they remain QUEUED forever. `--pool=solo`
 # keeps it single-process so it works identically on Windows and POSIX; scale out
 # in production via the `ib_worker` container (docker compose).
+# Uses scripts/run_worker.py rather than a bare `celery` invocation because a
+# plain `celery -A app.worker worker` resolves through whatever is first on
+# PATH — on a machine with multiple Python installs that is easy to get wrong
+# (a global interpreter missing project deps fails with a confusing
+# ModuleNotFoundError deep in app startup). The script always re-execs through
+# the backend venv's interpreter regardless of PATH.
 worker:
-	cd backend && celery -A app.worker worker --loglevel=info -Q ingestion --pool=solo --concurrency=1
+	python scripts/run_worker.py
 
 lint:
 	cd backend && black --check app tests
