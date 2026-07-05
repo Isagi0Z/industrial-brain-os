@@ -1,0 +1,3 @@
+OEM MANUAL — Reciprocating Compressor K-410
+
+Rated discharge pressure 35 bar. Interstage cooler served by Cooling Loop A. Preventive maintenance: replace valve plates every 8000 hours; monitor rod load and discharge temperature. Common failure mode: valve plate fatigue.

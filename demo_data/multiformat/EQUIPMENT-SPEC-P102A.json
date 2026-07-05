@@ -1,0 +1,20 @@
+{
+  "tag": "P-102A",
+  "name": "Centrifugal Pump P-102A",
+  "equipment_class": "pump",
+  "rated_pressure_bar": 12,
+  "rated_flow_m3h": 320,
+  "driver": {
+    "tag": "M-330",
+    "rated_power_kw": 75,
+    "voltage": 415
+  },
+  "monitored_by": [
+    "FT-101",
+    "TE-202"
+  ],
+  "failure_modes": [
+    "FM-BRG-01",
+    "FM-SEAL-03"
+  ]
+}

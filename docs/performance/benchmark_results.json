@@ -1,0 +1,55 @@
+{
+  "embedding": {
+    "available": true,
+    "runs": 5,
+    "median_ms": 359.0,
+    "min_ms": 343.0,
+    "max_ms": 453.0
+  },
+  "rerank": {
+    "available": true,
+    "by_candidate_count": {
+      "5": {
+        "runs": 3,
+        "median_ms": 5907.0,
+        "min_ms": 4250.0,
+        "max_ms": 6109.0
+      },
+      "10": {
+        "runs": 3,
+        "median_ms": 8578.0,
+        "min_ms": 8422.0,
+        "max_ms": 8750.0
+      },
+      "20": {
+        "runs": 3,
+        "median_ms": 22359.0,
+        "min_ms": 21766.0,
+        "max_ms": 24000.0
+      },
+      "40": {
+        "runs": 3,
+        "median_ms": 32860.0,
+        "min_ms": 31750.0,
+        "max_ms": 41437.0
+      }
+    }
+  },
+  "ollama": {
+    "keep_alive_setting": "-1",
+    "num_ctx": 4096,
+    "warm_generate": {
+      "runs": 2,
+      "median_ms": 18867.0,
+      "min_ms": 5250.0,
+      "max_ms": 32484.0,
+      "prompt_tokens": 981,
+      "completion_tokens": 25
+    },
+    "warm_first_token_ms": 672.0,
+    "warm_stream_total_ms": 4797.0,
+    "cold_generate_ms_includes_reload": 68172.0,
+    "reload_penalty_ms_saved_by_keep_alive": 49305.0,
+    "available": true
+  }
+}

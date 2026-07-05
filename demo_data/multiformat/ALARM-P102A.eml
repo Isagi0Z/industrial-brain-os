@@ -1,0 +1,10 @@
+From: control.room@refinery.example
+To: maintenance.lead@refinery.example
+Subject: ALARM: P-102A high bearing temperature (TE-202)
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+Pump P-102A alarmed on high bearing temperature at 07:42. Discharge pressure =
+holding at 12 bar. Recommend inspecting bearing per FM-BRG-01 and raising a w=
+ork order. FT-101 flow nominal.

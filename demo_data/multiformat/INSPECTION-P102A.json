@@ -1,0 +1,24 @@
+{
+  "form": "INSPECTION-P102A-2026Q1",
+  "equipment": "P-102A",
+  "inspector": "J. Rao",
+  "date": "2026-03-30",
+  "checks": [
+    {
+      "item": "discharge pressure",
+      "value": "12 bar",
+      "status": "nominal"
+    },
+    {
+      "item": "vibration",
+      "value": "2.1 mm/s",
+      "status": "nominal"
+    },
+    {
+      "item": "impeller erosion",
+      "value": "none",
+      "status": "pass"
+    }
+  ],
+  "recommendation": "Continue routine monitoring of bearing temperature TE-202."
+}
