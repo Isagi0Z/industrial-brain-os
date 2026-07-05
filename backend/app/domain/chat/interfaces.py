@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, List, Tuple
+from typing import AsyncGenerator, List, Optional, Tuple
 
 from app.domain.chat.models import ChatMessage, Citation
 from app.domain.search.models import SearchResult
@@ -10,9 +10,14 @@ from app.domain.search.models import SearchResult
 class IModelGateway(ABC):
     @abstractmethod
     async def generate_stream(
-        self, messages: List[dict], max_tokens: int
+        self,
+        messages: List[dict],
+        max_tokens: int,
+        usage_sink: Optional[dict] = None,
     ) -> AsyncGenerator[str, None]:
-        """Yield tokens one by one as they are generated."""
+        """Yield tokens one by one as they are generated. If ``usage_sink`` is
+        provided it is populated with ``prompt_tokens``/``completion_tokens``
+        once the provider reports them (end of stream)."""
 
     @abstractmethod
     async def generate(

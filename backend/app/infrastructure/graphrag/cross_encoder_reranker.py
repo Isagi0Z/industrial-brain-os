@@ -107,7 +107,19 @@ class CrossEncoderReranker(ICrossEncoderReranker):
             )
             return [(c, c.score) for c in candidates]
 
-        model = _get_model(self._model_name)
-        pairs = [(query, c.text) for c in candidates]
-        scores = model.predict(pairs)
+        try:
+            model = _get_model(self._model_name)
+            pairs = [(query, c.text) for c in candidates]
+            scores = model.predict(pairs)
+        except Exception as exc:  # noqa: BLE001 - honour the graceful-degradation contract
+            # A runtime failure (OOM on a large batch, tokenizer error on
+            # pathological text, an evicted model) must degrade to fused order,
+            # never fail the whole retrieval / chat turn.
+            logger.warning(
+                "Cross-encoder rerank failed on %d candidates — falling back to "
+                "fused retrieval order: %s",
+                len(candidates),
+                exc,
+            )
+            return [(c, c.score) for c in candidates]
         return list(zip(candidates, [float(s) for s in scores]))

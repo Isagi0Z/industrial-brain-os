@@ -1,7 +1,16 @@
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, UploadFile, File, Query
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from pydantic import BaseModel
 
 from app.infrastructure.di.container import container
@@ -12,6 +21,7 @@ from app.domain.document.constants import (
     DocumentStatus,
     JobStatus,
     JOB_PROGRESS,
+    MAX_FILE_SIZE_BYTES,
 )
 
 router = APIRouter(prefix="/documents", tags=["documents"])
@@ -88,6 +98,23 @@ def _build_document_response(
     return DocumentResponse(**doc_dict)
 
 
+def _require_document_owner(
+    use_case: DocumentUseCase, document_id: str, current_user: User
+):
+    """Object-level authorization for mutating operations. Documents are readable
+    across the shared facility knowledge base (that is the platform's purpose),
+    but destructive actions — delete, restore, metadata edits, reprocessing — are
+    restricted to the uploader so one user cannot tamper with another's document.
+    Returns the document (raising 404 if it does not exist)."""
+    doc = use_case.get_document(document_id)
+    if doc.created_by != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to modify this document.",
+        )
+    return doc
+
+
 # ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
@@ -95,11 +122,26 @@ def _build_document_response(
 
 @router.post("/", response_model=DocumentResponse, status_code=201)
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     use_case: DocumentUseCase = Depends(get_document_use_case),
     current_user: User = Depends(get_current_user),
 ):
     """Upload a document. Accepted formats: PDF, DOCX, XLSX, PNG, JPEG (max 100 MB)."""
+    # Reject oversized uploads from the declared Content-Length BEFORE buffering
+    # the whole body, so a giant payload cannot exhaust disk/worker resources
+    # only to be rejected afterward. The exact byte-length is re-checked below.
+    declared = request.headers.get("content-length")
+    if declared is not None:
+        try:
+            if int(declared) > MAX_FILE_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"File exceeds the {MAX_FILE_SIZE_BYTES}-byte limit.",
+                )
+        except ValueError:
+            pass  # malformed header; fall through to the post-read size check
+
     file_data = await file.read()
     mime_type = file.content_type or "application/octet-stream"
     filename = file.filename or "unknown_file"
@@ -153,6 +195,7 @@ def retry_document(
     current_user: User = Depends(get_current_user),
 ):
     """Re-queue a failed document for processing."""
+    _require_document_owner(use_case, document_id, current_user)
     job = use_case.retry_document(document_id)
     return JobStatusResponse(
         job_id=job.id,
@@ -194,6 +237,7 @@ def delete_document(
     use_case: DocumentUseCase = Depends(get_document_use_case),
     current_user: User = Depends(get_current_user),
 ):
+    _require_document_owner(use_case, document_id, current_user)
     use_case.soft_delete_document(document_id)
     return {"status": "deleted"}
 
@@ -234,6 +278,7 @@ def restore_document(
     use_case: DocumentUseCase = Depends(get_document_use_case),
     current_user: User = Depends(get_current_user),
 ):
+    _require_document_owner(use_case, document_id, current_user)
     use_case.restore_document(document_id)
     return {"status": "restored"}
 
@@ -245,5 +290,6 @@ def update_metadata(
     use_case: DocumentUseCase = Depends(get_document_use_case),
     current_user: User = Depends(get_current_user),
 ):
+    _require_document_owner(use_case, document_id, current_user)
     updated = use_case.update_metadata(document_id, metadata)
     return DocumentMetadataResponse(**updated.__dict__)

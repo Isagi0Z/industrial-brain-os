@@ -38,9 +38,17 @@ class GeminiGateway(IModelGateway):
         return f"gemini/{self._model_id}"
 
     async def generate_stream(
-        self, messages: List[dict], max_tokens: int
+        self,
+        messages: List[dict],
+        max_tokens: int,
+        usage_sink: Optional[dict] = None,
     ) -> AsyncGenerator[str, None]:
-        text, _, _ = await self.generate(messages, max_tokens)
+        text, prompt_tokens, completion_tokens = await self.generate(
+            messages, max_tokens
+        )
+        if usage_sink is not None:
+            usage_sink["prompt_tokens"] = prompt_tokens
+            usage_sink["completion_tokens"] = completion_tokens
         yield text
 
     async def generate(

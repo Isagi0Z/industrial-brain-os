@@ -44,6 +44,10 @@ export const ChatInterface: React.FC = () => {
   // The server closes the socket after each answer; a queued query is flushed
   // on the next reconnect so follow-up messages never get dropped.
   const pendingPayloadRef = useRef<string | null>(null);
+  // Keep the socket ready between turns: reconnect after the server closes it,
+  // unless we are intentionally tearing down (unmount / new conversation).
+  const shouldReconnectRef = useRef(true);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,14 +55,35 @@ export const ChatInterface: React.FC = () => {
 
   const connect = useCallback(() => {
     if (!token) return;
-    if (wsRef.current?.readyState === WebSocket.OPEN) return;
+    // Do not open a second socket while one is already OPEN or CONNECTING.
+    const existing = wsRef.current?.readyState;
+    if (existing === WebSocket.OPEN || existing === WebSocket.CONNECTING) return;
 
-    const ws = new WebSocket(
-      `${WS_BASE}/api/v1/chat/stream?token=${encodeURIComponent(token)}`
-    );
+    // Pass the JWT as a WebSocket subprotocol (`ib-bearer, <token>`) instead of
+    // the query string, so it never appears in server access logs or history.
+    const ws = new WebSocket(`${WS_BASE}/api/v1/chat/stream`, [
+      'ib-bearer',
+      token,
+    ]);
     wsRef.current = ws;
+    let opened = false;
+    // Every handler ignores events once this socket is no longer the active one.
+    // React StrictMode double-mounts effects, and a dropped connection triggers
+    // a reconnect, so several sockets can briefly coexist; without this guard a
+    // stale socket's frames would corrupt the live stream (e.g. a follow-up
+    // answer rendering only its first token) and its close would storm reconnects.
+    const isCurrent = () => wsRef.current === ws;
 
     ws.onopen = () => {
+      if (!isCurrent()) {
+        try {
+          ws.close();
+        } catch {
+          /* stale socket already gone */
+        }
+        return;
+      }
+      opened = true;
       setIsConnected(true);
       // Flush a query queued while the socket was (re)connecting.
       if (pendingPayloadRef.current) {
@@ -67,15 +92,27 @@ export const ChatInterface: React.FC = () => {
       }
     };
     ws.onclose = () => {
-      setIsConnected(false);
+      if (!isCurrent()) return;
       setIsWaiting(false);
+      // Reconnect a working connection that dropped unexpectedly so the copilot
+      // stays ready for the next question without a visible flicker. A socket
+      // that never opened signals a real failure, so we surface Disconnected
+      // rather than retry-storm.
+      if (opened && shouldReconnectRef.current && token) {
+        if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = setTimeout(() => connect(), 300);
+      } else {
+        setIsConnected(false);
+      }
     };
     ws.onerror = () => {
+      if (!isCurrent()) return;
       setIsConnected(false);
       setIsWaiting(false);
     };
 
     ws.onmessage = (event: MessageEvent) => {
+      if (!isCurrent()) return;
       const data = JSON.parse(event.data as string) as {
         type: string;
         content?: string;
@@ -124,8 +161,18 @@ export const ChatInterface: React.FC = () => {
   }, [token]);
 
   useEffect(() => {
+    shouldReconnectRef.current = true;
     connect();
-    return () => wsRef.current?.close();
+    return () => {
+      // Stop the reconnect loop and tear down cleanly on unmount / token change.
+      // Disown the socket first so a StrictMode remount always builds a fresh one
+      // (and the old socket's late events see themselves as no longer current).
+      shouldReconnectRef.current = false;
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      const ws = wsRef.current;
+      wsRef.current = null;
+      ws?.close();
+    };
   }, [connect]);
 
   const sendMessage = useCallback(() => {
@@ -265,7 +312,9 @@ export const ChatInterface: React.FC = () => {
             variant="gradient"
             size="icon"
             onClick={sendMessage}
-            disabled={!input.trim() || isWaiting || !isConnected}
+            // Not gated on isConnected: the backend closes the socket between
+            // answers, and sendMessage transparently reconnects + queues.
+            disabled={!input.trim() || isWaiting}
             aria-label="Send message"
           >
             {isWaiting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

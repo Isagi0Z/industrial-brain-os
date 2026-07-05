@@ -50,6 +50,12 @@ class DocumentUseCase:
     ) -> Document:
         """Validate, store, and queue a new document for processing."""
         size_bytes = len(file_data)
+        if size_bytes == 0:
+            raise DomainException(
+                ErrorCode.VALIDATION_ERROR,
+                "File is empty (0 bytes); nothing to ingest.",
+                status_code=400,
+            )
         if size_bytes > MAX_FILE_SIZE_BYTES:
             raise DomainException(
                 ErrorCode.FILE_TOO_LARGE,

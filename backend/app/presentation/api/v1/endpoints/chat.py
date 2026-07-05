@@ -5,7 +5,15 @@ import logging
 import time
 from typing import Annotated, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    WebSocket,
+    WebSocketDisconnect,
+    status,
+)
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel, Field
 
@@ -80,11 +88,29 @@ class ChatResponseBody(BaseModel):
 # ------------------------------------------------------------------
 
 
+def _verify_access_token(token: Optional[str]) -> Optional[dict]:
+    """Return the decoded payload for a VALID ACCESS token, else None.
+
+    ``verify_token`` raises ``ValueError`` on invalid/expired/revoked tokens (it
+    never returns None) and does not distinguish token type, so we must both
+    catch the error and reject non-access tokens (e.g. a refresh token supplied
+    here must not authenticate)."""
+    if not token:
+        return None
+    token_service = container.get_token_service()
+    try:
+        payload = token_service.verify_token(token)
+    except ValueError:
+        return None
+    if not isinstance(payload, dict) or payload.get("type") != "access":
+        return None
+    return payload
+
+
 def _get_current_user(
     credentials: Annotated[HTTPAuthorizationCredentials, Depends(_bearer)],
 ) -> str:
-    token_service = container.get_token_service()
-    payload = token_service.verify_token(credentials.credentials)
+    payload = _verify_access_token(credentials.credentials)
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -176,49 +202,82 @@ async def chat(
 @router.websocket("/stream")
 async def chat_stream(
     websocket: WebSocket,
-    token: str = Query(..., description="JWT bearer token"),
+    token: Optional[str] = Query(
+        default=None, description="Deprecated fallback; prefer the ib-bearer subprotocol"
+    ),
 ) -> None:
-    token_service = container.get_token_service()
-    payload = token_service.verify_token(token)
+    # Auth: prefer the JWT carried in the WebSocket subprotocol header
+    # (`new WebSocket(url, ['ib-bearer', <access_token>])`) so the token never
+    # lands in the URL/query string — which is written verbatim to access logs,
+    # browser history and Referer headers. A query-string token is accepted only
+    # as a backward-compatible fallback. Only ACCESS tokens are honoured.
+    subproto_token: Optional[str] = None
+    offered = websocket.headers.get("sec-websocket-protocol", "")
+    parts = [p.strip() for p in offered.split(",") if p.strip()]
+    if len(parts) >= 2 and parts[0] == "ib-bearer":
+        subproto_token = parts[1]
+
+    payload = _verify_access_token(subproto_token or token)
     if payload is None:
         await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
         return
 
-    await websocket.accept()
+    # Echo the negotiated subprotocol back only when the client actually offered
+    # it, otherwise the browser rejects the handshake.
+    await websocket.accept(subprotocol="ib-bearer" if subproto_token else None)
     ws_connection_opened()
     use_case = _get_use_case()
 
     try:
-        raw = await websocket.receive_text()
-        data = json.loads(raw)
-    except Exception:
-        await websocket.send_text(
-            json.dumps({"type": "error", "message": "Invalid request JSON"})
-        )
-        await websocket.close()
+        # Persistent connection: one accepted socket serves the whole
+        # conversation. Loop reading queries until the client disconnects, so a
+        # follow-up question does not pay a fresh connect + JWT verification and
+        # the client never sees the socket drop between turns.
+        while True:
+            raw = await websocket.receive_text()  # WebSocketDisconnect on close
+            try:
+                data = json.loads(raw)
+            except Exception:
+                await websocket.send_text(
+                    json.dumps({"type": "error", "message": "Invalid request JSON"})
+                )
+                continue
+
+            request = ChatRequest(
+                query=data.get("query", ""),
+                session_id=data.get("session_id", "default"),
+                top_k=int(data.get("top_k", 5)),
+                role_scope=data.get("role_scope", "public"),
+            )
+            if not request.query.strip():
+                await websocket.send_text(
+                    json.dumps({"type": "error", "message": "query must not be empty"})
+                )
+                continue
+
+            await _stream_one_answer(websocket, use_case, request)
+    except WebSocketDisconnect:
+        pass
+    except Exception as exc:  # noqa: BLE001 - never let a socket crash the worker
+        logger.error("Chat stream fatal error", extra={"error": str(exc)})
+    finally:
+        # Close only when the conversation ends (disconnect / teardown), never
+        # after an individual answer.
+        try:
+            await websocket.close()
+        except RuntimeError:
+            pass  # already closed by the peer
         ws_connection_closed()
-        return
 
-    request = ChatRequest(
-        query=data.get("query", ""),
-        session_id=data.get("session_id", "default"),
-        top_k=int(data.get("top_k", 5)),
-        role_scope=data.get("role_scope", "public"),
-    )
 
-    if not request.query.strip():
-        await websocket.send_text(
-            json.dumps({"type": "error", "message": "query must not be empty"})
-        )
-        await websocket.close()
-        ws_connection_closed()
-        return
-
+async def _stream_one_answer(
+    websocket: WebSocket, use_case: ChatUseCase, request: ChatRequest
+) -> None:
+    """Run a single retrieve -> stream -> finalize turn. A per-turn failure emits
+    an {type:error} frame but keeps the socket open for the next question; only a
+    client disconnect propagates to end the conversation."""
     t0 = time.monotonic()
     full_text = ""
-    prompt_tokens = 0
-    completion_tokens = 0
-
     try:
         context = await use_case.prepare(request)
 
@@ -228,9 +287,7 @@ async def chat_stream(
                 json.dumps({"type": "token", "content": token_chunk})
             )
 
-        response = await use_case.finalize(
-            context, full_text, t0, prompt_tokens, completion_tokens
-        )
+        response = await use_case.finalize(context, full_text, t0, 0, 0)
 
         await websocket.send_text(
             json.dumps(
@@ -262,15 +319,17 @@ async def chat_stream(
                 }
             )
         )
-
-    except Exception as exc:
+    except WebSocketDisconnect:
+        raise
+    except Exception as exc:  # noqa: BLE001 - isolate a turn failure from the loop
         logger.error(
-            "Chat stream error",
+            "Chat turn error",
             extra={"session_id": request.session_id, "error": str(exc)},
         )
-        await websocket.send_text(
-            json.dumps({"type": "error", "message": "LLM gateway unavailable"})
-        )
-    finally:
-        await websocket.close()
-        ws_connection_closed()
+        try:
+            await websocket.send_text(
+                json.dumps({"type": "error", "message": "LLM gateway unavailable"})
+            )
+        except Exception:
+            # Cannot even send the error -> the peer is gone; end the loop.
+            raise WebSocketDisconnect()

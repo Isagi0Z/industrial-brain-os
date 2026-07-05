@@ -123,8 +123,23 @@ class OllamaGateway(IModelGateway):
     # ------------------------------------------------------------------
     # Generation
     # ------------------------------------------------------------------
+    def _record_stream_usage(
+        self, done_frame: dict, usage_sink: Optional[dict]
+    ) -> None:
+        """Surface the token counts Ollama reports on the final stream frame so
+        the streaming path feeds the same metrics/accounting as generate()."""
+        prompt_tokens = int(done_frame.get("prompt_eval_count", 0) or 0)
+        completion_tokens = int(done_frame.get("eval_count", 0) or 0)
+        record_llm_tokens(self.model_name, prompt_tokens, completion_tokens)
+        if usage_sink is not None:
+            usage_sink["prompt_tokens"] = prompt_tokens
+            usage_sink["completion_tokens"] = completion_tokens
+
     async def generate_stream(
-        self, messages: List[dict], max_tokens: int
+        self,
+        messages: List[dict],
+        max_tokens: int,
+        usage_sink: Optional[dict] = None,
     ) -> AsyncGenerator[str, None]:
         payload = {
             "model": self._model,
@@ -154,6 +169,7 @@ class OllamaGateway(IModelGateway):
                                 yielded_any = True
                                 yield content
                             if data.get("done"):
+                                self._record_stream_usage(data, usage_sink)
                                 return
                 return
             except _RETRYABLE as exc:

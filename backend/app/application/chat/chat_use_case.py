@@ -123,10 +123,40 @@ class ChatUseCase:
         )
 
     async def chat_stream(self, context: ChatContext) -> AsyncGenerator[str, None]:
-        """Yield tokens from the active gateway with fallback."""
-        gateway = await self._active_gateway(context.messages)
-        async for token in gateway.generate_stream(context.messages, self._max_tokens):
-            yield token
+        """Yield tokens, transparently falling back to the next configured
+        gateway when one fails BEFORE emitting any token. Once streaming has
+        begun we never switch gateways (that would duplicate already-shown text).
+        Records the gateway/model actually used and its token counts on the
+        context for finalize()."""
+        usage: dict = {}
+        last_exc: Optional[Exception] = None
+        for gateway in self._candidate_gateways():
+            yielded = False
+            try:
+                async for token in gateway.generate_stream(
+                    context.messages, self._max_tokens, usage
+                ):
+                    yielded = True
+                    yield token
+                context.stream_model = gateway.model_name
+                context.stream_prompt_tokens = int(usage.get("prompt_tokens", 0))
+                context.stream_completion_tokens = int(
+                    usage.get("completion_tokens", 0)
+                )
+                return
+            except Exception as exc:  # noqa: BLE001 - try the next gateway
+                last_exc = exc
+                if yielded:
+                    # Already streamed partial output — surface the failure rather
+                    # than restart on another gateway and duplicate text.
+                    context.stream_model = gateway.model_name
+                    raise
+                logger.warning(
+                    "Streaming gateway failed before first token; trying fallback",
+                    extra={"gateway": gateway.model_name, "error": str(exc)},
+                )
+        if last_exc is not None:
+            raise last_exc
 
     async def chat(self, context: ChatContext) -> ChatResponse:
         """Non-streaming variant — returns full response."""
@@ -178,7 +208,12 @@ class ChatUseCase:
     ) -> ChatResponse:
         """Called after streaming completes to persist history and build response."""
         latency_ms = (time.monotonic() - t0) * 1000.0
-        gateway = await self._active_gateway(context.messages)
+        # Prefer the gateway/model + token counts recorded by chat_stream (the
+        # one that actually produced the answer, which may be the fallback);
+        # fall back to the primary's name only if streaming never ran.
+        model_name = context.stream_model or self._primary.model_name
+        prompt_tokens = prompt_tokens or context.stream_prompt_tokens
+        completion_tokens = completion_tokens or context.stream_completion_tokens
 
         # Stage 8 (M14) — validate [source_N] citations in the streamed answer.
         cleaned_text, validation = validate_citations(full_text, context.citations)
@@ -189,7 +224,7 @@ class ChatUseCase:
             extra={
                 "prompt_tokens": prompt_tokens,
                 "completion_tokens": completion_tokens,
-                "model": gateway.model_name,
+                "model": model_name,
                 "latency_ms": round(latency_ms, 1),
                 "session_id": context.request.session_id,
                 "validated_citations": validation.validated_count,
@@ -204,7 +239,7 @@ class ChatUseCase:
             token_usage=TokenUsage(
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
-                model=gateway.model_name,
+                model=model_name,
                 latency_ms=round(latency_ms, 1),
             ),
             session_id=context.request.session_id,
@@ -224,10 +259,6 @@ class ChatUseCase:
             [user_msg, asst_msg],
             self._session_ttl,
         )
-
-    async def _active_gateway(self, messages: List[dict]) -> IModelGateway:
-        """Return primary if reachable, else fallback."""
-        return self._primary
 
     async def _generate_with_fallback(
         self, messages: List[dict]

@@ -1,5 +1,13 @@
+import logging
 import os
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
+
+# The shipped placeholder — never acceptable as a real signing key.
+_PLACEHOLDER_SECRET = "replace-with-a-secure-secret-key-32-chars-long"
 
 
 class Settings(BaseSettings):
@@ -193,6 +201,33 @@ class Settings(BaseSettings):
     EVAL_TOP_K: int = 10
     EVAL_JUDGE_MAX_TOKENS: int = 64
     EVAL_HALLUCINATION_THRESHOLD: float = 0.15  # CI gate
+
+    @model_validator(mode="after")
+    def _enforce_secret_key(self):
+        """Never sign JWTs with the shipped placeholder in a real deployment.
+
+        In development we only warn (so the local demo boots out of the box); in
+        any non-development environment an unset/placeholder/too-short SECRET_KEY
+        fails startup fast rather than silently signing tokens with a key that is
+        public in the source tree."""
+        insecure = (
+            not self.SECRET_KEY
+            or self.SECRET_KEY == _PLACEHOLDER_SECRET
+            or len(self.SECRET_KEY) < 32
+        )
+        if insecure:
+            if self.APP_ENV == "development":
+                logger.warning(
+                    "SECRET_KEY is the insecure default — set a strong, unique "
+                    "SECRET_KEY (>=32 chars) before any non-development deployment."
+                )
+            else:
+                raise ValueError(
+                    "SECRET_KEY must be a strong, unique secret of at least 32 "
+                    "characters (not the shipped placeholder) when APP_ENV="
+                    f"'{self.APP_ENV}'."
+                )
+        return self
 
     # Load from env file
     model_config = SettingsConfigDict(

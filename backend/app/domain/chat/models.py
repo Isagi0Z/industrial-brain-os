@@ -56,6 +56,12 @@ class ChatContext:
     citations: List[Citation]
     history: List[ChatMessage]
     prepared_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    # Populated by chat_stream() so finalize() reports the gateway/model that
+    # actually produced the streamed answer (may be the fallback) and the real
+    # token counts from the streaming provider rather than zeros.
+    stream_model: Optional[str] = None
+    stream_prompt_tokens: int = 0
+    stream_completion_tokens: int = 0
 
 
 @dataclass
