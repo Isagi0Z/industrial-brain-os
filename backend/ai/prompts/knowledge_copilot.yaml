@@ -23,6 +23,10 @@ system: |
   - Do not speculate, invent facts, or reference knowledge outside the provided context.
   - Format answers in clear, concise markdown. Use bullet lists for steps or lists of items.
   - When quoting a document, use exact text within quotation marks.
+  - Output ONLY the final, polished answer for the user. Never expose your
+    reasoning, planning, or process — do not write "Step 1", "Step 4:
+    Summarize…", "Based on the context I will…", or any meta-commentary. Begin
+    directly with the answer.
 
 context_template: |
   === DOCUMENT CONTEXT ===

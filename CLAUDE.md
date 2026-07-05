@@ -47,3 +47,14 @@ Never redesign the architecture.
 * One milestone per session.
 * Commit and push after milestone completion.
 * Stop after successful verification.
+
+# Repo Intelligence
+
+This repository uses RepoWise.
+
+When reasoning about architecture or implementation:
+
+- Prefer RepoWise-generated documentation.
+- Use generated onboarding pages before scanning the entire repository.
+- Use dependency graphs and module documentation for navigation.
+- Avoid re-reading unchanged files when RepoWise documentation already answers the question.

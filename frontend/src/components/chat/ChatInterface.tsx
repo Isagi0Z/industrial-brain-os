@@ -41,6 +41,9 @@ export const ChatInterface: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const streamingIdRef = useRef<string | null>(null);
+  // The server closes the socket after each answer; a queued query is flushed
+  // on the next reconnect so follow-up messages never get dropped.
+  const pendingPayloadRef = useRef<string | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,7 +58,14 @@ export const ChatInterface: React.FC = () => {
     );
     wsRef.current = ws;
 
-    ws.onopen = () => setIsConnected(true);
+    ws.onopen = () => {
+      setIsConnected(true);
+      // Flush a query queued while the socket was (re)connecting.
+      if (pendingPayloadRef.current) {
+        ws.send(pendingPayloadRef.current);
+        pendingPayloadRef.current = null;
+      }
+    };
     ws.onclose = () => {
       setIsConnected(false);
       setIsWaiting(false);
@@ -121,10 +131,6 @@ export const ChatInterface: React.FC = () => {
   const sendMessage = useCallback(() => {
     const query = input.trim();
     if (!query || isWaiting) return;
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      connect();
-      return;
-    }
 
     const userMsg: Message = {
       id: generateId(),
@@ -144,9 +150,22 @@ export const ChatInterface: React.FC = () => {
     setInput('');
     setIsWaiting(true);
 
-    wsRef.current.send(
-      JSON.stringify({ query, session_id: sessionId, top_k: 5, role_scope: 'public' })
-    );
+    const payload = JSON.stringify({
+      query,
+      session_id: sessionId,
+      top_k: 5,
+      role_scope: 'public',
+    });
+
+    // The server closes the socket after each answer, so a follow-up question
+    // often finds it CLOSED. Queue the payload and (re)connect — ws.onopen
+    // flushes it — instead of dropping the message and forcing a second click.
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(payload);
+    } else {
+      pendingPayloadRef.current = payload;
+      connect();
+    }
   }, [input, isWaiting, sessionId, connect]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

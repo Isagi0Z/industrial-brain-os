@@ -49,9 +49,18 @@ class LLMLinguaCompressor(IContextCompressor):
     degradation. The model is loaded on first ``compress`` call, not at
     construction, so a missing model never blocks application startup."""
 
-    def __init__(self, model_name: str, use_llmlingua2: bool = True) -> None:
+    def __init__(
+        self,
+        model_name: str,
+        use_llmlingua2: bool = True,
+        device: str = "cpu",
+    ) -> None:
         self._model_name = model_name
         self._use_llmlingua2 = use_llmlingua2
+        # LLMLingua's PromptCompressor defaults to CUDA; pin the device so the
+        # model loads on CPU-only deployments (device_map is required — without
+        # it the load raises "Torch not compiled with CUDA enabled").
+        self._device = device
         self._compressor: Optional[object] = None
         self._load_attempted = False
         self._available = False
@@ -68,6 +77,7 @@ class LLMLinguaCompressor(IContextCompressor):
             self._compressor = PromptCompressor(
                 model_name=self._model_name,
                 use_llmlingua2=self._use_llmlingua2,
+                device_map=self._device,
             )
             self._available = True
             logger.info("LLMLingua compressor ready.")

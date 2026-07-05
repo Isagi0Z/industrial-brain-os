@@ -23,7 +23,7 @@ const DEFAULT_EMAIL = "ratish01@industrialbrain.local";
 const DEFAULT_PASSWORD = "Ratish*966";
 
 export const SignupPage: React.FC = () => {
-  const { setToken } = useAuth();
+  const { setTokens } = useAuth();
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState(DEFAULT_EMAIL);
@@ -57,7 +57,7 @@ export const SignupPage: React.FC = () => {
         return;
       }
       const data = await res.json();
-      setToken(data.access_token);
+      setTokens(data.access_token, data.refresh_token);
       navigate("/knowledge", { replace: true });
     } catch {
       setError("Unable to reach the authentication service.");

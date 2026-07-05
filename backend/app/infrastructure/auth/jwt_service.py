@@ -29,14 +29,18 @@ class JWTService(ITokenService):
     def create_access_token(
         self, data: Dict[str, Any], expires_delta_minutes: Optional[int] = None
     ) -> str:
-        delta = timedelta(minutes=expires_delta_minutes or DEFAULT_EXPIRE_MINUTES)
-        return self._create_token(data, delta, "access")
+        minutes = expires_delta_minutes or getattr(
+            settings, "ACCESS_TOKEN_EXPIRE_MINUTES", DEFAULT_EXPIRE_MINUTES
+        )
+        return self._create_token(data, timedelta(minutes=minutes), "access")
 
     def create_refresh_token(
         self, data: Dict[str, Any], expires_delta_days: Optional[int] = None
     ) -> str:
-        delta = timedelta(days=expires_delta_days or DEFAULT_REFRESH_EXPIRE_DAYS)
-        return self._create_token(data, delta, "refresh")
+        days = expires_delta_days or getattr(
+            settings, "REFRESH_TOKEN_EXPIRE_DAYS", DEFAULT_REFRESH_EXPIRE_DAYS
+        )
+        return self._create_token(data, timedelta(days=days), "refresh")
 
     def verify_token(self, token: str) -> Dict[str, Any]:
         try:

@@ -65,6 +65,24 @@ class CrossEncoderReranker(ICrossEncoderReranker):
         self._model_name = model_name
         self._available = _RERANKER_AVAILABLE
 
+    def warm_up(self) -> bool:
+        """Eagerly load (and cache) the cross-encoder so the first real rerank()
+        does not pay the one-time model-load cost (~8s on CPU). Never raises: if
+        the model is unavailable the pipeline still degrades gracefully to
+        original-score order at query time."""
+        if not self._available:
+            return False
+        try:
+            _get_model(self._model_name)
+            return True
+        except Exception as exc:  # noqa: BLE001 - startup must not fail on this
+            logger.warning(
+                "Cross-encoder warm-up skipped (model '%s' unavailable): %s",
+                self._model_name,
+                exc,
+            )
+            return False
+
     def rerank(
         self, query: str, candidates: List[SearchResult]
     ) -> List[Tuple[SearchResult, float]]:

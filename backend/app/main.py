@@ -66,14 +66,42 @@ async def lifespan(app: FastAPI):
         logging.warning("Evaluation metrics init skipped: %s", exc)
 
     # 5. Warm up + pin the LLM (keep_alive) so the first question is fast and the
-    #    model does not unload after idle. Never blocks startup on Ollama.
+    #    model does not unload after idle. Never blocks startup on Ollama. The
+    #    copilot chat model is warmed LAST so it is the resident model for the
+    #    latency-sensitive Knowledge Copilot path.
     if settings.OLLAMA_WARM_ON_STARTUP and settings.LLM_PROVIDER == "ollama":
+        for _accessor in (
+            container.get_model_gateway,
+            container.get_chat_model_gateway,
+        ):
+            try:
+                _gw = _accessor()
+                _warm = getattr(_gw, "warm_up", None)
+                if _warm is not None:
+                    await _warm()
+            except Exception as exc:  # noqa: BLE001 - startup resilience
+                logging.warning("Ollama warm-up skipped: %s", exc)
+
+    # 5b. Eagerly build the whole Knowledge Copilot pipeline (embedder, spaCy,
+    #     GraphRAG engine, reranker, chat gateways) at startup so the FIRST user
+    #     question does not pay the one-time lazy-load cost (~embedder 5s +
+    #     cross-encoder 8s + graph wiring). Runs in a thread (the model loads are
+    #     blocking CPU work) and never blocks startup on failure.
+    if settings.GRAPHRAG_WARM_RERANKER_ON_STARTUP:
+        import asyncio
+
+        def _warm_pipeline() -> None:
+            container.get_chat_use_case()  # loads embedder + spaCy + graph wiring
+            reranker = container.get_cross_encoder_reranker()
+            _rwarm = getattr(reranker, "warm_up", None)
+            if _rwarm is not None:
+                _rwarm()
+
         try:
-            _warm = getattr(container.get_model_gateway(), "warm_up", None)
-            if _warm is not None:
-                await _warm()
+            await asyncio.to_thread(_warm_pipeline)
+            logging.info("Knowledge Copilot pipeline warmed (embedder + reranker).")
         except Exception as exc:  # noqa: BLE001 - startup resilience
-            logging.warning("Ollama warm-up skipped: %s", exc)
+            logging.warning("Copilot pipeline warm-up skipped: %s", exc)
 
     yield
 

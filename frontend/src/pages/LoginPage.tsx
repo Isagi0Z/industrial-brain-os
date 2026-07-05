@@ -15,7 +15,7 @@ import { Spinner } from "../components/ui/spinner";
 import { FadeIn } from "../components/ui/motion";
 
 export const LoginPage: React.FC = () => {
-  const { setToken } = useAuth();
+  const { setTokens } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from =
@@ -42,7 +42,7 @@ export const LoginPage: React.FC = () => {
         return;
       }
       const data = await res.json();
-      setToken(data.access_token);
+      setTokens(data.access_token, data.refresh_token);
       navigate(from, { replace: true });
     } catch {
       setError("Unable to reach the authentication service.");

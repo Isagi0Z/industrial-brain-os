@@ -389,6 +389,33 @@ class DIContainer:
         startup warm-up and health probes)."""
         return self._build_primary_gateway()
 
+    def _build_chat_gateway(self):
+        """Dedicated gateway for the streaming Knowledge Copilot. The chat path
+        is pure RAG synthesis over already-retrieved context (not agentic
+        tool-use), so the smaller/faster OLLAMA_CHAT_MODEL is safe here and
+        roughly halves time-to-first-token. Falls back to the shared primary
+        gateway for non-Ollama providers or when OLLAMA_CHAT_MODEL is unset."""
+        if not hasattr(self, "_chat_gateway"):
+            chat_model = getattr(settings, "OLLAMA_CHAT_MODEL", "")
+            if settings.LLM_PROVIDER == "ollama" and chat_model:
+                self._chat_gateway = OllamaGateway(
+                    host=settings.OLLAMA_HOST,
+                    port=settings.OLLAMA_PORT,
+                    model=chat_model,
+                    keep_alive=settings.OLLAMA_KEEP_ALIVE,
+                    num_ctx=settings.OLLAMA_NUM_CTX,
+                    timeout=settings.OLLAMA_REQUEST_TIMEOUT,
+                    max_retries=settings.OLLAMA_MAX_RETRIES,
+                )
+            else:
+                self._chat_gateway = self._build_primary_gateway()
+        return self._chat_gateway
+
+    def get_chat_model_gateway(self):
+        """Public accessor for the copilot chat gateway (used for startup
+        warm-up so the first question is fast)."""
+        return self._build_chat_gateway()
+
     def _build_fallback_gateway(self):
         if settings.LLM_PROVIDER == "gemini":
             if settings.OLLAMA_HOST:
@@ -418,8 +445,12 @@ class DIContainer:
             prompt_loader = YamlPromptLoader(prompt_path)
             context_builder = ContextBuilder()
 
-            primary = self._build_primary_gateway()
+            # Copilot runs on the fast chat model; the full-size primary model
+            # is the fallback so a small-model hiccup degrades to 3b (never None).
+            primary = self._build_chat_gateway()
             fallback = self._build_fallback_gateway()
+            if fallback is None and primary is not self._build_primary_gateway():
+                fallback = self._build_primary_gateway()
 
             self._chat_use_case = ChatUseCase(
                 graphrag_engine=self.get_graphrag_engine(),

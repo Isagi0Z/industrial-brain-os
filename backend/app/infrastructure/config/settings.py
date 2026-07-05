@@ -7,6 +7,11 @@ class Settings(BaseSettings):
     APP_ENV: str = "development"
     APP_DEBUG: bool = True
     SECRET_KEY: str = "replace-with-a-secure-secret-key-32-chars-long"
+    # Access-token lifetime. 15 min was too short for a demo session (uploads
+    # started failing with "token validation failed" after the gap); the frontend
+    # also auto-refreshes now. Long, configurable default for local/demo use.
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 720  # 12h
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     LOG_LEVEL: str = "INFO"
 
     # Server configuration
@@ -49,6 +54,15 @@ class Settings(BaseSettings):
     OLLAMA_HOST: str = "127.0.0.1"
     OLLAMA_PORT: int = 11434
     OLLAMA_MODEL: str = "llama3.2"
+    # Dedicated model for the streaming Knowledge Copilot (kept separate so it can
+    # be tuned independently of the KG/extraction model). We benchmarked
+    # llama3.2:1b (≈12.3 tok/s vs 3b's ≈5.3) for speed, but it degraded answer
+    # quality on the grounded RAG path — self-contradicting "no information"
+    # openers and malformed citation markers — so the copilot stays on the 3b
+    # model for correctness. Speed instead comes from the quality-neutral levers:
+    # startup warm-up (no cold-load) + a bounded rerank candidate set. Drop this
+    # to a smaller model only if you accept the lower answer fidelity.
+    OLLAMA_CHAT_MODEL: str = "llama3.2"
     # Reliability: keep the model resident so it does not unload after idle.
     # "-1" = keep loaded indefinitely (survives demo gaps); or a duration ("30m").
     OLLAMA_KEEP_ALIVE: str = "-1"
@@ -57,11 +71,16 @@ class Settings(BaseSettings):
     OLLAMA_MAX_RETRIES: int = 2  # connection retries with exponential backoff
     OLLAMA_WARM_ON_STARTUP: bool = True  # preload + pin the model during API startup
     # Bound cross-encoder rerank cost so it does not grow with corpus size.
-    # Candidates arrive in fused-retrieval-score order; only the top N are
-    # reranked. Benchmarked (docs/performance): bge-reranker-large on CPU costs
-    # ~0.8-1.6s per candidate, so rerank(40)=33s vs rerank(12)=~9s. 12 keeps the
-    # highest-relevance candidates (no drop at demo scale) while bounding latency.
+    # Candidates arrive in fused-retrieval-score order; the top N are reranked.
+    # This must stay high enough that the cross-encoder can RESCUE a relevant
+    # chunk that fusion ranked lower (e.g. the "rated discharge pressure" chunk
+    # for a pressure question) — cutting it to 6 measurably dropped that chunk
+    # and produced "no information" answers. 12 preserves recall; rerank latency
+    # is instead cut by using the faster bge-reranker-base model below.
     GRAPHRAG_RERANK_MAX_CANDIDATES: int = 12
+    # Eagerly load the cross-encoder at API startup (like the Ollama warm-up) so
+    # the first user question does not pay the one-time ~8s model-load cost.
+    GRAPHRAG_WARM_RERANKER_ON_STARTUP: bool = True
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.0-flash"
     CHAT_MAX_TOKENS: int = 2048
@@ -77,7 +96,12 @@ class Settings(BaseSettings):
     RELATION_EXTRACTION_PROMPT_FILE: str = "ai/prompts/relation_extraction.yaml"
 
     # GraphRAG / Hybrid Retrieval configuration (M8)
-    GRAPHRAG_RERANKER_MODEL: str = "BAAI/bge-reranker-large"
+    # bge-reranker-base (110M) reranks ~7.5x faster than -large (560M) on CPU
+    # (~0.12s vs ~0.9s per candidate) while keeping strong relevance separation
+    # (verified: "rated discharge pressure: 12 bar" scored 0.994 vs 0.0 for an
+    # off-topic line). This is the quality-preserving way to cut the reranking
+    # cost — the dominant time-to-first-token term — without dropping candidates.
+    GRAPHRAG_RERANKER_MODEL: str = "BAAI/bge-reranker-base"
     GRAPHRAG_CACHE_TTL_SECONDS: int = 300
     GRAPHRAG_TOKEN_BUDGET: int = 6000
     GRAPHRAG_MAX_KG_DEPTH: int = 2
