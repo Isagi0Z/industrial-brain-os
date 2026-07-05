@@ -70,6 +70,17 @@ class CrossEncoderReranker(ICrossEncoderReranker):
     ) -> List[Tuple[SearchResult, float]]:
         if not candidates:
             return []
+        # Bound rerank cost so it does not scale with corpus size. Candidates
+        # are already in fused retrieval-score order, so the top N are the ones
+        # worth the cross-encoder pass.
+        from app.infrastructure.config.settings import settings
+
+        max_n = getattr(settings, "GRAPHRAG_RERANK_MAX_CANDIDATES", 0) or 0
+        if max_n and len(candidates) > max_n:
+            logger.info(
+                "Reranking top %d of %d candidates (bounded).", max_n, len(candidates)
+            )
+            candidates = candidates[:max_n]
         if not self._available:
             logger.warning(
                 "Cross-encoder unavailable — passing %d candidates through "

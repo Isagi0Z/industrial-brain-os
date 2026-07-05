@@ -32,6 +32,10 @@ from app.infrastructure.document.parsing.pymupdf_parser import PyMuPDFParser
 from app.infrastructure.document.parsing.docx_parser import DocxParser
 from app.infrastructure.document.parsing.xlsx_parser import XlsxParser
 from app.infrastructure.document.parsing.image_parser import ImageParser
+from app.infrastructure.document.parsing.text_parser import TextParser
+from app.infrastructure.document.parsing.pptx_parser import PptxParser
+from app.infrastructure.document.parsing.email_parser import EmailParser
+from app.infrastructure.document.parsing.zip_parser import ZipParser
 from app.infrastructure.document.worker import IngestionWorker
 
 from app.domain.search.interfaces import (
@@ -300,12 +304,23 @@ class DIContainer:
 
     def get_parsing_use_case(self) -> DocumentParsingUseCase:
         if not hasattr(self, "_parsing_use_case"):
+            # Leaf parsers (one per format family). ZipParser routes archive
+            # entries through the leaf parsers (no nested-archive recursion).
+            leaf_parsers = [
+                PyMuPDFParser(),
+                DocxParser(),
+                XlsxParser(),
+                PptxParser(),
+                TextParser(),
+                EmailParser(),
+                ImageParser(),
+            ]
             self._parsing_use_case = DocumentParsingUseCase(
                 document_repo=self.get_document_repository(),
                 storage_service=self.get_storage_service(),
                 job_repo=self.get_job_repository(),
                 chunk_repo=self.get_chunk_repository(),
-                parsers=[PyMuPDFParser(), DocxParser(), XlsxParser(), ImageParser()],
+                parsers=leaf_parsers + [ZipParser(leaf_parsers)],
             )
         return self._parsing_use_case
 
@@ -345,26 +360,39 @@ class DIContainer:
     # Chat services (M5)
     # ------------------------------------------------------------------
 
-    def _build_primary_gateway(self):
-        if settings.LLM_PROVIDER == "gemini":
-            return GeminiGateway(
-                api_key=settings.GEMINI_API_KEY,
-                model=settings.GEMINI_MODEL,
-            )
+    def _new_ollama_gateway(self) -> OllamaGateway:
         return OllamaGateway(
             host=settings.OLLAMA_HOST,
             port=settings.OLLAMA_PORT,
             model=settings.OLLAMA_MODEL,
+            keep_alive=settings.OLLAMA_KEEP_ALIVE,
+            num_ctx=settings.OLLAMA_NUM_CTX,
+            timeout=settings.OLLAMA_REQUEST_TIMEOUT,
+            max_retries=settings.OLLAMA_MAX_RETRIES,
         )
+
+    def _build_primary_gateway(self):
+        # Cache one primary gateway so every brain shares a single persistent
+        # connection pool and a single warm/pinned model (keep_alive).
+        if not hasattr(self, "_primary_gateway"):
+            if settings.LLM_PROVIDER == "gemini":
+                self._primary_gateway = GeminiGateway(
+                    api_key=settings.GEMINI_API_KEY,
+                    model=settings.GEMINI_MODEL,
+                )
+            else:
+                self._primary_gateway = self._new_ollama_gateway()
+        return self._primary_gateway
+
+    def get_model_gateway(self):
+        """Public accessor for the shared primary model gateway (used for
+        startup warm-up and health probes)."""
+        return self._build_primary_gateway()
 
     def _build_fallback_gateway(self):
         if settings.LLM_PROVIDER == "gemini":
             if settings.OLLAMA_HOST:
-                return OllamaGateway(
-                    host=settings.OLLAMA_HOST,
-                    port=settings.OLLAMA_PORT,
-                    model=settings.OLLAMA_MODEL,
-                )
+                return self._new_ollama_gateway()
             return None
         if settings.GEMINI_API_KEY:
             return GeminiGateway(
@@ -496,7 +524,9 @@ class DIContainer:
         if not hasattr(self, "_context_compressor"):
             if settings.GRAPHRAG_COMPRESSION_ENABLED:
                 self._context_compressor: Optional[IContextCompressor] = (
-                    LLMLinguaCompressor(settings.LLMLINGUA_MODEL)
+                    LLMLinguaCompressor(
+                        settings.LLMLINGUA_MODEL, device=settings.LLMLINGUA_DEVICE
+                    )
                 )
             else:
                 self._context_compressor = None

@@ -49,6 +49,19 @@ class Settings(BaseSettings):
     OLLAMA_HOST: str = "127.0.0.1"
     OLLAMA_PORT: int = 11434
     OLLAMA_MODEL: str = "llama3.2"
+    # Reliability: keep the model resident so it does not unload after idle.
+    # "-1" = keep loaded indefinitely (survives demo gaps); or a duration ("30m").
+    OLLAMA_KEEP_ALIVE: str = "-1"
+    OLLAMA_NUM_CTX: int = 4096  # context window sent to Ollama
+    OLLAMA_REQUEST_TIMEOUT: float = 180.0
+    OLLAMA_MAX_RETRIES: int = 2  # connection retries with exponential backoff
+    OLLAMA_WARM_ON_STARTUP: bool = True  # preload + pin the model during API startup
+    # Bound cross-encoder rerank cost so it does not grow with corpus size.
+    # Candidates arrive in fused-retrieval-score order; only the top N are
+    # reranked. Benchmarked (docs/performance): bge-reranker-large on CPU costs
+    # ~0.8-1.6s per candidate, so rerank(40)=33s vs rerank(12)=~9s. 12 keeps the
+    # highest-relevance candidates (no drop at demo scale) while bounding latency.
+    GRAPHRAG_RERANK_MAX_CANDIDATES: int = 12
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.0-flash"
     CHAT_MAX_TOKENS: int = 2048

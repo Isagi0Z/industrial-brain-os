@@ -35,6 +35,10 @@ Pillow>=10.0.0
 openpyxl>=3.1.0
 paddlepaddle>=3.0.0
 paddleocr>=3.0.0
+# Universal ingestion (Performance & Ingestion Upgrade) — PPTX + Outlook .msg.
+# Text/CSV/JSON/XML/HTML/Markdown/EML and ZIP use only the standard library.
+python-pptx>=0.6.23
+extract-msg>=0.48.0
 
 # Embedding & search (M4)
 sentence-transformers>=2.7.0

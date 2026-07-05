@@ -35,16 +35,42 @@ class ChunkType(str, Enum):
     LIST_ITEM = "list_item"
 
 
-# MIME types accepted at the upload boundary (M2 scope: PDF, DOCX, XLSX, PNG, JPG)
+# Canonical MIME types accepted at the upload boundary. Uploads are resolved to
+# one of these (extension + content sniff) before validation, so heterogeneous
+# industrial documents (CSV, Markdown, JSON, PPTX, email, ZIP, more image types)
+# are all accepted. See app.domain.document.mime and the parser registry.
 ALLOWED_MIME_TYPES: frozenset = frozenset(
     {
+        # documents
         "application/pdf",
         "application/msword",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "application/vnd.ms-excel",
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-powerpoint",
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        # text / structured
+        "text/plain",
+        "text/markdown",
+        "text/csv",
+        "text/tab-separated-values",
+        "application/json",
+        "application/xml",
+        "text/xml",
+        "text/html",
+        "application/x-yaml",
+        # images
         "image/jpeg",
         "image/png",
+        "image/gif",
+        "image/bmp",
+        "image/tiff",
+        "image/webp",
+        # email
+        "message/rfc822",
+        "application/vnd.ms-outlook",
+        # archive
+        "application/zip",
     }
 )
 

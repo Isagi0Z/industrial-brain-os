@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io
 import logging
 import uuid
 from datetime import datetime, timezone
@@ -27,9 +28,33 @@ except Exception:
     )
 
 
+_IMAGE_MIMES = {
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/bmp",
+    "image/tiff",
+    "image/webp",
+}
+
+
+def _to_ocr_input(file_bytes: bytes):
+    """Normalise any image format to an RGB numpy array for PaddleOCR (handles
+    TIFF/BMP/WEBP that raw bytes may not). Falls back to the raw bytes."""
+    try:
+        import numpy as np
+        from PIL import Image
+
+        img = Image.open(io.BytesIO(file_bytes)).convert("RGB")
+        return np.array(img)
+    except Exception:  # noqa: BLE001
+        return file_bytes
+
+
 class ImageParser(IDocumentParser):
     def can_parse(self, mime_type: str) -> bool:
-        return mime_type in {"image/jpeg", "image/png"}
+        base = (mime_type or "").split(";")[0].strip()
+        return base in _IMAGE_MIMES or base.startswith("image/")
 
     def parse(
         self,
@@ -41,7 +66,7 @@ class ImageParser(IDocumentParser):
         now = datetime.now(timezone.utc)
 
         if _PADDLE_AVAILABLE and _paddle_ocr is not None:
-            result = _paddle_ocr.ocr(file_bytes, cls=True)
+            result = _paddle_ocr.ocr(_to_ocr_input(file_bytes), cls=True)
             lines = []
             if result and result[0]:
                 for line in result:

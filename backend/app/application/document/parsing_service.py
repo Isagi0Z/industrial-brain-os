@@ -22,6 +22,7 @@ from app.domain.document.interfaces import (
     IStorageService,
 )
 from app.domain.document.models import DocumentChunk
+from app.domain.document.parser_registry import ParserRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class DocumentParsingUseCase:
         self._job_repo = job_repo
         self._chunk_repo = chunk_repo
         self._parsers = parsers
+        self._registry = ParserRegistry(parsers)
 
     def parse_document(self, document_id: str, job_id: str) -> List[DocumentChunk]:
         """Full parse pipeline. Raises on unrecoverable errors after marking job FAILED."""
@@ -81,16 +83,24 @@ class DocumentParsingUseCase:
         # ── 2. PARSING ────────────────────────────────────────────────────
         job_repo.update_status(job_id, JobStatus.PARSING)
 
-        parser = next((p for p in self._parsers if p.can_parse(doc.mime_type)), None)
+        # Resolve the real document type (extension + content sniff), so files
+        # with a generic/wrong declared MIME (Markdown, CSV, JSON, ...) still
+        # route to the right parser.
+        resolved_mime, parser = self._registry.resolve(
+            doc.mime_type, doc.original_filename, file_bytes
+        )
         if parser is None:
-            _fail(f"No parser registered for MIME type '{doc.mime_type}'.")
+            _fail(
+                f"No parser registered for '{doc.original_filename}' "
+                f"(declared '{doc.mime_type}', resolved '{resolved_mime}')."
+            )
             return []
 
         try:
             chunks = parser.parse(
                 document_id=document_id,
                 filename=doc.original_filename,
-                mime_type=doc.mime_type,
+                mime_type=resolved_mime,
                 file_bytes=file_bytes,
             )
         except Exception as exc:

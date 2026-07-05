@@ -65,6 +65,16 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logging.warning("Evaluation metrics init skipped: %s", exc)
 
+    # 5. Warm up + pin the LLM (keep_alive) so the first question is fast and the
+    #    model does not unload after idle. Never blocks startup on Ollama.
+    if settings.OLLAMA_WARM_ON_STARTUP and settings.LLM_PROVIDER == "ollama":
+        try:
+            _warm = getattr(container.get_model_gateway(), "warm_up", None)
+            if _warm is not None:
+                await _warm()
+        except Exception as exc:  # noqa: BLE001 - startup resilience
+            logging.warning("Ollama warm-up skipped: %s", exc)
+
     yield
 
     # Shutdown actions

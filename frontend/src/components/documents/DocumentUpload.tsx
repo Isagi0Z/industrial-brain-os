@@ -5,16 +5,16 @@ import { Card } from '../ui/card';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 
-const ACCEPTED_EXTENSIONS = '.pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg';
-const ACCEPTED_MIME_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'image/jpeg',
-  'image/png',
-];
+// Universal ingestion: the backend resolves the real type from extension +
+// content, so the UI accepts a broad set and validates primarily by extension
+// (browsers send a generic/empty MIME for CSV, Markdown, JSON, ... ).
+const ACCEPTED_EXTENSIONS =
+  '.pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.csv,.tsv,.txt,.log,.md,.markdown,' +
+  '.json,.xml,.html,.htm,.yaml,.yml,.png,.jpg,.jpeg,.gif,.bmp,.tif,.tiff,.webp,' +
+  '.eml,.msg,.zip';
+const ACCEPTED_EXT_SET = new Set(
+  ACCEPTED_EXTENSIONS.split(',').map((e) => e.trim().toLowerCase()),
+);
 const MAX_SIZE_BYTES = 100 * 1024 * 1024; // 100 MB
 
 type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
@@ -45,8 +45,10 @@ export const DocumentUpload: React.FC<Props> = ({ onUploadComplete }) => {
     if (file.size > MAX_SIZE_BYTES) {
       return `File exceeds the 100 MB limit (${(file.size / 1024 / 1024).toFixed(1)} MB).`;
     }
-    if (!ACCEPTED_MIME_TYPES.includes(file.type)) {
-      return `File type "${file.type}" is not accepted. Upload PDF, DOCX, XLSX, PNG, or JPEG.`;
+    const dot = file.name.lastIndexOf('.');
+    const ext = dot >= 0 ? file.name.slice(dot).toLowerCase() : '';
+    if (!ACCEPTED_EXT_SET.has(ext)) {
+      return `File type "${ext || file.type || 'unknown'}" is not accepted. Supported: PDF, Office (DOCX/XLSX/PPTX), CSV, TXT, Markdown, JSON, XML, HTML, images, email (EML/MSG), and ZIP.`;
     }
     return null;
   };
@@ -146,7 +148,7 @@ export const DocumentUpload: React.FC<Props> = ({ onUploadComplete }) => {
     <Card className="mx-auto max-w-2xl p-6">
       <h2 className="text-base font-semibold">Upload Document</h2>
       <p className="mb-4 mt-1 text-xs text-muted-foreground">
-        PDF · DOCX · XLSX · PNG · JPEG — max 100 MB
+        PDF · Office · CSV · TXT · Markdown · JSON · XML · images · email · ZIP — max 100 MB
       </p>
 
       <div

@@ -21,6 +21,7 @@ from app.domain.document.constants import (
     ALLOWED_MIME_TYPES,
     MAX_FILE_SIZE_BYTES,
 )
+from app.domain.document.mime import resolve_mime
 from app.presentation.middleware.error_handler import DomainException
 from industrial_brain_shared.constants import ErrorCode
 
@@ -56,11 +57,15 @@ class DocumentUseCase:
                 status_code=413,
             )
 
-        if mime_type not in ALLOWED_MIME_TYPES:
+        # Resolve the real type from extension + content: browsers send a generic
+        # or wrong content-type for many industrial formats (CSV, Markdown, ...).
+        canonical_mime = resolve_mime(mime_type, filename, file_data[:64])
+        if canonical_mime not in ALLOWED_MIME_TYPES:
             raise DomainException(
                 ErrorCode.INVALID_MIME_TYPE,
-                f"MIME type '{mime_type}' is not accepted. "
-                f"Allowed: PDF, DOCX, XLSX, PNG, JPEG.",
+                f"File type '{canonical_mime}' (from '{filename}') is not accepted. "
+                f"Supported: PDF, DOCX, XLSX, PPTX, CSV/TSV, TXT, Markdown, JSON, XML, "
+                f"HTML, images (PNG/JPG/GIF/BMP/TIFF/WEBP), email (EML/MSG), ZIP.",
             )
 
         sha256_hash = hashlib.sha256(file_data).hexdigest()
@@ -76,7 +81,7 @@ class DocumentUseCase:
         document = Document(
             id=document_id,
             original_filename=filename,
-            mime_type=mime_type,
+            mime_type=canonical_mime,
             size_bytes=size_bytes,
             sha256_hash=sha256_hash,
             status=DocumentStatus.UPLOADED,
@@ -88,7 +93,7 @@ class DocumentUseCase:
 
         storage_key = f"{document_id}/v1/{filename}"
         self.storage_service.upload_file(
-            "industrial-documents", storage_key, file_data, mime_type
+            "industrial-documents", storage_key, file_data, canonical_mime
         )
 
         version = DocumentVersion(

@@ -86,3 +86,19 @@ def check_health(response: Response) -> HealthCheckResponse:
         environment="development",
         databases=db_status,
     )
+
+
+@router.get(
+    "/health/llm",
+    status_code=status.HTTP_200_OK,
+    summary="LLM (Ollama) availability and whether the target model is loaded",
+)
+async def check_llm_health() -> Dict[str, Any]:
+    """Report LLM gateway health so the demo can detect an unavailable/unloaded
+    model and its reason. Recovery (reconnect, keep_alive, warm-up) is automatic
+    in the gateway; this endpoint is for monitoring."""
+    gateway = container.get_model_gateway()
+    health = getattr(gateway, "health", None)
+    if health is None:
+        return {"available": True, "detail": "gateway does not expose health()"}
+    return await health()
