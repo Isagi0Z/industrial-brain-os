@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Sparkles, User } from 'lucide-react';
 import { CitationCard, Citation } from './CitationCard';
 import { cn } from '../../lib/utils';
@@ -11,6 +11,44 @@ export interface Message {
   citations?: Citation[];
   isStreaming?: boolean;
 }
+
+// Pipeline stages surfaced while the answer is being produced — keeps long
+// CPU-bound generations feeling alive instead of frozen.
+const THINKING_STAGES = [
+  'Retrieving documents…',
+  'Traversing knowledge graph…',
+  'Reranking evidence…',
+  'Synthesizing answer…',
+];
+
+const ThinkingIndicator: React.FC = () => {
+  const [stage, setStage] = useState(0);
+  useEffect(() => {
+    const t = setInterval(
+      () => setStage((s) => Math.min(s + 1, THINKING_STAGES.length - 1)),
+      5000,
+    );
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="flex min-w-[220px] flex-col gap-2 py-0.5">
+      <AnimatePresence mode="wait">
+        <motion.span
+          key={stage}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ duration: 0.25 }}
+          className="text-xs text-muted-foreground"
+        >
+          {THINKING_STAGES[stage]}
+        </motion.span>
+      </AnimatePresence>
+      <div className="ai-shimmer h-1.5 w-full rounded-full" />
+    </div>
+  );
+};
 
 export const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   const isUser = message.role === 'user';
@@ -46,9 +84,15 @@ export const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
               : 'border border-border bg-card text-foreground/90'
           )}
         >
-          {message.content}
-          {message.isStreaming && (
-            <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary align-text-bottom" />
+          {!isUser && message.isStreaming && !message.content ? (
+            <ThinkingIndicator />
+          ) : (
+            <>
+              {message.content}
+              {message.isStreaming && (
+                <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary align-text-bottom" />
+              )}
+            </>
           )}
         </div>
 
