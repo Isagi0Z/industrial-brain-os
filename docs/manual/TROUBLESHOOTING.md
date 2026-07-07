@@ -78,6 +78,42 @@ cd backend && alembic upgrade head && cd ..
 python scripts/init_infra.py
 ```
 
+### Docker Desktop never comes up (engine "starting" forever, `docker info` hangs)
+
+Two distinct failure modes were hit and verified on Windows:
+
+1. **Backend crash-loop on a corrupted socket.** Check
+   `%LOCALAPPDATA%\Docker\log\host\com.docker.backend.exe.log` (or
+   `docker-desktop.exe.log` on newer versions) for
+   `initializing Inference manager: ... dockerInference: The file cannot be
+   accessed by the system`. The AI-inference unix socket in
+   `%LOCALAPPDATA%\Docker\run\` is corrupted and Windows cannot delete it
+   directly (`del` and `Remove-Item` both fail). Fix: stop all Docker
+   processes, then **rename the parent directory** —
+   `Rename-Item "$env:LOCALAPPDATA\Docker\run" run_corrupted` — Docker
+   recreates it fresh on the next launch.
+
+2. **Engine VM won't start under memory pressure.** On a 16 GB machine with
+   Ollama models resident, the `docker-desktop` WSL distro can fail to boot
+   silently. Free RAM first: unload Ollama models
+   (`curl -d '{"model":"llama3.2","keep_alive":0}' localhost:11434/api/generate`)
+   and `wsl --terminate <unused distro>`.
+
+**Reliable fallback — run the stack in a WSL distro's own Docker.** If the
+Ubuntu distro has docker-ce installed (`wsl -d Ubuntu -- docker ps` works),
+Docker Desktop is not needed at all; WSL2 forwards every published container
+port to Windows `localhost` automatically:
+
+```bash
+wsl -d Ubuntu -- bash -lc "cd /mnt/d/industrial-brain && \
+  docker compose up -d --no-deps postgres neo4j qdrant redis minio jaeger prometheus grafana"
+```
+
+`--no-deps` matters: `prometheus` declares `depends_on: ib_backend`, and the
+containerized backend image build currently fails on a Python-version pin
+(python:3.9 base vs. py3.10-only wheels) — the backend and worker are run
+natively on the host instead (see [INSTALLATION.md](INSTALLATION.md)).
+
 ---
 
 ## Ollama
