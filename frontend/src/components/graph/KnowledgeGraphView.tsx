@@ -172,14 +172,14 @@ export const KnowledgeGraphView: React.FC = () => {
           selector: 'edge',
           style: {
             width: 1.6,
-            'line-color': 'rgba(129,140,248,0.35)',
-            'target-arrow-color': 'rgba(129,140,248,0.55)',
+            'line-color': 'rgba(251,146,60,0.35)',
+            'target-arrow-color': 'rgba(251,146,60,0.55)',
             'target-arrow-shape': 'triangle',
             'arrow-scale': 0.8,
             'curve-style': 'bezier',
             label: 'data(label)',
             'font-size': '8px',
-            color: '#c7d2fe',
+            color: '#fed7aa',
             'text-rotation': 'autorotate',
             'text-opacity': 0, // labels appear on hover/selection only
             'transition-property': 'line-color, text-opacity, opacity, width',
@@ -195,8 +195,8 @@ export const KnowledgeGraphView: React.FC = () => {
         {
           selector: 'edge.spot',
           style: {
-            'line-color': 'rgba(165,180,252,0.95)',
-            'target-arrow-color': '#a5b4fc',
+            'line-color': 'rgba(253,186,116,0.95)',
+            'target-arrow-color': '#fdba74',
             width: 2.4,
             'text-opacity': 1,
           },
@@ -204,7 +204,7 @@ export const KnowledgeGraphView: React.FC = () => {
         {
           selector: 'node:selected',
           style: {
-            'border-color': '#a5b4fc',
+            'border-color': '#fdba74',
             'border-width': 4,
             'underlay-opacity': 0.55,
             'underlay-padding': 16,

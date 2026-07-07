@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Sparkles, User } from 'lucide-react';
+import { Check, Copy, Sparkles, User } from 'lucide-react';
 import { CitationCard, Citation } from './CitationCard';
 import { cn } from '../../lib/utils';
 
@@ -52,20 +52,33 @@ const ThinkingIndicator: React.FC = () => {
 
 export const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
   const isUser = message.role === 'user';
+  const [copied, setCopied] = useState(false);
+
+  const copyAnswer = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable (permissions) — silently ignore */
+    }
+  };
+
+  const showCopy = !isUser && !message.isStreaming && message.content.length > 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-      className={cn('flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}
+      className={cn('group flex gap-3', isUser ? 'flex-row-reverse' : 'flex-row')}
     >
       <div
         className={cn(
           'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl',
           isUser
             ? 'border border-border bg-secondary'
-            : 'bg-gradient-to-br from-primary to-violet-500 shadow-glow'
+            : 'bg-gradient-to-br from-amber-500 to-red-500 shadow-glow'
         )}
       >
         {isUser ? (
@@ -93,6 +106,19 @@ export const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
                 <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary align-text-bottom" />
               )}
             </>
+          )}
+          {showCopy && (
+            <button
+              onClick={copyAnswer}
+              aria-label={copied ? 'Copied' : 'Copy answer'}
+              title="Copy answer"
+              className={cn(
+                'absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-md border border-border bg-popover text-muted-foreground shadow-sm transition-all hover:text-primary',
+                copied ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              )}
+            >
+              {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />}
+            </button>
           )}
         </div>
 

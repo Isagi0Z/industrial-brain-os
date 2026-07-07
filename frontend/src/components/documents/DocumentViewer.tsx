@@ -70,7 +70,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
           disabled={pageNumber <= 1}
           aria-label="Previous page"
-          className="p-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 disabled:opacity-40 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="p-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 disabled:opacity-40 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -82,7 +82,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           onClick={() => setPageNumber((p) => Math.min(numPages || 1, p + 1))}
           disabled={numPages > 0 && pageNumber >= numPages}
           aria-label="Next page"
-          className="p-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 disabled:opacity-40 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className="p-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-300 disabled:opacity-40 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-400"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -95,7 +95,7 @@ export const DocumentViewer: React.FC<DocumentViewerProps> = ({
           onLoadError={() => setError('Unable to load the PDF.')}
           loading={
             <div className="flex items-center justify-center h-64 w-[640px]">
-              <Loader2 className="w-6 h-6 text-indigo-500 animate-spin" />
+              <Loader2 className="w-6 h-6 text-amber-500 animate-spin" />
             </div>
           }
           error={<div className="p-8 text-sm text-red-500">{error || 'Failed to load PDF.'}</div>}

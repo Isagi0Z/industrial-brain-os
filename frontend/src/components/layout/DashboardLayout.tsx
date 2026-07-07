@@ -7,15 +7,18 @@ import {
   GitFork,
   Lightbulb,
   Layers,
+  LayoutDashboard,
   FileText,
   Network,
   Menu,
   X,
+  Search,
   Settings,
   Database,
   Sparkles,
 } from 'lucide-react';
 import { ThemeToggle } from '../ui/theme-toggle';
+import { CommandPalette } from '../ui/command-palette';
 import { cn } from '../../lib/utils';
 
 interface DBStatus {
@@ -32,6 +35,7 @@ const NAV_GROUPS = [
   {
     label: 'Workspace',
     items: [
+      { name: 'Overview', path: '/overview', icon: LayoutDashboard },
       { name: 'Document Hub', path: '/documents', icon: FileText },
       { name: 'Knowledge Copilot', path: '/knowledge', icon: BookOpen },
       { name: 'Knowledge Graph', path: '/knowledge-graph', icon: Network },
@@ -56,7 +60,20 @@ const HEALTH_DOT: Record<Health, string> = {
 
 export const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const location = useLocation();
+
+  // Global Ctrl/Cmd+K command palette.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
   const [dbStatus, setDbStatus] = useState<DBStatus>({
     postgres: 'checking',
     neo4j: 'checking',
@@ -119,7 +136,7 @@ export const DashboardLayout: React.FC = () => {
       >
         {/* Brand */}
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-500 shadow-glow">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-red-500 shadow-glow">
             <Layers className="h-4.5 w-4.5 text-white" />
           </div>
           <div className="leading-tight">
@@ -223,6 +240,17 @@ export const DashboardLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="flex items-center gap-2 rounded-lg border border-border bg-card/60 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+              aria-label="Open command palette"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Search</span>
+              <kbd className="hidden rounded border border-border bg-secondary px-1.5 py-0.5 font-mono text-[10px] sm:inline">
+                Ctrl K
+              </kbd>
+            </button>
             <div className="hidden items-center gap-2 rounded-full border border-border bg-card/60 px-3 py-1.5 text-xs sm:flex">
               <span className="relative flex h-2 w-2">
                 <span
@@ -236,7 +264,7 @@ export const DashboardLayout: React.FC = () => {
               <span className="capitalize text-muted-foreground">{systemHealth}</span>
             </div>
             <ThemeToggle />
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-violet-500 text-xs font-semibold text-white">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-red-500 text-xs font-semibold text-white">
               IB
             </div>
           </div>
@@ -246,6 +274,8 @@ export const DashboardLayout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   );
 };

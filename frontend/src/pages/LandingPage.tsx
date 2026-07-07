@@ -42,7 +42,7 @@ export const LandingPage: React.FC = () => (
     {/* Nav */}
     <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
       <div className="flex items-center gap-2.5">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-500 shadow-glow">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-red-500 shadow-glow">
           <Layers className="h-4.5 w-4.5 text-white" />
         </div>
         <span className="text-sm font-semibold tracking-tight">Industrial Brain OS</span>
@@ -124,7 +124,7 @@ export const LandingPage: React.FC = () => (
     <section className="mx-auto max-w-5xl px-6 pb-28">
       <FadeIn>
         <Card className="relative overflow-hidden border-primary/20 p-10 text-center sm:p-14">
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-fuchsia-500/10" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-red-500/10" />
           <div className="relative">
             <Gauge className="mx-auto mb-4 h-8 w-8 text-primary" />
             <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">

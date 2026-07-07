@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   RotateCcw,
   Fish,
+  Download,
 } from 'lucide-react';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -88,6 +89,45 @@ export const RcaBrainPage: React.FC = () => {
   };
 
   const report = session?.report ?? null;
+
+  // Export the completed investigation as a self-contained markdown report.
+  const downloadReport = () => {
+    if (!session || !report) return;
+    const md = [
+      `# Root Cause Analysis — ${session.asset_tag}`,
+      '',
+      `**Incident:** ${session.incident_description}`,
+      `**Generated:** ${report.generated_at}`,
+      '',
+      '## 5-Whys Chain',
+      ...session.whys.flatMap((w, i) => [
+        `${i + 1}. **Why:** ${w.question}`,
+        ...(w.answer ? [`   **Answer:** ${w.answer}`] : []),
+      ]),
+      '',
+      '## Root Cause',
+      report.root_cause,
+      '',
+      '## Contributing Factors',
+      ...report.contributing_factors.map((f) => `- ${f}`),
+      '',
+      '## Recommended Actions',
+      ...report.recommended_actions.map((a) => `- [ ] ${a}`),
+      '',
+      '## Ishikawa (Fishbone)',
+      ...Object.entries(report.fishbone).flatMap(([cat, causes]) => [
+        `### ${cat}`,
+        ...causes.map((c) => `- ${c}`),
+      ]),
+    ].join('\n');
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rca-${session.asset_tag}-${session.session_id.slice(0, 8)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-4 pb-10">
@@ -227,9 +267,14 @@ export const RcaBrainPage: React.FC = () => {
           {/* Final report */}
           {report && (
             <Card className="space-y-5 p-6">
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle2 className="h-5 w-5" />
-                <span className="text-sm font-semibold">Root Cause Analysis Report</span>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-success">
+                  <CheckCircle2 className="h-5 w-5" />
+                  <span className="text-sm font-semibold">Root Cause Analysis Report</span>
+                </div>
+                <Button variant="outline" size="sm" onClick={downloadReport}>
+                  <Download className="h-4 w-4" /> Export .md
+                </Button>
               </div>
 
               <div>

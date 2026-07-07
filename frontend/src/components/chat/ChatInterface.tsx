@@ -239,7 +239,7 @@ export const ChatInterface: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-5 py-3.5">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-violet-500 shadow-glow">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-red-500 shadow-glow">
             <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div>

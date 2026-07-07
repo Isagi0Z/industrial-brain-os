@@ -4,54 +4,54 @@
 
 @layer base {
   :root {
-    /* Light theme */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 6%;
+    /* Ember light theme — warm paper with a molten-orange accent */
+    --background: 40 33% 98%;
+    --foreground: 24 18% 8%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 6%;
+    --card-foreground: 24 18% 8%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 6%;
-    --primary: 245 75% 59%;
+    --popover-foreground: 24 18% 8%;
+    --primary: 24 94% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 10% 12%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 240 5% 94%;
-    --accent-foreground: 240 10% 12%;
+    --secondary: 32 22% 94%;
+    --secondary-foreground: 24 15% 14%;
+    --muted: 32 22% 94%;
+    --muted-foreground: 25 8% 44%;
+    --accent: 30 24% 91%;
+    --accent-foreground: 24 15% 14%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 71% 40%;
+    --success: 152 60% 36%;
     --success-foreground: 0 0% 100%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 245 75% 59%;
+    --border: 30 15% 87%;
+    --input: 30 15% 87%;
+    --ring: 24 94% 50%;
     --radius: 0.75rem;
   }
 
   .dark {
-    /* Dark theme — deep enterprise neutral with a violet-indigo accent */
-    --background: 240 10% 3.5%;
-    --foreground: 220 20% 97%;
-    --card: 240 9% 6%;
-    --card-foreground: 220 20% 97%;
-    --popover: 240 10% 5%;
-    --popover-foreground: 220 20% 97%;
-    --primary: 250 84% 67%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 12%;
-    --secondary-foreground: 220 20% 97%;
-    --muted: 240 5% 11%;
-    --muted-foreground: 240 5% 62%;
-    --accent: 240 5% 14%;
-    --accent-foreground: 220 20% 97%;
+    /* Ember dark theme — industrial charcoal control-room with amber-orange heat */
+    --background: 20 14% 4%;
+    --foreground: 33 30% 96%;
+    --card: 21 12% 6.5%;
+    --card-foreground: 33 30% 96%;
+    --popover: 20 14% 5%;
+    --popover-foreground: 33 30% 96%;
+    --primary: 27 96% 56%;
+    --primary-foreground: 20 14% 5%;
+    --secondary: 24 10% 12%;
+    --secondary-foreground: 33 30% 96%;
+    --muted: 24 9% 11%;
+    --muted-foreground: 30 9% 63%;
+    --accent: 24 11% 14%;
+    --accent-foreground: 33 30% 96%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --success: 142 69% 48%;
+    --success: 152 65% 45%;
     --success-foreground: 0 0% 100%;
-    --border: 240 5% 15%;
-    --input: 240 5% 16%;
-    --ring: 250 84% 67%;
+    --border: 24 10% 15%;
+    --input: 24 10% 16%;
+    --ring: 27 96% 56%;
     --radius: 0.75rem;
   }
 }
@@ -106,7 +106,7 @@
   }
   /* Subtle gradient text for brand accents */
   .text-gradient {
-    @apply bg-gradient-to-r from-primary via-violet-400 to-fuchsia-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 bg-clip-text text-transparent;
   }
   /* Faint dotted/grid background for hero + graph surfaces */
   .bg-grid {
@@ -179,7 +179,7 @@
   animation: kg-aurora 26s linear infinite;
 }
 .kg-aurora::after {
-  background: radial-gradient(closest-side, rgba(217, 70, 239, 0.15), transparent 70%);
+  background: radial-gradient(closest-side, rgba(239, 68, 68, 0.14), transparent 70%);
   animation: kg-aurora 34s linear infinite reverse;
 }
 

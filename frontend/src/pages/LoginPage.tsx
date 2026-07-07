@@ -20,7 +20,7 @@ export const LoginPage: React.FC = () => {
   const location = useLocation();
   const from =
     (location.state as { from?: Location } | null)?.from?.pathname ??
-    "/knowledge";
+    "/overview";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -56,7 +56,7 @@ export const LoginPage: React.FC = () => {
       <FadeIn className="w-full max-w-md">
         <div className="glass rounded-2xl p-8 shadow-2xl">
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-violet-500 shadow-glow">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-red-500 shadow-glow">
               <Layers className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-xl font-semibold tracking-tight">

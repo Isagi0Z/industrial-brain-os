@@ -58,7 +58,7 @@ export const SignupPage: React.FC = () => {
       }
       const data = await res.json();
       setTokens(data.access_token, data.refresh_token);
-      navigate("/knowledge", { replace: true });
+      navigate("/overview", { replace: true });
     } catch {
       setError("Unable to reach the authentication service.");
     } finally {
@@ -71,7 +71,7 @@ export const SignupPage: React.FC = () => {
       <FadeIn className="w-full max-w-md">
         <div className="glass rounded-2xl p-8 shadow-2xl">
           <div className="mb-8 flex flex-col items-center text-center">
-            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-violet-500 shadow-glow">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-red-500 shadow-glow">
               <Layers className="h-6 w-6 text-white" />
             </div>
             <h1 className="text-xl font-semibold tracking-tight">

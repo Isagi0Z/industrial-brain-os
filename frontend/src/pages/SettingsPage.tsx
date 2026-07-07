@@ -80,7 +80,7 @@ export const SettingsPage: React.FC = () => {
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between rounded-lg border border-border bg-secondary/40 px-4 py-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary to-violet-500 text-xs font-semibold text-white">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-red-500 text-xs font-semibold text-white">
                   IB
                 </div>
                 <div>

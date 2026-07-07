@@ -19,11 +19,11 @@ export const AuroraBackground: React.FC<{
     />
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute -bottom-40 -right-20 h-[30rem] w-[30rem] rounded-full bg-fuchsia-500/20 blur-[130px] motion-safe:animate-pulse-slow"
+      className="pointer-events-none absolute -bottom-40 -right-20 h-[30rem] w-[30rem] rounded-full bg-red-500/15 blur-[130px] motion-safe:animate-pulse-slow"
     />
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute -bottom-32 -left-24 h-[26rem] w-[26rem] rounded-full bg-violet-600/20 blur-[130px] motion-safe:animate-pulse-slow"
+      className="pointer-events-none absolute -bottom-32 -left-24 h-[26rem] w-[26rem] rounded-full bg-amber-500/15 blur-[130px] motion-safe:animate-pulse-slow"
     />
     <div className="relative z-10">{children}</div>
   </div>

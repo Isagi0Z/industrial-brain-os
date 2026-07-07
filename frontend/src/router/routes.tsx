@@ -13,6 +13,7 @@ import { LandingPage } from "../pages/LandingPage";
 import { LoginPage } from "../pages/LoginPage";
 import { SignupPage } from "../pages/SignupPage";
 import { SettingsPage } from "../pages/SettingsPage";
+import { OverviewPage } from "../pages/OverviewPage";
 import { NotFound } from "../pages/NotFound";
 
 export const router = createBrowserRouter([
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
       {
         element: <DashboardLayout />,
         children: [
+          { path: "overview", element: <OverviewPage /> },
           { path: "documents", element: <DocumentHub /> },
           { path: "documents/:id", element: <DocumentDetails /> },
           { path: "knowledge", element: <ChatInterface /> },
