@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { ArrowLeft, Save, Trash2, RefreshCw, FileText } from 'lucide-react';
 import { DocumentViewer } from './DocumentViewer';
+import { UniversalPreview } from './UniversalPreview';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
@@ -191,7 +192,7 @@ export const DocumentDetails: React.FC = () => {
         </Card>
       </div>
 
-      {doc.mime_type === 'application/pdf' && !doc.is_deleted && (
+      {!doc.is_deleted && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -199,7 +200,16 @@ export const DocumentDetails: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <DocumentViewer fileUrl={`/api/v1/documents/${id}/download`} authToken={token} />
+            {doc.mime_type === 'application/pdf' ? (
+              <DocumentViewer fileUrl={`/api/v1/documents/${id}/download`} authToken={token} />
+            ) : (
+              <UniversalPreview
+                docId={id as string}
+                mimeType={doc.mime_type}
+                filename={doc.original_filename}
+                token={token}
+              />
+            )}
           </CardContent>
         </Card>
       )}

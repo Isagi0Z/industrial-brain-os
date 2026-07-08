@@ -14,7 +14,12 @@ from typing import List, Optional
 
 @dataclass
 class GoldenQAItem:
-    """One golden question with its known answer + source coordinates."""
+    """One golden question with its known answer + source coordinates.
+
+    ``alternate_sources`` lists other documents that also contain the fact —
+    the demo corpus is intentionally redundant (the same spec appears in the
+    OEM manual, the JSON spec sheet, inspection reports, ...), so recall must
+    credit any of them, not just one arbitrary canonical source."""
 
     question: str
     expected_answer: str
@@ -22,6 +27,7 @@ class GoldenQAItem:
     source_page: Optional[int]
     expected_entity_mentions: List[str] = field(default_factory=list)
     category: str = "general"
+    alternate_sources: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -35,6 +41,9 @@ class ItemEvaluation:
     faithful: bool  # answer derivable from retrieved context only
     hallucinated: bool  # response cited a non-retrieved source (M14 signal)
     retrieved_count: int
+    # 1-based rank of the first retrieved chunk from a golden source
+    # (None = no hit). Drives MRR and nDCG.
+    first_hit_rank: Optional[int] = None
 
 
 @dataclass
@@ -49,3 +58,7 @@ class EvaluationRun:
     total_items: int
     run_date: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     items: List[ItemEvaluation] = field(default_factory=list)
+    # Ranking-quality aggregates (stored in the JSON report; the DB row keeps
+    # the four headline metrics for the trend view).
+    mrr: float = 0.0
+    ndcg: float = 0.0

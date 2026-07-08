@@ -23,6 +23,7 @@ def load_golden_dataset(path: Path) -> List[GoldenQAItem]:
             source_page=item.get("source_page"),
             expected_entity_mentions=list(item.get("expected_entity_mentions") or []),
             category=item.get("category", "general"),
+            alternate_sources=list(item.get("alternate_sources") or []),
         )
         for item in raw
     ]

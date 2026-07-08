@@ -43,12 +43,16 @@ async def _main(limit: int | None, output: Path) -> int:
         "context_precision": run.context_precision,
         "faithfulness": run.faithfulness,
         "hallucination_rate": run.hallucination_rate,
+        # Ranking-quality aggregates (Performance & Intelligence Upgrade).
+        "mrr": run.mrr,
+        "ndcg": run.ndcg,
         # Per-question detail for the in-app Evaluation Dashboard.
         "items": [
             {
                 "question": it.question,
                 "category": it.category,
                 "recall_hit": it.recall_hit,
+                "first_hit_rank": it.first_hit_rank,
                 "context_precision": it.context_precision,
                 "faithful": it.faithful,
                 "hallucinated": it.hallucinated,

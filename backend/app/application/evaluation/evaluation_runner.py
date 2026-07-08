@@ -23,7 +23,9 @@ from app.application.chat.chat_use_case import ChatUseCase
 from app.application.evaluation.metrics import (
     aggregate,
     context_precision,
-    retrieval_recall_hit,
+    first_golden_hit_rank,
+    mrr,
+    ndcg_at_k,
 )
 from app.domain.chat.models import ChatRequest
 from app.domain.evaluation.interfaces import (
@@ -69,6 +71,7 @@ class EvaluationRunner:
             item_evals.append(await self._evaluate_item(run_id, item))
 
         recall, precision, faithfulness, hallucination_rate = aggregate(item_evals)
+        ranks = [i.first_hit_rank for i in item_evals]
         run = EvaluationRun(
             run_id=run_id,
             retrieval_recall=recall,
@@ -77,6 +80,8 @@ class EvaluationRunner:
             hallucination_rate=hallucination_rate,
             total_items=len(item_evals),
             items=item_evals,
+            mrr=mrr(ranks),
+            ndcg=ndcg_at_k(ranks),
         )
 
         try:
@@ -109,9 +114,13 @@ class EvaluationRunner:
             )
             retrieved = [rc.result for rc in hybrid.ranked_chunks]
 
-            recall_hit = retrieval_recall_hit(
-                item.source_document_id, item.source_page, retrieved
+            hit_rank = first_golden_hit_rank(
+                item.source_document_id,
+                item.source_page,
+                retrieved,
+                item.alternate_sources,
             )
+            recall_hit = hit_rank is not None
 
             relevance_flags = [
                 await self._judge.judge_relevance(r.text, item.expected_answer)
@@ -147,6 +156,7 @@ class EvaluationRunner:
                 faithful=faithful,
                 hallucinated=hallucinated,
                 retrieved_count=len(retrieved),
+                first_hit_rank=hit_rank,
             )
         except Exception as exc:
             logger.error(

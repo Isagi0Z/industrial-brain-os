@@ -21,27 +21,83 @@ def _title_stem(title: str) -> str:
     return stem.strip().lower()
 
 
+def _matches_source(r: SearchResult, want: str, page: Optional[int]) -> bool:
+    """One retrieved chunk vs one golden source slug.
+
+    Slug matching: raw ``document_id`` (UUID-pinned datasets keep working) or
+    the ``document_title`` filename stem, case-insensitive. Page matching:
+    ±1 tolerance — the demo PDFs are regenerated on every seeding and their
+    pagination can shift by a page without the fact moving documents.
+    """
+    doc_id = (r.document_id or "").strip().lower()
+    if doc_id != want and _title_stem(r.document_title) != want:
+        return False
+    if page is None or r.page_number is None:
+        return True
+    return abs(r.page_number - page) <= 1
+
+
+def first_golden_hit_rank(
+    source_document_id: str,
+    source_page: Optional[int],
+    retrieved: Sequence[SearchResult],
+    alternate_sources: Sequence[str] = (),
+) -> Optional[int]:
+    """1-based rank of the first retrieved chunk that comes from ANY golden
+    source (canonical or alternate), or None when nothing hits.
+
+    The demo corpus is intentionally redundant — the same fact often lives in
+    an OEM manual, a JSON spec sheet, and an inspection report — so recall
+    credits every document listed for the item, not one arbitrary canonical
+    source. The page pin applies only to the canonical source; alternates
+    match on document alone.
+    """
+    want = (source_document_id or "").strip().lower()
+    alts = {(a or "").strip().lower() for a in alternate_sources if a}
+    for rank, r in enumerate(retrieved, start=1):
+        if _matches_source(r, want, source_page):
+            return rank
+        for alt in alts:
+            if _matches_source(r, alt, None):
+                return rank
+    return None
+
+
 def retrieval_recall_hit(
     source_document_id: str,
     source_page: Optional[int],
     retrieved: Sequence[SearchResult],
+    alternate_sources: Sequence[str] = (),
 ) -> bool:
-    """Recall@k for one item: True if the golden source appears among the
-    retrieved chunks.
+    """Recall@k for one item: True if any golden source appears among the
+    retrieved chunks (see ``first_golden_hit_rank`` for matching rules)."""
+    return (
+        first_golden_hit_rank(
+            source_document_id, source_page, retrieved, alternate_sources
+        )
+        is not None
+    )
 
-    The golden dataset identifies sources by human-stable slug (the filename
-    stem, e.g. "OEM-P102A-MANUAL") because storage UUIDs change every time the
-    corpus is re-ingested. A retrieved chunk matches when either its raw
-    ``document_id`` equals the slug (UUID-pinned datasets keep working) or its
-    ``document_title`` stem equals it case-insensitively.
+
+def mrr(ranks: Sequence[Optional[int]]) -> float:
+    """Mean Reciprocal Rank over per-item first-hit ranks (None = miss = 0)."""
+    if not ranks:
+        return 0.0
+    return round(sum(1.0 / r for r in ranks if r) / len(ranks), 4)
+
+
+def ndcg_at_k(ranks: Sequence[Optional[int]]) -> float:
+    """Binary-relevance nDCG over per-item first-hit ranks.
+
+    With a single relevant document per query the ideal DCG is 1 (hit at
+    rank 1), so per-item nDCG reduces to 1/log2(rank+1); misses score 0.
     """
-    want = (source_document_id or "").strip().lower()
-    for r in retrieved:
-        doc_id = (r.document_id or "").strip().lower()
-        if doc_id == want or _title_stem(r.document_title) == want:
-            if source_page is None or r.page_number == source_page:
-                return True
-    return False
+    import math
+
+    if not ranks:
+        return 0.0
+    total = sum(1.0 / math.log2(r + 1) for r in ranks if r)
+    return round(total / len(ranks), 4)
 
 
 def context_precision(relevance_flags: Sequence[bool]) -> float:

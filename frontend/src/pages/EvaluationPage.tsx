@@ -90,6 +90,7 @@ export const EvaluationPage: React.FC = () => {
   const [latest, setLatest] = useState<EvalRun | null>(null);
   const [runs, setRuns] = useState<EvalRun[]>([]);
   const [items, setItems] = useState<EvalItem[]>([]);
+  const [ranking, setRanking] = useState<{ mrr: number; ndcg: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -112,6 +113,9 @@ export const EvaluationPage: React.FC = () => {
       if (baselineRes.ok) {
         const b = await baselineRes.json();
         setItems((b.items as EvalItem[]) ?? []);
+        if (typeof b.mrr === 'number' && typeof b.ndcg === 'number') {
+          setRanking({ mrr: b.mrr, ndcg: b.ndcg });
+        }
       }
     } catch {
       setError('Failed to reach the evaluation service.');
@@ -181,7 +185,7 @@ export const EvaluationPage: React.FC = () => {
       )}
 
       {/* Headline metrics */}
-      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-3">
         {[
           {
             label: 'Retrieval Recall@K',
@@ -207,6 +211,18 @@ export const EvaluationPage: React.FC = () => {
             icon: Activity,
             invert: true,
             hint: 'Answers citing non-retrieved sources (lower is better)',
+          },
+          {
+            label: 'MRR',
+            value: ranking?.mrr ?? null,
+            icon: Target,
+            hint: 'Mean reciprocal rank of the first golden source',
+          },
+          {
+            label: 'nDCG',
+            value: ranking?.ndcg ?? null,
+            icon: BarChart3,
+            hint: 'Ranking quality of golden sources in the top-K',
           },
         ].map((m) => (
           <StaggerItem key={m.label}>

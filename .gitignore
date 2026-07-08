@@ -16,3 +16,16 @@ prompt-optimizer/
 *.egg-info/
 .pnpm-debug.log
 .pnpm-store/
+
+# Runtime / debug artifacts
+.coverage
+*.log
+ruvector.db
+backend/diag_*.py
+uvicorn.*.log
+
+# Local agent-tooling scratch (not part of the app)
+.claude-flow/
+.swarm/
+.repowise/
+.repowise-workspace.yaml
