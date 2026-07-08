@@ -1,9 +1,236 @@
 {
-  "run_id": "550c49be-5db8-4ab3-be5f-4fedea877d14",
-  "run_date": "2026-07-03T12:42:26.355407+00:00",
-  "total_items": 22,
-  "retrieval_recall": 0.0,
-  "context_precision": 0.0,
-  "faithfulness": 0.2727,
-  "hallucination_rate": 0.0
+  "run_id": "0a5b95bb-f2b7-46fa-92b8-ae1207dc5659",
+  "run_date": "2026-07-07T20:39:55.176620+00:00",
+  "total_items": 25,
+  "retrieval_recall": 0.2,
+  "context_precision": 0.21,
+  "faithfulness": 0.04,
+  "hallucination_rate": 0.0,
+  "items": [
+    {
+      "question": "What is the rated discharge pressure of centrifugal pump P-102A?",
+      "category": "equipment_lookup",
+      "recall_hit": false,
+      "context_precision": 0.1667,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "Who is the manufacturer of gate valve VLV-501?",
+      "category": "equipment_lookup",
+      "recall_hit": false,
+      "context_precision": 0.4167,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What measurement range does flow transmitter FT-101 cover?",
+      "category": "equipment_lookup",
+      "recall_hit": false,
+      "context_precision": 0.1667,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the model number of thermocouple TE-202?",
+      "category": "equipment_lookup",
+      "recall_hit": false,
+      "context_precision": 0.1667,
+      "faithful": true,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the rated power of motor M-330?",
+      "category": "equipment_lookup",
+      "recall_hit": false,
+      "context_precision": 0.4167,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "How do I isolate pump P-102A before maintenance?",
+      "category": "procedure_query",
+      "recall_hit": false,
+      "context_precision": 0.0,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What are the steps to replace the mechanical seal on P-102A?",
+      "category": "procedure_query",
+      "recall_hit": false,
+      "context_precision": 0.25,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the lockout-tagout procedure for the cooling loop A pumps?",
+      "category": "procedure_query",
+      "recall_hit": true,
+      "context_precision": 0.1667,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the quarterly calibration procedure for flow transmitter FT-101?",
+      "category": "procedure_query",
+      "recall_hit": false,
+      "context_precision": 0.1667,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What PPE is required to open the high-pressure steam header?",
+      "category": "procedure_query",
+      "recall_hit": false,
+      "context_precision": 0.0,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the failure code for bearing seizure and its severity?",
+      "category": "failure_mode_query",
+      "recall_hit": false,
+      "context_precision": 0.5,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the typical cause of gasket leakage failure mode FM-SEAL-03?",
+      "category": "failure_mode_query",
+      "recall_hit": false,
+      "context_precision": 0.1667,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "How is sensor drift detected on thermocouple TE-202?",
+      "category": "failure_mode_query",
+      "recall_hit": false,
+      "context_precision": 0.0,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the detection method for impeller erosion in centrifugal pumps?",
+      "category": "failure_mode_query",
+      "recall_hit": false,
+      "context_precision": 0.0,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What failure mode is associated with motor winding insulation breakdown?",
+      "category": "failure_mode_query",
+      "recall_hit": false,
+      "context_precision": 0.0833,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "Which failure modes does pump P-102A exhibit and which procedure addresses them?",
+      "category": "multi_hop",
+      "recall_hit": false,
+      "context_precision": 0.0833,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What sensors monitor pump P-102A and what do they measure?",
+      "category": "multi_hop",
+      "recall_hit": false,
+      "context_precision": 0.0833,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "Which asset does gate valve VLV-501 belong to, and what process does it serve?",
+      "category": "multi_hop",
+      "recall_hit": false,
+      "context_precision": 0.4167,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What regulation governs the pressure relief testing of the steam header, and what procedure implements it?",
+      "category": "multi_hop",
+      "recall_hit": false,
+      "context_precision": 0.1667,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "Which maintenance work orders reference bearing seizure on rotating equipment?",
+      "category": "multi_hop",
+      "recall_hit": true,
+      "context_precision": 0.5833,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the recommended lubrication interval for pump P-102A bearings?",
+      "category": "procedure_query",
+      "recall_hit": false,
+      "context_precision": 0.1667,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "What is the operating temperature range of process area Refining Unit 03?",
+      "category": "equipment_lookup",
+      "recall_hit": false,
+      "context_precision": 0.5,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "\u092a\u0902\u092a P-102A \u0915\u093e \u0924\u0947\u0932 \u092a\u0930\u093f\u0935\u0930\u094d\u0924\u0928 \u0915\u093f\u0924\u0928\u0947 \u092e\u0939\u0940\u0928\u0947 \u092e\u0947\u0902 \u0939\u094b\u0928\u093e \u091a\u093e\u0939\u093f\u090f?",
+      "category": "multilingual_hindi",
+      "recall_hit": true,
+      "context_precision": 0.25,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "\u0bb5\u0bbe\u0bb2\u0bcd\u0bb5\u0bc1 VLV-501 \u0b87\u0ba9\u0bcd \u0b85\u0ba4\u0bbf\u0b95\u0baa\u0b9f\u0bcd\u0b9a \u0b87\u0baf\u0b95\u0bcd\u0b95 \u0b85\u0bb4\u0bc1\u0ba4\u0bcd\u0ba4\u0bae\u0bcd \u0b8e\u0ba9\u0bcd\u0ba9?",
+      "category": "multilingual_tamil",
+      "recall_hit": true,
+      "context_precision": 0.25,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    },
+    {
+      "question": "According to the scanned field note, what bearing temperature did pump P-102A reach before trip?",
+      "category": "ocr_scanned",
+      "recall_hit": true,
+      "context_precision": 0.0833,
+      "faithful": false,
+      "hallucinated": false,
+      "retrieved_count": 12
+    }
+  ]
 }

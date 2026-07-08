@@ -98,6 +98,17 @@ class Settings(BaseSettings):
     # Ontology configuration (M6)
     ONTOLOGY_FILE: str = "ontology/industrial_ontology.yaml"
 
+    # OCR (Performance & Intelligence Upgrade) — engine auto-selected
+    # (PaddleOCR -> EasyOCR -> none). EasyOCR limits non-Latin scripts to one
+    # per reader: "en,hi" (default) or "en,ta" — swap for Tamil-heavy sites.
+    OCR_LANGUAGES: str = "en,hi"
+
+    # Embedding model (multilingual upgrade path): the default is English-only.
+    # Set EMBEDDING_MODEL=BAAI/bge-m3 (same 1024-dim) for cross-language dense
+    # retrieval — requires re-embedding existing documents. BM25 keyword search
+    # already matches same-language queries regardless of this model.
+    EMBEDDING_MODEL: str = "BAAI/bge-large-en-v1.5"
+
     # Extraction / KG configuration (M7)
     SPACY_MODEL: str = "en_core_web_sm"
     KG_CONFIDENCE_THRESHOLD: float = 0.6

@@ -1,4 +1,8 @@
-"""Sentence-transformers embedding service using BAAI/bge-large-en-v1.5 (1024-dim).
+"""Sentence-transformers embedding service (1024-dim).
+
+The model is configurable via ``EMBEDDING_MODEL`` — default is the English
+``BAAI/bge-large-en-v1.5``; set ``BAAI/bge-m3`` (same 1024-dim) for
+cross-language dense retrieval (re-embed existing documents after switching).
 
 TF must be disabled before this module is imported — set USE_TF=0 in the
 environment. The sentence-transformers library is compatible with PyTorch only
@@ -12,10 +16,11 @@ import os
 from typing import List
 
 from app.domain.search.interfaces import IEmbeddingService
+from app.infrastructure.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
-_MODEL_NAME = "BAAI/bge-large-en-v1.5"
+_MODEL_NAME = settings.EMBEDDING_MODEL
 _VECTOR_DIM = 1024
 
 # Disable TF backend before importing sentence-transformers.

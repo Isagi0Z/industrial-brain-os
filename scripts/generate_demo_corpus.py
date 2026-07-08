@@ -203,6 +203,63 @@ def _safety_pptx() -> bytes | None:
     return buf.getvalue()
 
 
+def _hindi_maintenance_txt() -> bytes:
+    """Hindi maintenance procedure — exercises language detection, BM25
+    same-language retrieval, and answer-in-Hindi generation."""
+    return (
+        "पंप P-102A रखरखाव प्रक्रिया (Refining Unit 03)\n"
+        "\n"
+        "1. पंप P-102A का रेटेड डिस्चार्ज प्रेशर 12 bar है।\n"
+        "2. तेल परिवर्तन हर 3 महीने (तिमाही) में अनिवार्य है।\n"
+        "3. बेयरिंग तापमान 85 डिग्री सेल्सियस से अधिक होने पर पंप तुरंत बंद करें।\n"
+        "4. मैकेनिकल सील की जांच हर सप्ताह करें — रिसाव मिलने पर वर्क ऑर्डर खोलें।\n"
+        "5. कंपन स्तर 7.1 mm/s RMS से ऊपर होने पर वाइब्रेशन विश्लेषण करवाएं।\n"
+        "\n"
+        "सुरक्षा: रखरखाव से पहले SOP-PUMP-ISOLATION के अनुसार लॉकआउट-टैगआउट करें।\n"
+    ).encode("utf-8")
+
+
+def _tamil_safety_txt() -> bytes:
+    """Tamil safety instruction — second Indic language for cross-language demo."""
+    return (
+        "வால்வு VLV-501 பாதுகாப்பு அறிவுரைகள் (Refining Unit 03)\n"
+        "\n"
+        "1. வால்வு VLV-501 இன் இயக்க அழுத்தம் அதிகபட்சம் 16 bar ஆகும்.\n"
+        "2. ஆக்சுவேட்டர் டயாபிராம் ஒவ்வொரு 3 ஆண்டுகளுக்கும் மாற்றப்பட வேண்டும்.\n"
+        "3. பராமரிப்புக்கு முன் லாக்அவுட்-டேக்அவுட் நடைமுறையை பின்பற்றவும்.\n"
+        "4. கசிவு கண்டறியப்பட்டால் உடனடியாக கட்டுப்பாட்டு அறைக்கு தெரிவிக்கவும்.\n"
+    ).encode("utf-8")
+
+
+def _scanned_field_note_png() -> bytes | None:
+    """A synthetic 'scanned' field note (printed English + a Hindi line) —
+    exercises the OCR ingestion path end to end. Returns None when Pillow or
+    the Devanagari-capable font is unavailable."""
+    try:
+        import io as _io
+
+        from PIL import Image, ImageDraw, ImageFont
+
+        img = Image.new("RGB", (1400, 640), "#f4f0e8")
+        d = ImageDraw.Draw(img)
+        font_big = ImageFont.truetype("arial.ttf", 52)
+        font = ImageFont.truetype("arial.ttf", 40)
+        d.text((60, 45), "SCANNED FIELD NOTE - PUMP P-102A", fill="#222", font=font_big)
+        d.text((60, 170), "Bearing temperature reached 95 C before trip.", fill="#333", font=font)
+        d.text((60, 250), "Seal leakage observed at drive end.", fill="#333", font=font)
+        d.text((60, 330), "Recommend oil change and vibration check.", fill="#333", font=font)
+        try:
+            font_hi = ImageFont.truetype("C:/Windows/Fonts/Nirmala.ttc", 46, index=0)
+            d.text((60, 450), "सील बदलने की आवश्यकता है। तेल बदलें।", fill="#333", font=font_hi)
+        except Exception:
+            pass  # Hindi line is a bonus; the English body is the OCR target
+        buf = _io.BytesIO()
+        img.save(buf, format="PNG")
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
 def build() -> List[Tuple[str, bytes]]:
     files: List[Tuple[str, bytes]] = [
         ("SOP-PUMP-ISOLATION.docx", _sop_docx()),
@@ -220,6 +277,13 @@ def build() -> List[Tuple[str, bytes]]:
     pptx = _safety_pptx()
     if pptx is not None:
         files.append(("SAFETY-BRIEFING-P102A.pptx", pptx))
+    # Multilingual intelligence (Performance & Intelligence Upgrade)
+    files.append(("HINDI-MAINT-P102A.txt", _hindi_maintenance_txt()))
+    files.append(("TAMIL-SAFETY-VLV501.txt", _tamil_safety_txt()))
+    # OCR ingestion path — synthetic scanned field note
+    scan = _scanned_field_note_png()
+    if scan is not None:
+        files.append(("SCANNED-FIELD-NOTE-P102A.png", scan))
     # a mixed archive to exercise the ZIP parser
     zbuf = io.BytesIO()
     with zipfile.ZipFile(zbuf, "w", zipfile.ZIP_DEFLATED) as zf:

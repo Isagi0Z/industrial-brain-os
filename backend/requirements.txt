@@ -33,8 +33,17 @@ tiktoken>=0.7.0
 python-docx>=1.1.0
 Pillow>=10.0.0
 openpyxl>=3.1.0
-paddlepaddle>=3.0.0
-paddleocr>=3.0.0
+# OCR — the shared engine seam auto-selects PaddleOCR when present, else
+# EasyOCR (rides the existing torch runtime; en/hi/ta model packs via
+# OCR_LANGUAGES). paddle* are optional extras and not installed by default
+# on py3.9/CPU; EasyOCR is the supported baseline engine.
+easyocr>=1.7.0
+# thinc (spaCy) is binary-incompatible with numpy 2.x — keep the 1.x line,
+# and pin opencv (an easyocr dep) to the 4.x wheels built against numpy 1.x.
+numpy<2
+opencv-python-headless<5
+# Multilingual intelligence — document language detection at ingestion.
+langdetect>=1.0.9
 # Universal ingestion (Performance & Ingestion Upgrade) — PPTX + Outlook .msg.
 # Text/CSV/JSON/XML/HTML/Markdown/EML and ZIP use only the standard library.
 python-pptx>=0.6.23

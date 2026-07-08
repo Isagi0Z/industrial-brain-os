@@ -11,7 +11,9 @@ Orchestrates the full extraction pipeline for a single document:
 from __future__ import annotations
 
 import logging
-from typing import List
+import uuid
+from datetime import datetime, timezone
+from typing import List, Optional
 
 from app.domain.document.constants import DocumentStatus, JobStatus
 from app.domain.document.interfaces import (
@@ -21,12 +23,34 @@ from app.domain.document.interfaces import (
     IJobRepository,
     IStorageService,
 )
-from app.domain.document.models import DocumentChunk
+from app.domain.document.models import DocumentChunk, DocumentMetadata
 from app.domain.document.parser_registry import ParserRegistry
 
 logger = logging.getLogger(__name__)
 
 _BUCKET = "industrial-documents"
+
+# ISO 639-1 -> display name for the languages the platform targets; anything
+# else is preserved with its raw detector code.
+_LANGUAGE_NAMES = {"en": "English", "hi": "Hindi", "ta": "Tamil"}
+
+
+def _detect_language(chunks: List[DocumentChunk]) -> Optional[str]:
+    """Best-effort document language from the first ~2000 chars of real text.
+    Returns an ISO 639-1 code or None — never raises (detection is a
+    metadata enrichment, not a pipeline stage)."""
+    sample = " ".join(
+        c.text for c in chunks if c.text and not c.text.startswith("[Image:")
+    )[:2000].strip()
+    if len(sample) < 20:
+        return None
+    try:
+        from langdetect import DetectorFactory, detect
+
+        DetectorFactory.seed = 0  # deterministic across runs
+        return detect(sample)
+    except Exception:  # noqa: BLE001 - optional dependency / undetectable text
+        return None
 
 
 class DocumentParsingUseCase:
@@ -121,6 +145,35 @@ class DocumentParsingUseCase:
 
         job_repo.update_status(job_id, JobStatus.CHUNKED)
         self._doc_repo.update_status(document_id, DocumentStatus.PROCESSED)
+
+        # ── 4. Language enrichment (multilingual intelligence) ────────────
+        # Detect and persist the document language so search/UI can filter and
+        # the copilot can report provenance. Never fails the pipeline.
+        lang = _detect_language(chunks)
+        if lang:
+            try:
+                existing = self._doc_repo.get_metadata(document_id)
+                merged = dict(existing.metadata) if existing else {}
+                merged["language"] = lang
+                merged["language_name"] = _LANGUAGE_NAMES.get(lang, lang)
+                now = datetime.now(timezone.utc)
+                self._doc_repo.upsert_metadata(
+                    DocumentMetadata(
+                        id=existing.id if existing else str(uuid.uuid4()),
+                        document_id=document_id,
+                        metadata=merged,
+                        created_at=existing.created_at if existing else now,
+                        updated_at=now,
+                    )
+                )
+                logger.info("Document %s language detected: %s", document_id, lang)
+            except Exception as exc:  # noqa: BLE001 - enrichment only
+                logger.warning(
+                    "Language metadata persistence failed for %s: %s",
+                    document_id,
+                    exc,
+                )
+
         logger.info(
             "Document %s successfully chunked into %d chunks.", document_id, len(chunks)
         )

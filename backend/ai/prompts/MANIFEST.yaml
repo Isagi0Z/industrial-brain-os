@@ -68,6 +68,6 @@ prompts:
     path: relation_extraction.yaml
 
   - prompt_id: chat.knowledge_copilot
-    version: "1.1"
+    version: "1.2"
     owning_brain: chat
     path: knowledge_copilot.yaml

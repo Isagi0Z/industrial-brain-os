@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Copy, Sparkles, User } from 'lucide-react';
 import { CitationCard, Citation } from './CitationCard';
+import { MarkdownContent } from './MarkdownContent';
 import { cn } from '../../lib/utils';
 
 export interface Message {
@@ -91,17 +92,22 @@ export const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
       <div className={cn('min-w-0 flex-1', isUser && 'flex flex-col items-end')}>
         <div
           className={cn(
-            'relative max-w-[85%] whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-relaxed',
+            'relative max-w-[85%] break-words rounded-2xl px-4 py-3 text-sm leading-relaxed',
             isUser
-              ? 'bg-primary/15 text-foreground'
+              ? 'whitespace-pre-wrap bg-primary/15 text-foreground'
               : 'border border-border bg-card text-foreground/90'
           )}
         >
           {!isUser && message.isStreaming && !message.content ? (
             <ThinkingIndicator />
+          ) : isUser ? (
+            message.content
           ) : (
             <>
-              {message.content}
+              <MarkdownContent
+                text={message.content}
+                streaming={!!message.isStreaming}
+              />
               {message.isStreaming && (
                 <span className="ml-0.5 inline-block h-4 w-1.5 animate-pulse rounded-sm bg-primary align-text-bottom" />
               )}

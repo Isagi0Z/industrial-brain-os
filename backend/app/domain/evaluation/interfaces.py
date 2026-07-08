@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import List, Optional
 
 from app.domain.evaluation.models import EvaluationRun
 
@@ -33,6 +33,10 @@ class IEvaluationRepository(ABC):
     @abstractmethod
     def get_latest(self) -> Optional[EvaluationRun]:
         """Return the most recent evaluation run, or None if none exist."""
+
+    @abstractmethod
+    def list_runs(self, limit: int = 20) -> List[EvaluationRun]:
+        """Return recent runs newest-first (for the evaluation dashboard)."""
 
 
 class IMetricsRecorder(ABC):

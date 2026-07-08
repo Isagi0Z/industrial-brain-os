@@ -43,8 +43,21 @@ async def _main(limit: int | None, output: Path) -> int:
         "context_precision": run.context_precision,
         "faithfulness": run.faithfulness,
         "hallucination_rate": run.hallucination_rate,
+        # Per-question detail for the in-app Evaluation Dashboard.
+        "items": [
+            {
+                "question": it.question,
+                "category": it.category,
+                "recall_hit": it.recall_hit,
+                "context_precision": it.context_precision,
+                "faithful": it.faithful,
+                "hallucinated": it.hallucinated,
+                "retrieved_count": it.retrieved_count,
+            }
+            for it in run.items
+        ],
     }
-    print(json.dumps(report, indent=2))
+    print(json.dumps({k: v for k, v in report.items() if k != "items"}, indent=2))
 
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8") as fh:

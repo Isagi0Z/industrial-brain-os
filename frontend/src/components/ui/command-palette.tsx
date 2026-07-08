@@ -4,6 +4,7 @@ import {
   BookOpen,
   CornerDownLeft,
   FileText,
+  FlaskConical,
   GitFork,
   LayoutDashboard,
   Lightbulb,
@@ -34,6 +35,7 @@ const NAV_ITEMS: PaletteItem[] = [
   { id: 'nav-comp', group: 'Navigate', title: 'Compliance Brain', icon: ShieldAlert, to: '/compliance' },
   { id: 'nav-rca', group: 'Navigate', title: 'Root Cause Analysis', icon: GitFork, to: '/rca' },
   { id: 'nav-lessons', group: 'Navigate', title: 'Lessons Learned', icon: Lightbulb, to: '/lessons-learned' },
+  { id: 'nav-eval', group: 'Navigate', title: 'Evaluation Dashboard', hint: 'RAG quality metrics', icon: FlaskConical, to: '/evaluation' },
   { id: 'nav-settings', group: 'Navigate', title: 'Settings', icon: Settings, to: '/settings' },
 ];
 

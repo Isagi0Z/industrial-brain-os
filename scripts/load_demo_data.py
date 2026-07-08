@@ -291,8 +291,9 @@ def upload_pdfs(pdfs: List[Path]) -> None:
         print("SKIP upload: set DEMO_USER and DEMO_PASSWORD env vars.")
         return
     with httpx.Client(base_url=base, timeout=60.0) as client:
+        # OAuth2-style login endpoint takes FORM fields, not JSON.
         tok = client.post(
-            "/api/v1/auth/login", json={"username": user, "password": password}
+            "/api/v1/auth/login", data={"username": user, "password": password}
         )
         tok.raise_for_status()
         token = tok.json()["access_token"]
@@ -300,7 +301,7 @@ def upload_pdfs(pdfs: List[Path]) -> None:
         for pdf in pdfs:
             with pdf.open("rb") as fh:
                 resp = client.post(
-                    "/api/v1/documents/upload",
+                    "/api/v1/documents/",
                     headers=headers,
                     files={"file": (pdf.name, fh, "application/pdf")},
                 )

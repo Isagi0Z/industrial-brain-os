@@ -33,18 +33,9 @@ _HEADING_FONT_RATIO = (
 _MIN_TEXT_CHARS = 10  # blocks shorter than this are skipped as noise
 _FOOTER_Y_FRACTION = 0.92  # blocks starting below 92% of page height → footer
 
-try:
-    from paddleocr import PaddleOCR
-
-    _paddle_ocr = PaddleOCR(use_angle_cls=True, lang="en", show_log=False)
-    _PADDLE_AVAILABLE = True
-    logger.info("PaddleOCR loaded successfully.")
-except Exception:
-    _paddle_ocr = None
-    _PADDLE_AVAILABLE = False
-    logger.warning(
-        "PaddleOCR not available — image pages will be stored as figure chunks."
-    )
+# OCR goes through the shared engine seam (PaddleOCR -> EasyOCR -> none) so
+# scanned pages degrade to figure chunks only when no engine is installed.
+from app.infrastructure.document.parsing.ocr_engine import ocr_image  # noqa: E402
 
 
 def _median(values: List[float]) -> float:
@@ -103,15 +94,9 @@ def _classify_block(
 
 
 def _ocr_image_page(page: fitz.Page) -> Optional[str]:
-    if not _PADDLE_AVAILABLE or _paddle_ocr is None:
-        return None
+    """Rasterise a text-poor (scanned) page and OCR it via the shared engine."""
     pix = page.get_pixmap(dpi=150)
-    img_bytes = pix.tobytes("png")
-    result = _paddle_ocr.ocr(img_bytes, cls=True)
-    if not result or not result[0]:
-        return None
-    lines = [item[1][0] for line in result for item in line if item[1][0].strip()]
-    return "\n".join(lines)
+    return ocr_image(pix.tobytes("png"))
 
 
 class PyMuPDFParser(IDocumentParser):

@@ -4,7 +4,9 @@
     "expected_answer": "Pump P-102A has a rated discharge pressure of 12 bar.",
     "source_document_id": "OEM-P102A-MANUAL",
     "source_page": 4,
-    "expected_entity_mentions": ["P-102A"],
+    "expected_entity_mentions": [
+      "P-102A"
+    ],
     "category": "equipment_lookup"
   },
   {
@@ -12,7 +14,9 @@
     "expected_answer": "Gate valve VLV-501 is manufactured by Velan.",
     "source_document_id": "ASSET-REGISTER-UNIT03",
     "source_page": 12,
-    "expected_entity_mentions": ["VLV-501"],
+    "expected_entity_mentions": [
+      "VLV-501"
+    ],
     "category": "equipment_lookup"
   },
   {
@@ -20,7 +24,9 @@
     "expected_answer": "Flow transmitter FT-101 measures 0 to 500 m3/h.",
     "source_document_id": "INSTRUMENT-DATASHEET-FT101",
     "source_page": 1,
-    "expected_entity_mentions": ["FT-101"],
+    "expected_entity_mentions": [
+      "FT-101"
+    ],
     "category": "equipment_lookup"
   },
   {
@@ -28,7 +34,9 @@
     "expected_answer": "Thermocouple TE-202 is a type-K sensor, model TC-K-202.",
     "source_document_id": "INSTRUMENT-DATASHEET-TE202",
     "source_page": 1,
-    "expected_entity_mentions": ["TE-202"],
+    "expected_entity_mentions": [
+      "TE-202"
+    ],
     "category": "equipment_lookup"
   },
   {
@@ -36,7 +44,9 @@
     "expected_answer": "Motor M-330 is rated at 75 kW.",
     "source_document_id": "OEM-M330-MANUAL",
     "source_page": 2,
-    "expected_entity_mentions": ["M-330"],
+    "expected_entity_mentions": [
+      "M-330"
+    ],
     "category": "equipment_lookup"
   },
   {
@@ -44,7 +54,9 @@
     "expected_answer": "Close the suction and discharge valves, apply lockout-tagout, and depressurise the casing before opening the pump.",
     "source_document_id": "SOP-PUMP-ISOLATION",
     "source_page": 3,
-    "expected_entity_mentions": ["P-102A"],
+    "expected_entity_mentions": [
+      "P-102A"
+    ],
     "category": "procedure_query"
   },
   {
@@ -52,7 +64,9 @@
     "expected_answer": "Isolate and drain the pump, remove the coupling guard and coupling, remove the seal gland, extract the worn seal, install the new seal, and reassemble to torque spec.",
     "source_document_id": "OEM-P102A-MANUAL",
     "source_page": 18,
-    "expected_entity_mentions": ["P-102A"],
+    "expected_entity_mentions": [
+      "P-102A"
+    ],
     "category": "procedure_query"
   },
   {
@@ -60,7 +74,9 @@
     "expected_answer": "Stop the pump, open the electrical isolator, apply a personal lock and tag, and verify zero energy before work.",
     "source_document_id": "SOP-LOTO-COOLING-A",
     "source_page": 1,
-    "expected_entity_mentions": ["Cooling Loop A"],
+    "expected_entity_mentions": [
+      "Cooling Loop A"
+    ],
     "category": "procedure_query"
   },
   {
@@ -68,7 +84,9 @@
     "expected_answer": "Apply a known reference flow at 0, 50, and 100 percent, record the transmitter output, and adjust zero and span within tolerance.",
     "source_document_id": "SOP-CALIBRATION-FT",
     "source_page": 2,
-    "expected_entity_mentions": ["FT-101"],
+    "expected_entity_mentions": [
+      "FT-101"
+    ],
     "category": "procedure_query"
   },
   {
@@ -84,7 +102,9 @@
     "expected_answer": "Bearing seizure is failure code FM-BRG-01 with HIGH severity.",
     "source_document_id": "FMEA-ROTATING-EQUIPMENT",
     "source_page": 7,
-    "expected_entity_mentions": ["FM-BRG-01"],
+    "expected_entity_mentions": [
+      "FM-BRG-01"
+    ],
     "category": "failure_mode_query"
   },
   {
@@ -92,7 +112,9 @@
     "expected_answer": "Gasket leakage FM-SEAL-03 is typically caused by over-torqued or degraded gaskets and thermal cycling.",
     "source_document_id": "FMEA-STATIC-EQUIPMENT",
     "source_page": 4,
-    "expected_entity_mentions": ["FM-SEAL-03"],
+    "expected_entity_mentions": [
+      "FM-SEAL-03"
+    ],
     "category": "failure_mode_query"
   },
   {
@@ -100,7 +122,9 @@
     "expected_answer": "Sensor drift on TE-202 is detected by comparing readings against a reference thermocouple during calibration and flagging deviation beyond tolerance.",
     "source_document_id": "FMEA-INSTRUMENTATION",
     "source_page": 9,
-    "expected_entity_mentions": ["TE-202"],
+    "expected_entity_mentions": [
+      "TE-202"
+    ],
     "category": "failure_mode_query"
   },
   {
@@ -116,7 +140,9 @@
     "expected_answer": "Motor winding insulation breakdown is failure mode FM-MOT-02, detected by insulation resistance testing.",
     "source_document_id": "FMEA-ELECTRICAL",
     "source_page": 3,
-    "expected_entity_mentions": ["FM-MOT-02"],
+    "expected_entity_mentions": [
+      "FM-MOT-02"
+    ],
     "category": "failure_mode_query"
   },
   {
@@ -124,7 +150,10 @@
     "expected_answer": "Pump P-102A exhibits bearing seizure (FM-BRG-01), which is addressed by the mechanical seal and bearing replacement procedure in the OEM manual.",
     "source_document_id": "FMEA-ROTATING-EQUIPMENT",
     "source_page": 7,
-    "expected_entity_mentions": ["P-102A", "FM-BRG-01"],
+    "expected_entity_mentions": [
+      "P-102A",
+      "FM-BRG-01"
+    ],
     "category": "multi_hop"
   },
   {
@@ -132,7 +161,11 @@
     "expected_answer": "Pump P-102A is monitored by flow transmitter FT-101 (flow) and thermocouple TE-202 (bearing temperature).",
     "source_document_id": "PID-UNIT03",
     "source_page": 2,
-    "expected_entity_mentions": ["P-102A", "FT-101", "TE-202"],
+    "expected_entity_mentions": [
+      "P-102A",
+      "FT-101",
+      "TE-202"
+    ],
     "category": "multi_hop"
   },
   {
@@ -140,7 +173,10 @@
     "expected_answer": "Gate valve VLV-501 is part of Cooling Loop A, serving the cooling water supply process.",
     "source_document_id": "PID-UNIT03",
     "source_page": 6,
-    "expected_entity_mentions": ["VLV-501", "Cooling Loop A"],
+    "expected_entity_mentions": [
+      "VLV-501",
+      "Cooling Loop A"
+    ],
     "category": "multi_hop"
   },
   {
@@ -156,7 +192,10 @@
     "expected_answer": "Work order WO-99201 references bearing seizure repair on pump P-102A.",
     "source_document_id": "CMMS-WORKORDERS",
     "source_page": 1,
-    "expected_entity_mentions": ["WO-99201", "P-102A"],
+    "expected_entity_mentions": [
+      "WO-99201",
+      "P-102A"
+    ],
     "category": "multi_hop"
   },
   {
@@ -164,7 +203,9 @@
     "expected_answer": "Pump P-102A bearings should be lubricated monthly per the preventive maintenance schedule.",
     "source_document_id": "OEM-P102A-MANUAL",
     "source_page": 22,
-    "expected_entity_mentions": ["P-102A"],
+    "expected_entity_mentions": [
+      "P-102A"
+    ],
     "category": "procedure_query"
   },
   {
@@ -172,7 +213,39 @@
     "expected_answer": "Refining Unit 03 operates between 40 and 180 degrees Celsius.",
     "source_document_id": "PROCESS-DESIGN-UNIT03",
     "source_page": 8,
-    "expected_entity_mentions": ["Refining Unit 03"],
+    "expected_entity_mentions": [
+      "Refining Unit 03"
+    ],
     "category": "equipment_lookup"
+  },
+  {
+    "question": "पंप P-102A का तेल परिवर्तन कितने महीने में होना चाहिए?",
+    "expected_answer": "पंप P-102A का तेल परिवर्तन हर 3 महीने (तिमाही) में अनिवार्य है।",
+    "source_document_id": "HINDI-MAINT-P102A",
+    "source_page": null,
+    "expected_entity_mentions": [
+      "P-102A"
+    ],
+    "category": "multilingual_hindi"
+  },
+  {
+    "question": "வால்வு VLV-501 இன் அதிகபட்ச இயக்க அழுத்தம் என்ன?",
+    "expected_answer": "வால்வு VLV-501 இன் இயக்க அழுத்தம் அதிகபட்சம் 16 bar ஆகும்.",
+    "source_document_id": "TAMIL-SAFETY-VLV501",
+    "source_page": null,
+    "expected_entity_mentions": [
+      "VLV-501"
+    ],
+    "category": "multilingual_tamil"
+  },
+  {
+    "question": "According to the scanned field note, what bearing temperature did pump P-102A reach before trip?",
+    "expected_answer": "The scanned field note records that the bearing temperature reached 95 C before the trip.",
+    "source_document_id": "SCANNED-FIELD-NOTE-P102A",
+    "source_page": null,
+    "expected_entity_mentions": [
+      "P-102A"
+    ],
+    "category": "ocr_scanned"
   }
 ]

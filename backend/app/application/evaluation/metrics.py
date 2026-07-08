@@ -13,15 +13,32 @@ from app.domain.evaluation.models import ItemEvaluation
 from app.domain.search.models import SearchResult
 
 
+def _title_stem(title: str) -> str:
+    """Filename stem, lowercased: "OEM-P102A-Manual.pdf" -> "oem-p102a-manual"."""
+    stem = (title or "").rsplit("/", 1)[-1]
+    if "." in stem:
+        stem = stem.rsplit(".", 1)[0]
+    return stem.strip().lower()
+
+
 def retrieval_recall_hit(
     source_document_id: str,
     source_page: Optional[int],
     retrieved: Sequence[SearchResult],
 ) -> bool:
-    """Recall@k for one item: True if the golden source (document_id, and the
-    page when specified) appears among the retrieved chunks."""
+    """Recall@k for one item: True if the golden source appears among the
+    retrieved chunks.
+
+    The golden dataset identifies sources by human-stable slug (the filename
+    stem, e.g. "OEM-P102A-MANUAL") because storage UUIDs change every time the
+    corpus is re-ingested. A retrieved chunk matches when either its raw
+    ``document_id`` equals the slug (UUID-pinned datasets keep working) or its
+    ``document_title`` stem equals it case-insensitively.
+    """
+    want = (source_document_id or "").strip().lower()
     for r in retrieved:
-        if r.document_id == source_document_id:
+        doc_id = (r.document_id or "").strip().lower()
+        if doc_id == want or _title_stem(r.document_title) == want:
             if source_page is None or r.page_number == source_page:
                 return True
     return False

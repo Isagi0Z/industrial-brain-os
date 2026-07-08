@@ -1,0 +1,9 @@
+{
+  "run_id": "550c49be-5db8-4ab3-be5f-4fedea877d14",
+  "run_date": "2026-07-03T12:42:26.355407+00:00",
+  "total_items": 22,
+  "retrieval_recall": 0.0,
+  "context_precision": 0.0,
+  "faithfulness": 0.2727,
+  "hallucination_rate": 0.0
+}

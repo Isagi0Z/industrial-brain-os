@@ -8,6 +8,7 @@ import {
   Lightbulb,
   Layers,
   LayoutDashboard,
+  FlaskConical,
   FileText,
   Network,
   Menu,
@@ -49,6 +50,10 @@ const NAV_GROUPS = [
       { name: 'Root Cause', path: '/rca', icon: GitFork },
       { name: 'Lessons Learned', path: '/lessons-learned', icon: Lightbulb },
     ],
+  },
+  {
+    label: 'Quality',
+    items: [{ name: 'Evaluation', path: '/evaluation', icon: FlaskConical }],
   },
 ];
 
