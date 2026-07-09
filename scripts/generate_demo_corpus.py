@@ -298,8 +298,9 @@ def upload(files: List[Tuple[str, bytes]]) -> None:
     import httpx
 
     base = os.environ.get("DEMO_API_BASE", "http://127.0.0.1:8000")
-    user = os.environ.get("DEMO_USER", "ratish01@industrialbrain.local")
-    pw = os.environ.get("DEMO_PASSWORD", "Ratish*966")
+    # Demo credentials come from the environment; override before running.
+    user = os.environ.get("DEMO_USER", "demo@industrialbrain.local")
+    pw = os.environ.get("DEMO_PASSWORD", "DemoPass123!")
     with httpx.Client(base_url=base, timeout=60.0) as c:
         tok = c.post("/api/v1/auth/login", data={"username": user, "password": pw}).json()["access_token"]
         h = {"Authorization": f"Bearer {tok}"}

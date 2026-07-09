@@ -29,3 +29,10 @@ uvicorn.*.log
 .swarm/
 .repowise/
 .repowise-workspace.yaml
+
+# Local AI-agent config, settings & internal engineering workflow
+# (kept local for contributors; not part of the public project)
+.claude/
+.mcp.json
+CLAUDE.md
+docs/claude_workflow.md

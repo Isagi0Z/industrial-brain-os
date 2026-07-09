@@ -2,8 +2,7 @@
 
 This guide takes a new engineer from a clean machine to a fully running
 Industrial Brain OS stack: infrastructure, backend API, Celery worker,
-frontend console, local LLM, and the optional developer-productivity tooling
-(RepoWise, Claude Code, RuFlo) used by the original team.
+frontend console, local LLM, and optional codebase-intelligence tooling.
 
 > Verified against `feature/bootstrap` @ `6ad263a`. All commands below were run
 > against the actual repository — paths, ports, and defaults match

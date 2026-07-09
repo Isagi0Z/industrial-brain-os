@@ -92,7 +92,7 @@ Then open:
 - Health check: **http://localhost:8000/api/v1/health**
 
 Full, platform-specific instructions (including required AI models and
-optional developer tooling like RepoWise/Claude Code) are in
+optional codebase-intelligence tooling) are in
 [`docs/manual/INSTALLATION.md`](docs/manual/INSTALLATION.md).
 
 ---
